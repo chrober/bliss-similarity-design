@@ -65,8 +65,47 @@ evaluation.
 
 ## Project context
 
-- [`Polochon-street/bliss-rs`](https://github.com/Polochon-street/bliss-rs) is the upstream, player-neutral analysis library.
-- [`Polochon-street/blissify-rs`](https://github.com/Polochon-street/blissify-rs) represents the MPD ecosystem.
-- [`CDrummond/bliss-mixer`](https://github.com/CDrummond/bliss-mixer) provides the upstream HTTP mixing service.
-- [`chrober/bliss-mixer`](https://github.com/chrober/bliss-mixer) adds variance-based weighting and learned-matrix support.
-- [`chrober/lms-blissmixer`](https://github.com/chrober/lms-blissmixer) integrates the mixer with Lyrion Music Server and hosts current user-facing experiments.
+The repositories directly involved in the design's lineage and implementation
+are listed first. Repositories used only as platform evidence or external
+comparison baselines follow, so their inclusion does not imply that they are
+proposed dependencies. This inventory includes every GitHub repository linked
+elsewhere in the site.
+
+### Documentation
+
+| Repository | Role in this work |
+|---|---|
+| [`chrober/bliss-similarity-design`](https://github.com/chrober/bliss-similarity-design) | Canonical source for this cross-repository research and design site. |
+
+### Bliss and MPD lineage
+
+| Repository | Role in this work |
+|---|---|
+| [`Polochon-street/bliss-rs`](https://github.com/Polochon-street/bliss-rs) | Upstream, player-neutral audio-analysis library and owner of the stable Bliss representation. |
+| [`Polochon-street/blissify-rs`](https://github.com/Polochon-street/blissify-rs) | MPD application demonstrating analysis persistence, configurable metrics, playlist generation, and consumption of a learned matrix. |
+| [`Polochon-street/bliss-metric-learning`](https://github.com/Polochon-street/bliss-metric-learning) | Upstream experimental odd-one-out survey and Python metric trainer built around a `blissify-rs` library. |
+
+### LMS lineage and current experiments
+
+| Repository | Role in this work |
+|---|---|
+| [`CDrummond/bliss-analyser`](https://github.com/CDrummond/bliss-analyser) | Original offline analyzer and owner of the LMS-side `bliss.db` schema. |
+| [`CDrummond/bliss-mixer`](https://github.com/CDrummond/bliss-mixer) | Original HTTP mixing service and source of the Static Weights and Extended Isolation Forest strategies. |
+| [`CDrummond/lms-blissmixer`](https://github.com/CDrummond/lms-blissmixer) | Original Lyrion Music Server plugin and upstream of the current `chrober/lms-blissmixer` fork. |
+| [`chrober/bliss-mixer`](https://github.com/chrober/bliss-mixer) | Mixer fork adding variance-based Adaptive Weighting and learned-matrix loading, use, and blending. |
+| [`chrober/lms-blissmixer`](https://github.com/chrober/lms-blissmixer) | LMS integration fork hosting the current similarity survey and user-facing experiments. |
+| [`chrober/bliss-learner`](https://github.com/chrober/bliss-learner) | Experimental Rust port of the `bliss-metric-learning` training workflow, adapted to the LMS survey and consumed by the mixer fork. |
+
+### Platform and historical evidence
+
+| Repository | Role in this work |
+|---|---|
+| [`LMS-Community/slimserver`](https://github.com/LMS-Community/slimserver) | Lyrion Music Server source and preserved MusicMagic/MusicIP plugin behavior used as historical implementation evidence. |
+
+### External comparison and research baselines
+
+| Repository | Role in this work |
+|---|---|
+| [`NeptuneHub/AudioMuse-AI`](https://github.com/NeptuneHub/AudioMuse-AI) | Current self-hosted end-to-end comparison system with sonic analysis, similarity, clustering, paths, and LMS/Lyrion integration. |
+| [`MTG/essentia`](https://github.com/MTG/essentia) | Broad audio-analysis and model-inference framework used as a descriptor and representation baseline. |
+| [`jordipons/musicnn`](https://github.com/jordipons/musicnn) | Pretrained music-tagging and feature-extraction models used as a learned-representation baseline. |
