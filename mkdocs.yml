@@ -1,0 +1,86 @@
+site_name: Bliss Similarity and Analysis Design
+site_description: Research and design for evolving Bliss analysis, similarity, and mixing quality
+site_url: https://chrober.github.io/bliss-similarity-design/
+repo_url: https://github.com/chrober/bliss-similarity-design
+repo_name: chrober/bliss-similarity-design
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  language: en
+  features:
+    - navigation.sections
+    - navigation.path
+    - navigation.tracking
+    - navigation.top
+    - toc.follow
+    - content.code.copy
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: deep purple
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep purple
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+nav:
+  - Overview: index.md
+  - Foundations:
+      - Current system and ecosystem: foundations/current-system.md
+  - Research:
+      - Analysis research: research/analysis-research.md
+      - Mixing and playlist research: research/mixing-research.md
+      - MusicIP and current comparisons: research/comparison-systems.md
+  - Analysis evolution:
+      - Current bliss-rs analysis: analysis/current-analysis.md
+      - Scope and principles: analysis/overview.md
+      - Products and descriptors: analysis/representations.md
+      - Temporal data and confidence: analysis/temporal-and-confidence.md
+      - API and extraction pipeline: analysis/api-and-pipeline.md
+      - Versioning and storage: analysis/versioning-and-storage.md
+  - Mixing design:
+      - Scope and architecture: mixing/overview.md
+      - Enhanced analysis inputs: mixing/analysis-inputs.md
+      - Similarity strategies: mixing/similarity-strategies.md
+      - Context and diversity: mixing/context-and-diversity.md
+      - Personalization: mixing/personalization.md
+      - Transition-aware selection: mixing/transitions.md
+      - Operational concerns: mixing/operations.md
+  - Integration:
+      - Metadata and persistence: integration/metadata-and-persistence.md
+      - Downstream consumers: integration/downstream-consumers.md
+  - Evaluation and delivery:
+      - Analysis evaluation: evaluation/analysis-evaluation.md
+      - Mixing evaluation: evaluation/mixing-evaluation.md
+      - Analysis roadmap: evaluation/analysis-roadmap.md
+      - Mixing roadmap: evaluation/mixing-roadmap.md
+  - References:
+      - Implementation evidence: references/implementation-evidence.md
+      - Related bliss-rs resources: references/related-resources.md
+
+copyright: Research and design proposal maintained by Christoph Röber

@@ -1,0 +1,176 @@
+# Temporal representation, invariance, and confidence
+
+**Status:** Living research and design proposal  
+**Primary scope:** Time-varying evidence and measurement contracts  
+**Last reviewed:** 2026-07-14
+
+## Temporal representation design
+
+The following diagram shows temporal alignment and derivation policy. It does
+not prescribe one cadence, require segmentation, or imply that anchors depend
+on structural boundaries:
+
+```mermaid
+flowchart TB
+    AUDIO[Sample-accurate audio timeline<br/>timestamps derived from sample positions]
+
+    AUDIO --> RHYTHM[Fine onset and<br/>rhythm series]
+    AUDIO --> TIMBRE[Spectral and<br/>timbral series]
+    AUDIO --> LOUD[Loudness and<br/>dynamic series]
+    AUDIO --> TONAL[Tonal and<br/>chroma series]
+
+    RHYTHM --> POLICY{Temporal representation<br/>policy}
+    TIMBRE --> POLICY
+    LOUD --> POLICY
+    TONAL --> POLICY
+
+    POLICY -->|Resample to declared cadence| ALIGNED[Aligned frame matrix<br/>common timeline]
+    POLICY -->|Retain native cadences| TYPED[Separate typed series<br/>family-specific timelines]
+
+    ALIGNED -. optional pooling .-> SUMMARY[Multi-scale and robust<br/>global summaries]
+    TYPED -. optional pooling .-> SUMMARY
+
+    ALIGNED -. optional structural input .-> SSM[Self-similarity and<br/>novelty evidence]
+    TYPED -. optional structural input .-> SSM
+    SSM --> BOUND[Boundary hypotheses<br/>with confidence and scale]
+    BOUND -. optional aggregation .-> SEG[Segments and<br/>segment vectors]
+
+    AUDIO --> FIXED[Fixed or duration-relative<br/>intro and outro views]
+    BOUND -. optional structure alignment .-> STRUCTANCHOR[Structure-informed<br/>boundary views]
+    FIXED --> ANCHOR[Configured anchors]
+    STRUCTANCHOR --> ANCHOR
+
+    META[Cross-cutting contract<br/>schema identity, timing,<br/>confidence, and provenance]
+    META -. applies to .-> ALIGNED
+    META -. applies to .-> TYPED
+    META -. applies to .-> BOUND
+    META -. applies to .-> SEG
+    META -. applies to .-> ANCHOR
+```
+
+### Frame cadence
+
+No universal frame duration and hop is assumed. Fine cadence improves boundary
+and onset detail but increases storage and may make slow structure noisy. A
+prototype should compare at least:
+
+- one shared fine sequence with later pooling;
+- separate cadences for rhythmic, timbral, and structural evidence;
+- multi-scale summaries derived from shared low-level measurements;
+- fixed musical or wall-clock windows against context-sensitive segmentation.
+
+Frame timestamps should be derived from sample positions, not accumulated
+floating-point durations.
+
+### Feature alignment
+
+Descriptor families naturally operate at different windows and hops. A single
+rectangular `frame_count x feature_count` matrix is convenient but may imply
+false simultaneity.
+
+Options include:
+
+1. resample all measurements onto a declared common timeline;
+2. retain separate typed series per descriptor family;
+3. expose low-level typed series and derive an aligned consumer representation.
+
+The first storage prototype may use an aligned sequence, but the API should not
+foreclose typed cadences if alignment loses important information.
+
+### Segmentation
+
+Segmentation should not initially assume K-means or named verse/chorus labels.
+A general pipeline can expose:
+
+- feature source and scale;
+- self-similarity construction;
+- novelty computation;
+- peak/change-point candidates;
+- boundary confidence;
+- optional segment vector aggregation;
+- optional alternative boundary levels or hypotheses.
+
+Consumers can compare fixed windows, change points, and explicit segments before
+one method becomes stable API. A boundary result should state whether it was
+driven by harmony, timbre, rhythm, a fused representation, or a learned model.
+Two valid structural analyses of the same track may emphasize different
+properties or time scales.
+
+For the first prototype, fixed-window and conventional self-similarity/novelty
+baselines should precede a learned or context-sensitive segmenter. This provides
+an interpretable reference, keeps incremental analysis cost measurable, and
+avoids coupling the public representation to an early model.
+
+### Anchors
+
+Anchor extraction needs explicit policy:
+
+- fixed or duration-relative length;
+- leading/trailing digital-silence handling;
+- fade preservation;
+- short-track behavior;
+- one window versus several pooled subwindows;
+- descriptor validity on the selected duration.
+
+An intro/outro is a configured view of the audio, not an intrinsic universal
+boundary. Its policy belongs in schema identity.
+
+## Invariance contracts
+
+Each descriptor or representation should document expected behavior under
+controlled transformations. "Invariant" alone is too narrow. At least three
+behaviors are useful:
+
+- **invariant:** the representation should remain within a declared tolerance;
+- **sensitive:** the transformation intentionally changes the evidence because
+  the property may matter to a downstream task;
+- **equivariant or controllable:** the output should change in a predictable,
+  documented way, allowing the consumer to retain or manipulate that property.
+
+A representation can expose more than one view. For example, transposition-
+invariant harmonic character and absolute-key evidence can be derived from the
+same retained tonal sequence without claiming that either is universally
+correct.
+
+Examples:
+
+| Transformation | Possible global contract | Possible task-sensitive contract |
+|---|---|---|
+| Constant gain | Spectral/harmonic views invariant after normalization | Loudness and boundary mismatch remain sensitive |
+| Codec change | Stable within a measured tolerance | Confidence may fall for severe artifacts |
+| Small leading/trailing trim | Whole-track summaries mostly invariant | Anchor timing and boundary shape remain sensitive |
+| Alternate master | Musical-content views mostly invariant | Dynamics, spectral balance, and loudness remain sensitive |
+| Time stretch | Style/timbre view may be invariant | Tempo and groove are sensitive; a learned representation may be tempo-equivariant |
+| Pitch transposition | Harmonic-character view may be invariant | Absolute key and bass register remain sensitive |
+| Equalization | Some learned/global views may suppress it | Timbre and bass-weight views remain sensitive |
+| Added boundary silence | Often ignored by global summaries | Preserved by intro/outro views under declared policy |
+
+There is no correct universal preprocessing chain. Task-specific consumers may
+derive different views from the same retained evidence. The schema must identify
+which view was produced.
+
+For learned representations, the contract is partly established by training
+data, positive-pair construction, augmentations, and objective. These are not
+incidental implementation details. A model trained to ignore pitch shifts or
+time stretching must not be advertised for key- or tempo-sensitive retrieval
+without separate evidence. Transformation tests should verify the claimed
+behavior directly on held-out audio.
+
+## Feature confidence
+
+Confidence should accompany measurements that can be ambiguous or unsupported:
+
+- tempo detector confidence and half/double-time alternatives;
+- key ambiguity and competing modes;
+- soft chord or sonority alternatives where inferred;
+- weak-tonality or unsupported-domain evidence;
+- insufficient onset count;
+- short-window validity;
+- segmentation boundary strength;
+- alternative-structural-hypothesis support;
+- silence/fade confidence;
+- instrument classifier probability or entropy.
+
+Consumers should be able to downweight or omit unreliable components. Missing
+or invalid evidence must not be encoded as an ordinary zero unless zero is a
+valid, distinguishable measurement.
