@@ -1,4 +1,4 @@
-# Bliss Playlist Optimizer productization and implementation plan
+# Bliss 'Em All productization and implementation plan
 
 **Status:** Proposed  
 **Date:** 2026-07-19  
@@ -11,8 +11,8 @@ Rust implementation reaches declared parity.
 
 ## Decision summary
 
-Build a companion Lyrion plugin, provisionally named **Bliss Playlist
-Optimizer**, with its own native Rust helper. Extract the scoring, database,
+Build a companion Lyrion plugin named **Bliss 'Em All**, with its own native
+Rust helper. Extract the scoring, database,
 matrix, and filtering behavior currently embedded in `bliss-mixer` into a
 versioned `bliss-mixer-core` Rust library used by both native applications.
 
@@ -23,7 +23,7 @@ lms-blissmixer (unchanged)
   owns analysis, bliss.db, learned matrix, and mixer preferences
                        |
                        v
-lms-bliss-playlist-optimizer (new Perl plugin)
+lms-bliss-em-all (new Perl plugin)
   owns LMS integration, LastMix integration, jobs, UX, reports, and playlists
                        |
                        v
@@ -78,12 +78,19 @@ package names, plugin identifiers, release URLs, and documentation do not churn.
 | --- | --- | --- | --- |
 | `chrober/bliss-mixer-core` | New | Reusable Rust library for Bliss database access, shared models, matrices, filters, and similarity scoring | Tagged Rust library source; optional crates.io package later |
 | `chrober/bliss-playlist-optimizer` | New | Headless fixed-set ordering and bridge-selection engine | Native executables and checksums per supported platform |
-| `chrober/lms-bliss-playlist-optimizer` | New | Perl Lyrion plugin, UI, jobs, LastMix adapter, playlist persistence, and bundled optimizer executables | Platform-specific LMS plugin ZIP files |
+| `chrober/lms-bliss-em-all` | New | Perl Lyrion plugin, UI, jobs, LastMix adapter, playlist persistence, and bundled optimizer executables | Platform-specific LMS plugin ZIP files |
 | `chrober/lms-plugins` | Existing; reuse | Lyrion extension repository listing the new plugin alongside BlissMixer | `repo.xml` served from the existing raw GitHub URL |
 | `chrober/bliss-mixer` | Existing | Refactor the maintained fork to consume `bliss-mixer-core` without changing `/api/mix` or `/api/list` behavior | Existing mixer binaries |
 | `chrober/lms-blissmixer` | Existing; unchanged by this project | Produces and maintains the analysis artifacts and preferences consumed by the companion plugin | Existing LMS plugin ZIP files |
 | `chrober/bliss-similarity-design` | Existing | Canonical design, prototype evidence, parity fixtures policy, and cross-repository decisions | Documentation site |
 
+The settled component identities are:
+
+- display name: **Bliss 'Em All**;
+- GitHub repository: `chrober/lms-bliss-em-all`;
+- plugin directory and Perl namespace root: `BlissEmAll`;
+- LMS command namespace: `blissemall`; and
+- native executable: `bliss-playlist-optimizer`.
 The existing local `D:\LMS\lms-plugins` checkout already points to
 `chrober/lms-plugins` and contains a valid `repo.xml`. It should be committed and
 extended rather than replaced by another extension-index repository. A separate
@@ -277,7 +284,7 @@ Each result includes:
 - Consider an optimizer-owned snapshot for long jobs if live read consistency
   cannot be guaranteed; snapshots must live in the plugin cache and never Git.
 
-## `lms-bliss-playlist-optimizer` design
+## `lms-bliss-em-all` design
 
 ### Dependency model
 
@@ -308,7 +315,7 @@ Keep all observed BlissMixer compatibility assumptions in one module, for
 example:
 
 ```text
-Plugins::BlissPlaylistOptimizer::BlissCompatibility
+Plugins::BlissEmAll::BlissCompatibility
 ```
 
 That adapter derives the current preferences directory, reads
@@ -319,7 +326,7 @@ never changes BlissMixer preferences.
 ### Proposed plugin modules
 
 ```text
-BlissPlaylistOptimizer/
+BlissEmAll/
   install.xml
   Plugin.pm
   Settings.pm
@@ -330,7 +337,7 @@ BlissPlaylistOptimizer/
   PlaylistWriter.pm
   Report.pm
   strings.txt
-  HTML/EN/plugins/BlissPlaylistOptimizer/
+  HTML/EN/plugins/BlissEmAll/
   Bin/<platform>/bliss-playlist-optimizer[.exe]
 ```
 
@@ -339,12 +346,12 @@ BlissPlaylistOptimizer/
 Register a namespaced command family such as:
 
 ```text
-blissplaylistoptimizer capabilities
-blissplaylistoptimizer optimize
-blissplaylistoptimizer status
-blissplaylistoptimizer cancel
-blissplaylistoptimizer result
-blissplaylistoptimizer history
+blissemall capabilities
+blissemall optimize
+blissemall status
+blissemall cancel
+blissemall result
+blissemall history
 ```
 
 Commands should accept a playlist ID for the immediate request but resolve and
@@ -385,15 +392,110 @@ creation and recovery behavior have been proven.
 
 The primary entry point is one playlist context-menu provider:
 
-> Optimize with Bliss…
+> Bliss 'Em All…
 
-It opens a workflow rather than changing the playlist immediately. Provide:
+It opens a workflow rather than changing the playlist immediately. Every mode
+starts with the same invariants:
 
-- **Reorder only**;
-- **Extend automatically**;
-- **Add exactly N tracks**;
-- **One bridge per transition**; and
-- **Target length / double length** presets.
+- let `S` be the number of unique original tracks;
+- preserve all `S` original tracks exactly once and never remove one to satisfy
+  a target length;
+- optimize the directional order of those originals before selecting bridge
+  positions;
+- apply the captured artist, album, and track look-back windows to the complete
+  final sequence;
+- admit only analyzed, unique, acoustically acceptable bridge tracks under the
+  configured LastMix evidence policy;
+- rescore both sides of every insertion, including the outgoing leg with the
+  bridge present in its sliding seed context; and
+- Preview first and create a new playlist by default.
+
+The modes then differ as follows.
+
+#### Reorder only
+
+Find the best feasible ordering of the supplied set and add nothing. The output
+contains exactly `S` tracks. This is the safest mode for a playlist whose
+membership has already been curated and answers only the question, "In what
+order should these tracks play?"
+
+The preview must prove exact membership, zero duplicates, zero requested bridge
+tracks, repeat-window compliance, and the change in aggregate and worst-leg
+transition cost relative to the source order. If no feasible order satisfies
+the hard repeat windows, the job fails with an explanation; it does not remove
+tracks or silently weaken those windows.
+
+#### Extend automatically
+
+First produce the reorder-only route, then inspect its direct transitions. A
+bridge is considered only for a transition that exceeds the configured severe-
+gap threshold and for which an eligible insertion improves the two contextual
+legs. The optimizer may therefore add zero tracks when the reordered playlist
+is already sufficiently fluent.
+
+Automatic mode is deliberately conservative. It uses a configurable maximum
+bridge budget, adds at most one bridge to an original transition in version 1,
+and returns between `S` and `S + budget` tracks. It is the right choice when the
+user cares about flow but does not care about reaching a particular length.
+Every non-insertion should be explainable as below threshold, no eligible local
+candidate, semantic fallback disallowed, repeat conflict, or acoustic rejection.
+
+#### Add exactly N tracks
+
+Create an output containing exactly `S + N` tracks. This is a strict request,
+not a target or best-effort hint. The optimizer ranks the most useful viable
+insertion positions, normally starting with the hardest internal transitions,
+while jointly preserving contextual quality and repeat windows.
+
+Version 1 permits at most one added track in each original internal transition.
+The start and end slots may be used when the requested count cannot be met from
+eligible internal slots—for example when doubling a 20-track playlist requires
+20 additions but it has only 19 internal transitions, or when one internal gap
+has no acceptable bridge. If exactly `N` acceptable unique tracks cannot be
+placed under these rules, Preview fails visibly and creates no playlist. It
+must never quietly return fewer additions.
+
+`N = 0` is equivalent to Reorder only. The UI should state the resulting total
+before execution, for example, "20 original + 8 additional = 28 tracks."
+
+#### One bridge per transition
+
+This is a strict structural preset. After ordering the `S` originals, insert
+exactly one bridge between every adjacent pair of original tracks. It therefore
+adds `S - 1` tracks and produces `2S - 1` total tracks:
+
+```text
+Original A -> bridge AB -> Original B -> bridge BC -> Original C
+```
+
+It does not add an opening track before the first original or a closing track
+after the last. Unlike Extend automatically, even an already-smooth original
+transition receives a bridge. This is useful for deliberately spacious,
+discovery-oriented playlists, but it is more demanding and can make a sequence
+less direct. If any transition has no eligible bridge, the strict preset fails
+and the preview identifies the blocked transitions; the UI may then offer to
+switch to Extend automatically rather than silently producing a partial result.
+
+#### Target length and Double length
+
+Target length is a convenience wrapper around Add exactly N tracks. For a
+requested total `T`, require `T >= S` and calculate `N = T - S`. A smaller
+target is invalid because this product does not discard curated originals.
+
+Double length sets `T = 2S`, and therefore requests `N = S` additions. This is
+not the same as One bridge per transition: that preset adds only `S - 1` and
+produces `2S - 1`. Double length normally fills viable internal transitions and
+uses an endpoint slot where necessary. It retains the same strict failure rule
+as Add exactly N tracks if the target cannot be reached safely.
+
+The UI should always show the calculation before Preview:
+
+```text
+Source:       20 tracks
+Target:       40 tracks
+To be added:  20 tracks
+Mode:         Double length (strict)
+```
 
 The workflow displays source size, analysis coverage, inherited BlissMixer
 settings, output name, LastMix availability, and a collapsed advanced section.
@@ -464,7 +566,7 @@ The existing Python tools remain the oracle during migration:
 - smoke execution of `version`, `validate`, and a small optimization fixture on
   each runnable CI platform.
 
-`lms-bliss-playlist-optimizer`:
+`lms-bliss-em-all`:
 
 - Perl compile checks and focused unit tests with mocked LMS objects;
 - capability-state, path-validation, command, job-lifecycle, and LastMix tests;
@@ -651,8 +753,10 @@ upgrade, and uninstall the plugin through the extension manager.
 
 Resolve these before or during Phase 0:
 
-1. Final names: `BlissPlaylistOptimizer`, `bliss-playlist-optimizer`, and
-   `lms-bliss-playlist-optimizer` are clear but long.
+1. Final plugin UUID and whether every internal command namespace should use
+   `blissemall`. The settled user-facing name is `Bliss 'Em All`, the plugin
+   repository is `lms-bliss-em-all`, and the native optimizer retains the
+   technical name `bliss-playlist-optimizer`.
 2. Whether `bliss-mixer-core` should be public immediately or begin privately
    until extracted-code provenance is reviewed.
 3. Whether the first beta targets only Linux ARM64/x86-64 or all platforms
@@ -678,7 +782,7 @@ Resolve these before or during Phase 0:
 - Keep CLI schemas and optimizer algorithm details in
   `bliss-playlist-optimizer`.
 - Keep installation, dependency diagnostics, UI, and user workflows in
-  `lms-bliss-playlist-optimizer`.
+  `lms-bliss-em-all`.
 - Keep only extension-repository usage and available-plugin summaries in
   `lms-plugins`.
 - Replace references to the untracked Python prototype with stable repository
