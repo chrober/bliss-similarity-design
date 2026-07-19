@@ -14,6 +14,18 @@ python -m venv .venv
 .venv\Scripts\python -m mkdocs serve
 ```
 
+## One-shot playlist optimization
+
+- [Example Playlist 2026 plan](PLAYLIST_OPTIMIZATION_PLAN.md)
+- [Executed run, results, reproduction, and rollback](PLAYLIST_OPTIMIZATION_EXECUTION.md)
+- [Example Playlist 2025 evaluation and Extended execution](PLAYLIST_OPTIMIZATION_2025_EXECUTION.md)
+
+The reproducible workflow captures live `plugin.blissmixer` preferences with
+`tools/capture_lms_blissmixer_settings.py` and validates generated playlist
+entries with `tools/validate_m3u.py --require-lms-blocks`. Adaptive runs mirror
+the server's sliding seed window and can be checked against a running shipped
+Windows mixer using `tools/validate_adaptive_binary_parity.py`.
+
 ## Validation
 
 ```powershell
