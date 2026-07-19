@@ -25,7 +25,7 @@ lms-blissmixer (unchanged)
                        |
                        v
 lms-bliss-em-all (new Perl plugin)
-  owns LMS integration, LastMix integration, jobs, UX, reports, and playlists
+  owns LMS integration, optional semantic providers, jobs, UX, reports, and playlists
                        |
                        v
 bliss-playlist-optimizer (new native Rust program)
@@ -54,8 +54,11 @@ The first product release must support:
 - the configured track, artist, and album look-back windows;
 - directional open-path optimization with aggregate and worst-leg objectives;
 - automatic bridge insertion and an exact additional-track count;
-- endpoint-local LastMix artist evidence with original-collection fallback only
-  when the local artist pool is empty;
+- optional endpoint-local track and artist evidence from Last.fm and/or
+  ListenBrainz, with original-collection fallback only when local semantic
+  evidence is empty;
+- MusicBrainz recording and artist IDs already maintained by Lyrion as the
+  preferred external identity keys;
 - reproducible JSON and human-readable reports;
 - playlist context-menu, Applications/My Apps, and classic Extras entry points;
 - a track context action that can append a fluent route from the current queue
@@ -68,8 +71,8 @@ The following are not required for the first release:
 - changing the current `lms-blissmixer` implementation;
 - replacing `/api/mix` or `/api/list`;
 - modifying `bliss.db` or its schema;
-- publishing raw playlists, private music metadata, server details, or Last.fm
-  responses;
+- publishing raw playlists, private music metadata, server details, or raw
+  semantic-provider responses;
 - intro/outro audio decoding or boundary-anchor analysis;
 - globally optimizing or replacing the unsaved current player queue; or
 - automatically overwriting a source playlist.
@@ -83,7 +86,7 @@ package names, plugin identifiers, release URLs, and documentation do not churn.
 | --- | --- | --- | --- |
 | `chrober/bliss-mixer-core` | New | Reusable Rust library for Bliss database access, shared models, matrices, filters, and similarity scoring | Tagged Rust library source; optional crates.io package later |
 | `chrober/bliss-playlist-optimizer` | New | Headless fixed-set ordering and bridge-selection engine | Native executables and checksums per supported platform |
-| `chrober/lms-bliss-em-all` | New | Perl Lyrion plugin, UI, jobs, LastMix adapter, playlist persistence, and bundled optimizer executables | Platform-specific LMS plugin ZIP files |
+| `chrober/lms-bliss-em-all` | New | Perl Lyrion plugin, UI, jobs, optional semantic-provider adapters, playlist persistence, and bundled optimizer executables | Platform-specific LMS plugin ZIP files |
 | `chrober/lms-plugins` | Existing; reuse | Lyrion extension repository listing the new plugin alongside BlissMixer | `repo.xml` served from the existing raw GitHub URL |
 | `chrober/bliss-mixer` | Existing | Refactor the maintained fork to consume `bliss-mixer-core` without changing `/api/mix` or `/api/list` behavior | Existing mixer binaries |
 | `chrober/lms-blissmixer` | Existing; unchanged by this project | Produces and maintains the analysis artifacts and preferences consumed by the companion plugin | Existing LMS plugin ZIP files |
@@ -148,7 +151,7 @@ The crate must not own:
 
 - Actix routes or daemon lifecycle;
 - LMS preferences or playlist persistence;
-- Last.fm network access;
+- Last.fm, ListenBrainz, or other semantic-provider network access;
 - route search, energy arcs, or bridge-position policy;
 - HTML, OPML, JSON-RPC, or other Lyrion UI concerns; or
 - audio decoding and feature extraction already owned by `bliss-rs`.
@@ -232,14 +235,14 @@ The native optimizer builds on `bliss-mixer-core` and owns:
 - bridge candidate generation from the analyzed local library;
 - contextual evaluation of one or more inserted tracks between fixed endpoints;
 - frozen cross-context reference distributions;
-- endpoint artist-evidence tiers supplied by the caller;
+- endpoint recording- and artist-evidence tiers supplied by the caller;
 - automatic and exact-count bridge policies;
 - source-to-destination route generation for the live-queue action; and
 - structured progress, warnings, results, and reproducibility diagnostics.
 
-The optimizer must not call Last.fm directly. It receives a frozen semantic
-profile from the LMS plugin so that LastMix remains the network-policy owner and
-the optimizer is usable outside LMS.
+The optimizer must not call Last.fm, ListenBrainz, or any other remote service
+directly. It receives a frozen, provider-neutral semantic evidence bundle from
+the LMS plugin and remains fully usable when that bundle is empty.
 
 ### Initial command-line contract
 
@@ -266,7 +269,8 @@ Each request includes an explicit `schema_version` and, at minimum:
   `queue_destination`) and immutable endpoints/anchors where applicable;
 - look-back windows;
 - extension mode and bridge budget/count;
-- the frozen LastMix artist graph and coverage/failure metadata; and
+- the frozen provider-neutral track/artist evidence graph, provider provenance,
+  and coverage/failure metadata; and
 - output/report policy.
 
 Each result includes:
@@ -277,7 +281,8 @@ Each result includes:
 - per-leg seed context, raw cost, normalized cost, and effective algorithm;
 - repeat validation;
 - route candidates and selection reason;
-- every accepted bridge's two-leg costs and semantic evidence tier;
+- every accepted bridge's contextual costs, semantic evidence tier, provider
+  provenance, and identity-match confidence;
 - rejected/fallback counts and warnings;
 - deterministic seed, restart count, timings, and termination state; and
 - a success, partial-capability, validation-error, cancelled, or internal-error
@@ -312,13 +317,19 @@ Check:
 6. the bundled optimizer matches the current platform and passes
    `version --json`;
 7. the selected playlist has sufficient analysis coverage;
-8. Bliss analysis is not currently writing the database; and
-9. LastMix availability when semantic bridge assistance is requested.
+8. Bliss analysis is not currently writing the database;
+9. LastMix availability and callable interface when Last.fm evidence is enabled;
+   and
+10. HTTPS reachability and supported response shape when ListenBrainz evidence
+    is enabled.
 
-The plugin should remain enabled when a capability is missing, but hide or
-disable execution and show a precise remediation message. Avoid compile-time
-imports, direct calls to underscore-prefixed BlissMixer functions, access to its
-lexical process/port variables, or reliance on the running `/api/mix` process.
+The plugin should remain enabled when a core capability is missing, but hide or
+disable affected execution and show a precise remediation message. Missing,
+disabled, unreachable, or failing semantic providers are never core capability
+failures: optimization continues with cached evidence when safe and otherwise
+with Bliss-only scoring. Avoid compile-time imports, direct calls to
+underscore-prefixed BlissMixer functions, access to its lexical process/port
+variables, or reliance on the running `/api/mix` process.
 
 Keep all observed BlissMixer compatibility assumptions in one module, for
 example:
@@ -343,7 +354,9 @@ BlissEmAll/
   OptimizerProcess.pm
   QueueRoute.pm
   BlissCompatibility.pm
+  SemanticEvidence.pm
   LastMixAdapter.pm
+  ListenBrainzAdapter.pm
   PlaylistWriter.pm
   Report.pm
   strings.txt
@@ -369,16 +382,89 @@ Commands should accept a playlist ID for the immediate request but resolve and
 record its URL/path because a playlist database ID is not stable across scanner
 recreation. Only one write phase may run for a target output name at a time.
 
-### LastMix adapter
+### Optional semantic evidence adapters
 
-- Build the artist profile from every distinct artist in the original input.
-- Prefer MBID and normalized name identities.
-- Keep per-source similar-artist results for local edge evidence.
-- Build the global original-collection pool separately.
-- Freeze the profile before optimization; inserted tracks never become seeds.
-- Pass successful results and failed lookup coverage to the optimizer.
-- Treat LastMix as optional for reorder-only mode and configurable for bridge
-  mode; never silently describe a Bliss-only fallback as artist-assisted.
+Semantic evidence refines bridge candidates and ranking; it is never required
+for route construction. Every playlist mode and **Bliss me there…** must work
+with both providers disabled, with no Internet connection, or after every
+remote request has failed.
+
+Use Lyrion's existing MusicBrainz support rather than inventing another identity
+store. Read recording and artist MBIDs from the resolved LMS track and artist
+objects. Match external results by recording MBID first, then artist MBID plus
+normalized title, and only then normalized artist/title with an explicit lower
+confidence. An external result becomes a candidate only after it resolves to
+exactly one local LMS track that is also present in `bliss.db`.
+
+Build the semantic evidence bundle from every distinct original track and
+artist, while retaining per-source results. Rank evidence in this order:
+
+1. a candidate recording endorsed for both transition endpoints;
+2. a candidate recording endorsed for one endpoint;
+3. a candidate artist endorsed locally for both or one endpoint;
+4. an artist from the global original-collection pool, but only when the local
+   endpoint evidence is empty; and
+5. Bliss-only candidacy when no usable semantic evidence exists.
+
+Do not compare raw scores from different providers as though they shared a
+scale. Preserve provider, source endpoint, raw rank/score, lookup time, and
+identity confidence; combine providers only through a documented normalized
+tier/rank policy. Freeze the complete evidence bundle before optimization, and
+never turn inserted tracks into new remote-query seeds.
+
+#### Last.fm through LastMix
+
+The current `lms-blissmixer` implementation is useful precedent but not a
+formal LastMix API contract. It checks whether `Plugins/LastMix/LFM.pm` is
+already loaded and directly calls
+`Plugins::LastMix::LFM->getSimilarArtists`. Its public plugin manifest declares
+no LastMix dependency, while LastMix's registered CLI exposes only
+`lastmix play` and `lastmix add`, not raw similarity lookup. The integration
+was accepted into upstream BlissMixer in
+[PR 18](https://github.com/CDrummond/lms-blissmixer/pull/18), but that review
+contains no explicit approval from the LastMix maintainer or statement that
+`Plugins::LastMix::LFM` is a stable third-party interface.
+
+Keep this risk inside `LastMixAdapter.pm`. Runtime-check the plugin, module,
+method, and expected callback shape; never copy or extract LastMix's bundled
+Last.fm application key. Before public release, ask the LastMix maintainer for
+a supported similarity interface or explicit permission to rely on the current
+one. If that is not available, use a separately authorized Last.fm application
+identity or ship without Last.fm support. None of these outcomes may block the
+Bliss-only product.
+
+When the adapter is available, collect both `track.getSimilar` and
+`artist.getSimilar` evidence. Prefer the track method's recording-MBID lookup
+and retain its artist/title fallback as lower-confidence evidence.
+
+#### ListenBrainz
+
+Implement ListenBrainz as an independent optional HTTPS adapter. Use the
+similar-recordings and similar-artists datasets with recording/artist MBIDs,
+mark the Labs endpoints as experimental, validate response schemas strictly,
+and keep their cache/version identity in reports. ListenBrainz must neither
+require LastMix nor become a transitive requirement for the native optimizer.
+
+#### Availability, caching, and failure policy
+
+Expose independent **Last.fm evidence** and **ListenBrainz evidence** settings;
+both default policies must permit Bliss-only operation. When both are enabled,
+query them independently so one provider cannot suppress results from the
+other.
+
+- Apply short connect and total timeouts, bounded concurrency, request limits,
+  and a per-provider circuit breaker.
+- Cache successful and empty responses by provider, entity MBID, and response
+  version. Permit bounded stale-cache use while offline and label it clearly.
+- Treat DNS errors, TLS errors, timeouts, rate limits, malformed responses,
+  partial coverage, and temporary lack of Internet connectivity as recoverable
+  provider outcomes, never optimizer failures.
+- Continue with evidence from successful requests; if none remains, continue
+  with Bliss-only candidates and scoring.
+- Surface provider state as disabled, fresh, cached, stale, partial, unavailable,
+  or failed in Preview, the report, and the correlated server log.
+- Never claim artist- or track-assisted selection when the accepted candidate
+  was chosen through a collection-level or Bliss-only fallback.
 
 ### Playlist persistence
 
@@ -417,8 +503,8 @@ the same invariants:
   according to the selected workflow;
 - apply the captured artist, album, and track look-back windows to the complete
   final sequence;
-- admit only analyzed, unique, acoustically acceptable bridge tracks under the
-  configured LastMix evidence policy;
+- admit only analyzed, unique, acoustically acceptable bridge tracks, using
+  optional semantic evidence when available and Bliss-only fallback otherwise;
 - rescore both sides of every insertion, including the outgoing leg with the
   bridge present in its sliding seed context; and
 - Preview first and create a new playlist by default.
@@ -453,7 +539,7 @@ bridge budget, adds at most one bridge to an original transition in version 1,
 and returns between `S` and `S + budget` tracks. It is the right choice when the
 user cares about flow but does not care about reaching a particular length.
 Every non-insertion should be explainable as below threshold, no eligible local
-candidate, semantic fallback disallowed, repeat conflict, or acoustic rejection.
+candidate after fallback, repeat conflict, or acoustic rejection.
 
 #### Add exactly N tracks
 
@@ -558,13 +644,15 @@ queue**.
 
 The selected destination is fixed, while intermediate tracks remain subject to
 analysis coverage, uniqueness, repeat windows, acoustic quality, and the
-configured LastMix evidence policy. If no valid route exists, the queue remains
-unchanged and the UI identifies the blocking constraint. Every invocation gets
+configured optional semantic-evidence policy. If no valid route exists, the
+queue remains unchanged and the UI identifies the blocking constraint. Every
+invocation gets
 a normal job ID and report so its decisions are as reproducible as saved-
 playlist optimization.
 
 The workflow displays source size, analysis coverage, inherited BlissMixer
-settings, output name, LastMix availability, and a collapsed advanced section.
+settings, output name, Last.fm/ListenBrainz state, and a collapsed advanced
+section.
 It runs Preview before Create and summarizes moved tracks, added bridges,
 repeat compliance, mean/worst transition change, warnings, and semantic evidence
 tiers.
@@ -606,7 +694,7 @@ Apply levels consistently:
 | Level | Server-log contract |
 | --- | --- |
 | **ERROR** | An unexpected failure prevented a safe result: invalid/corrupt helper output, child-process failure, database failure, playlist write or verification failure, or an uncaught internal error. Include the stable error code and job ID. |
-| **WARN** | The job can continue only with reduced capability or needs attention: partial LastMix coverage, an allowed Bliss-only fallback, analysis starting during a job, skipped unavailable evidence, rejected output-name collision, or a cleanup/recovery issue. Expected infeasibility reported cleanly in Preview is INFO, not ERROR. |
+| **WARN** | The job can continue only with reduced capability or needs attention: partial Last.fm or ListenBrainz coverage, a provider outage, an unexpected Bliss-only fallback while semantic evidence was enabled, analysis starting during a job, rejected output-name collision, or a cleanup/recovery issue. Providers intentionally disabled and expected infeasibility reported cleanly in Preview are INFO, not WARN/ERROR. |
 | **INFO** | Concise lifecycle and audit summary: capability state at startup, job start, action/mode, original and requested counts, inherited scoring mode and look-back windows, stage changes, completion/cancellation, output count, objective improvement, warning count, report ID, and elapsed time. Do not emit one line per candidate or track. |
 | **DEBUG** | Reproduction and diagnosis detail: sanitized request options, stage timings, candidate/filter counts, per-gap decision summaries, route-search restarts, repeat-window rejections, semantic evidence tiers, helper diagnostics, and LMS persistence/verification steps. Full private track lists and paths still belong only in an explicitly exported private report. |
 
@@ -629,8 +717,8 @@ the job report.
 Logging and reports have different purposes: the server log explains lifecycle
 and failure at an operational level; the retained job report carries the
 structured decision evidence needed for reproduction. Neither may log
-credentials, authorization values, database contents, raw Last.fm payloads, or
-complete playlists by default. Track titles, artist names, playlist paths, and
+credentials, authorization values, database contents, raw semantic-provider
+payloads, or complete playlists by default. Track titles, artist names, playlist paths, and
 filesystem paths must be omitted or minimized at INFO and sanitized at DEBUG.
 Add automated tests for level filtering, job-ID correlation, multiline stderr,
 rate limiting, and redaction.
@@ -643,10 +731,13 @@ Create small synthetic or explicitly sanitized fixtures containing:
 
 - a minimal supported `bliss.db` subset;
 - known raw feature vectors and metadata;
+- present, missing, conflicting, and ambiguous recording/artist MBIDs and
+  normalized-name fallbacks;
 - learned matrices including valid, missing, invalid, and single-seed cases;
 - playlists with feasible and infeasible repeat windows;
-- frozen artist graphs with both-endpoint, one-endpoint, empty-local-pool, and
-  partial-failure cases; and
+- frozen recording/artist evidence with both-endpoint, one-endpoint,
+  empty-local-pool, disabled-provider, offline, stale-cache, and partial/all-
+  failure cases; and
 - expected route/report outputs for fixed deterministic settings.
 
 Do not commit a subset of the real music library unless every field has been
@@ -692,7 +783,8 @@ The existing Python tools remain the oracle during migration:
 `lms-bliss-em-all`:
 
 - Perl compile checks and focused unit tests with mocked LMS objects;
-- capability-state, path-validation, command, job-lifecycle, and LastMix tests;
+- capability-state, path-validation, command, job-lifecycle, LastMix-adapter,
+  ListenBrainz-adapter, cache, timeout, and offline-fallback tests;
 - plugin ZIP structure and executable-presence validation;
 - LMS-native playlist writer and exact-order integration tests;
 - transactional live-queue append and fixed-destination tests;
@@ -756,8 +848,8 @@ workflow artifact happens to be newest.
 - Cancel and clean up child processes during plugin shutdown.
 - Leave incomplete output playlists clearly marked or remove them through
   supported LMS APIs; never replace the source after a failed job.
-- Make LastMix failure explicit and distinguish semantic, collection-level, and
-  Bliss-only fallbacks in reports.
+- Make every semantic-provider state explicit and distinguish recording-level,
+  artist-level, collection-level, and Bliss-only fallbacks in reports.
 
 ## Implementation phases
 
@@ -799,8 +891,11 @@ matrix, per-leg, objective, and repeat parity.
 - Port frozen reference distributions and two-leg bridge scoring.
 - Implement automatic and exact-count modes.
 - Implement immutable-anchor gap filling and destination-route requests.
-- Accept and validate the frozen artist-evidence graph.
-- Enforce the endpoint-local fallback policy and full-route repeat constraints.
+- Accept and validate the frozen provider-neutral recording/artist evidence
+  graph.
+- Enforce track-before-artist evidence tiers, endpoint-local then collection
+  fallback, provider provenance, Bliss-only operation, and full-route repeat
+  constraints.
 - Add detailed acceptance/rejection reporting.
 
 **Exit gate:** bridge fixtures cover every evidence tier, preserve-order outputs
@@ -814,7 +909,8 @@ passes.
 - Add job creation, status, cancellation, report, and `route_to` commands.
 - Register `plugin.blissemall`, relay structured helper diagnostics, and
   enforce the logging/redaction contract.
-- Implement LastMix profile collection.
+- Implement provider-neutral evidence orchestration, the guarded LastMix
+  adapter, the ListenBrainz adapter, caches, timeouts, and circuit breakers.
 - Invoke the native optimizer safely.
 - Create and positionally verify new playlists through LMS APIs.
 - Append a validated destination route to the selected player queue without
@@ -843,8 +939,10 @@ interfaces and gives actionable failure messages.
 
 - Build platform-specific binaries and plugin ZIPs.
 - Test first on Linux ARM64/piCorePlayer and the Windows development server.
-- Exercise analysis-running, missing-matrix, unavailable-LastMix, server-restart,
-  cancellation, output collision, and scanner-recreation cases.
+- Exercise analysis-running, missing-matrix, providers disabled, unavailable
+  LastMix, ListenBrainz schema change, DNS/TLS/timeout/rate-limit failures,
+  complete Internet loss, server restart, cancellation, output collision, and
+  scanner-recreation cases.
 - Audit reports for private-data leakage.
 
 **Exit gate:** platform smoke tests, install/upgrade tests, and real-server
@@ -878,8 +976,12 @@ upgrade, and uninstall the plugin through the extension manager.
 - All outputs satisfy captured repeat windows.
 - Adaptive mode ignores static feature sliders and uses the captured dynamic
   matrix and learned blend, including defined single-seed behavior.
-- LastMix local evidence and collection fallback semantics are visible in the
-  report.
+- Lyrion-provided recording/artist MBIDs are the preferred semantic identity
+  keys, with lower-confidence fallbacks reported explicitly.
+- Last.fm and ListenBrainz are independently optional; every mode succeeds with
+  both disabled or unavailable when a Bliss-only solution exists.
+- Recording-, artist-, collection-, and Bliss-only evidence tiers, provider
+  provenance, request failures, and cache state are visible in the report.
 - The source playlist is unchanged by the default workflow.
 - New playlists are written through LMS and match the returned result order.
 - Jobs are cancellable, survive UI navigation, and clean up on server shutdown.
@@ -907,18 +1009,22 @@ Resolve these before or during Phase 0:
    currently packaged by BlissMixer.
 4. Minimum supported Lyrion version; begin with the actually tested release and
    widen only after compatibility testing.
-5. Whether LastMix is optional with reduced bridge capability or required for
-   every public bridge mode. Reorder-only should remain independent.
-6. Whether long jobs read the live database in one transaction or always use an
+5. Default provider selection, cache/stale-cache lifetimes, and normalized
+   evidence-combination policy. Last.fm and ListenBrainz themselves are settled
+   as independently optional and failure-tolerant.
+6. Whether the LastMix maintainer will provide or approve a supported raw-
+   similarity interface; lack of one must not block Bliss-only or ListenBrainz
+   operation.
+7. Whether long jobs read the live database in one transaction or always use an
    optimizer-owned SQLite snapshot.
-7. Default route-search effort and a server-class-aware time/memory budget.
-8. Report retention duration and whether users can explicitly export a private
+8. Default route-search effort and a server-class-aware time/memory budget.
+9. Report retention duration and whether users can explicitly export a private
    full report.
-9. Whether replacing a source playlist is omitted entirely from version 1.
-10. Default Auto behavior and exact-count limits for Preserve order and fill
+10. Whether replacing a source playlist is omitted entirely from version 1.
+11. Default Auto behavior and exact-count limits for Preserve order and fill
     gaps and **Bliss me there…**, including whether endpoint additions are ever
     enabled by default.
-11. Whether to propose a small future public capability API to the
+12. Whether to propose a small future public capability API to the
     `lms-blissmixer` maintainer; this must not block the companion plugin.
 
 ## Documentation work accompanying implementation
