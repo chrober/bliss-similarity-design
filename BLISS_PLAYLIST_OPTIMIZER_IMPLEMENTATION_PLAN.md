@@ -2,13 +2,49 @@
 
 **Status:** Proposed  
 **Date:** 2026-07-19  
-**Primary objective:** Productize the proven playlist sequencing and
+**Primary objective:** Productize the experimentally exercised playlist sequencing and
 bridge-insertion workflow, add order-preserving gap filling and destination
 routes for the live queue, and deliver it as a separately maintained Lyrion
 plugin without requiring Python on the server or modifying `lms-blissmixer`.
 **Reference implementation:** The untracked Python tools and the 2025/2026
-execution reports in this repository remain the behavioral oracle until the
-Rust implementation reaches declared parity.
+execution reports in this repository remain a migration and parity oracle until
+the Rust implementation reaches declared parity. They are not the normative
+design specification.
+
+## Canonical design references
+
+The generic design contracts live in the published documentation and are
+canonical for this implementation plan:
+
+- [fixed-set sequencing and bridge insertion](docs/mixing/fixed-set-sequencing.md)
+  defines problem boundaries, constrained-route variants, Adaptive continuation
+  scoring, route objectives, hard repeat constraints, bridge rescoring, frozen
+  contextual percentiles, and generalized semantic evidence;
+- [similarity strategies](docs/mixing/similarity-strategies.md#adaptive-as-a-directional-continuation-score)
+  defines the current Adaptive algorithm semantics reused by route scoring;
+- [transition-aware selection](docs/mixing/transitions.md#relationship-to-fixed-set-sequencing)
+  distinguishes whole-track route optimization, multi-track gap routes,
+  path interpolation, and later boundary-aware reranking;
+- [fixed-set sequencing evaluation](docs/evaluation/mixing-evaluation.md#fixed-set-sequencing-evaluation)
+  defines structural invariants, controls, metrics, ablations, and listening
+  requirements;
+- the [exploratory fixed-set case study](docs/evaluation/fixed-set-case-study.md)
+  records the deliberately limited aggregate evidence and bounds claims made
+  from the two one-shot executions;
+- [one-shot operations](docs/mixing/operations.md#one-shot-reproducibility-and-deployment-observability)
+  and the [future interactive execution contract](docs/mixing/operations.md#future-interactive-execution-contract)
+  define reproducibility, decision traces, playlist serialization, deployment
+  verification, and transactional execution; and
+- the [mixing roadmap](docs/evaluation/mixing-roadmap.md#phase-1a-experimental-fixed-set-sequencing)
+  defines the research status, risks, and unresolved design questions.
+
+This document specializes those contracts into component ownership, interfaces,
+Lyrion behavior, packaging, and release work. If it conflicts with a generic
+design contract, the published design documentation takes precedence. A
+deliberate semantic change must first be made and justified there, then reflected
+here and in implementation tests. Product-specific names, modules, commands,
+screens, and release mechanics remain authoritative only in this plan and the
+eventual owning repositories.
 
 ## Decision summary
 
@@ -60,7 +96,9 @@ The first product release must support:
 - MusicBrainz recording and artist IDs already maintained by Lyrion as the
   preferred external identity keys;
 - reproducible JSON and human-readable reports;
-- playlist context-menu, Applications/My Apps, and classic Extras entry points;
+- playlist context-menu and Applications/My Apps entry points;
+- a mandatory `Settings.pm` surface for validated durable preferences, with
+  safe defaults that permit zero-configuration Bliss-only operation;
 - a track context action that can append a fluent route from the current queue
   tail to a selected destination track;
 - safe LMS-native playlist creation and M3U serialization; and
@@ -146,6 +184,13 @@ mixer and playlist optimizer:
 - normalized diagnostics describing the active algorithm and effective matrix;
   and
 - stable typed errors rather than process exits or HTTP responses.
+
+The exact Adaptive behavior is governed by the canonical
+[directional-continuation definition](docs/mixing/similarity-strategies.md#adaptive-as-a-directional-continuation-score)
+and the more detailed
+[fixed-set scoring contract](docs/mixing/fixed-set-sequencing.md#adaptive-similarity-as-a-continuation-score).
+Extraction into a shared crate must preserve those semantics rather than infer
+new ones from product defaults.
 
 The crate must not own:
 
@@ -240,6 +285,14 @@ The native optimizer builds on `bliss-mixer-core` and owns:
 - source-to-destination route generation for the live-queue action; and
 - structured progress, warnings, results, and reproducibility diagnostics.
 
+These responsibilities implement the canonical
+[constrained-route variants](docs/mixing/fixed-set-sequencing.md#constrained-route-variants),
+[route objective and search contract](docs/mixing/fixed-set-sequencing.md#route-objective-and-search),
+and [bridge insertion rules](docs/mixing/fixed-set-sequencing.md#bridge-insertion).
+This plan may choose search procedures and resource budgets, but it must not
+weaken membership, anchor, destination, contextual-rescoring, or repeat-window
+invariants.
+
 The optimizer must not call Last.fm, ListenBrainz, or any other remote service
 directly. It receives a frozen, provider-neutral semantic evidence bundle from
 the LMS plugin and remains fully usable when that bundle is empty.
@@ -287,6 +340,12 @@ Each result includes:
 - deterministic seed, restart count, timings, and termination state; and
 - a success, partial-capability, validation-error, cancelled, or internal-error
   outcome with stable machine-readable codes.
+
+The request and result schemas operationalize the canonical
+[interactive execution contract](docs/mixing/operations.md#future-interactive-execution-contract).
+Fields may be extended and versioned here, but artifact identity, frozen input,
+per-leg traceability, atomic completion, and failure semantics remain governed
+by that design contract.
 
 ### Database safety
 
@@ -364,6 +423,34 @@ BlissEmAll/
   Bin/<platform>/bliss-playlist-optimizer[.exe]
 ```
 
+`Settings.pm` is mandatory. It provides the standard Lyrion plugin-settings
+surface, validates and migrates durable preferences, and keeps configuration
+ownership separate from job execution. Its presence does not imply that a user
+must complete setup before Bliss-only optimization can run.
+
+### Configuration ownership
+
+Configuration has three distinct sources:
+
+1. **Inherited BlissMixer state:** the selected supported mixing strategy, its
+   corresponding parameters, seed behavior, repeat windows, database location,
+   and learned-matrix identity are captured read-only through
+   `BlissCompatibility.pm`. They are displayed in Preview and recorded in the
+   report, but are never duplicated as editable settings here.
+2. **Durable plugin preferences:** `Settings.pm` owns optional semantic-provider
+   enablement, cache and bounded stale-cache policy, default optimizer resource
+   budget, report retention, and output-name suffixes. Every preference needs a
+   safe default, validation, and migration behavior.
+3. **Per-job choices:** ordering policy, automatic or exact-count extension,
+   target length, endpoint additions, output name, destination, and any explicit
+   source-replacement confirmation belong to Preview/Create workflows. They are
+   not silently promoted to global defaults.
+
+The plugin must remain useful without mandatory manual configuration: supported
+BlissMixer settings are inherited, semantic providers may be disabled, and
+conservative operational defaults apply. Logging level remains owned by
+Lyrion's standard logging UI rather than `Settings.pm`.
+
 ### LMS command surface
 
 Register a namespaced command family such as:
@@ -388,6 +475,13 @@ Semantic evidence refines bridge candidates and ranking; it is never required
 for route construction. Every playlist mode and **Bliss me there…** must work
 with both providers disabled, with no Internet connection, or after every
 remote request has failed.
+
+Provider adapters must implement the canonical
+[generalized semantic-evidence policy](docs/mixing/fixed-set-sequencing.md#generalized-semantic-evidence):
+recording evidence precedes artist evidence, endpoint-local evidence precedes
+collection fallback, provider provenance and identity confidence remain
+visible, raw provider scores are not assumed comparable, and the evidence
+snapshot is frozen before optimization.
 
 Use Lyrion's existing MusicBrainz support rather than inventing another identity
 store. Read recording and artist MBIDs from the resolved LMS track and artist
@@ -485,11 +579,26 @@ Default to `<source> (Optimized)` and `<source> (Extended)`. Source replacement
 is an explicitly confirmed advanced action and should be deferred until copy
 creation and recovery behavior have been proven.
 
+This product-specific persistence procedure implements the canonical
+[extended-M3U contract](docs/mixing/operations.md#extended-m3u-contract),
+[post-deployment verification](docs/mixing/operations.md#post-deployment-verification),
+and the preference for
+[host-managed atomic persistence](docs/mixing/operations.md#future-interactive-execution-contract).
+The implementation may use supported LMS APIs internally, but the resulting
+ordered identities and serialized playlist must remain verifiable against the
+optimizer result.
+
 ### UX
 
 The primary entry point is one playlist context-menu provider:
 
 > Bliss 'Em All…
+
+The distinction between reorderable originals, immutable anchors, and a fixed
+destination comes from the canonical
+[constrained-route taxonomy](docs/mixing/fixed-set-sequencing.md#constrained-route-variants).
+The labels and presets below are product choices; they must expose rather than
+blur those underlying contracts.
 
 It opens a workflow rather than changing the playlist immediately. The user
 first chooses whether Bliss 'Em All may optimize the order or must preserve the
@@ -657,14 +766,17 @@ It runs Preview before Create and summarizes moved tracks, added bridges,
 repeat compliance, mean/worst transition change, warnings, and semantic evidence
 tiers.
 
-Also expose one management dashboard through both:
+Expose exactly one management dashboard through Applications/My Apps via
+`Slim::Control::Jive::registerPluginMenu`. Do not register a duplicate classic
+Extras entry. The dashboard owns playlist selection, active jobs, progress,
+cancellation, reports, history, and dependency status. Playlist and track
+context actions remain direct workflow entry points rather than additional
+management dashboards.
 
-- Applications/My Apps via `Slim::Control::Jive::registerPluginMenu`; and
-- classic Extras via `Slim::Web::Pages->addPageLinks('plugins', ...)`.
-
-The dashboard owns playlist selection, active jobs, progress, cancellation,
-reports, history, and dependency status. The Settings page contains durable
-defaults only, not individual jobs.
+The mandatory `Settings.pm` page owns only the durable preferences defined
+under [Configuration ownership](#configuration-ownership). It may link back to
+the Applications dashboard for capability status, but it must not duplicate
+playlist selection, active jobs, reports, or history.
 
 ### Lyrion server logging
 
@@ -725,6 +837,13 @@ rate limiting, and redaction.
 
 ## Testing and parity strategy
 
+The canonical
+[fixed-set evaluation contract](docs/evaluation/mixing-evaluation.md#fixed-set-sequencing-evaluation)
+defines the minimum structural, metric, control, ablation, and human-validation
+requirements. Repository tests below add implementation parity, packaging, and
+integration coverage; passing them does not by itself establish audible mixing
+quality.
+
 ### Sanitized fixtures
 
 Create small synthetic or explicitly sanitized fixtures containing:
@@ -783,6 +902,9 @@ The existing Python tools remain the oracle during migration:
 `lms-bliss-em-all`:
 
 - Perl compile checks and focused unit tests with mocked LMS objects;
+- `Settings.pm` default, validation, persistence, and migration tests;
+- Applications/My Apps registration and verification that no duplicate Extras
+  dashboard is registered;
 - capability-state, path-validation, command, job-lifecycle, LastMix-adapter,
   ListenBrainz-adapter, cache, timeout, and offline-fallback tests;
 - plugin ZIP structure and executable-presence validation;
@@ -852,6 +974,11 @@ workflow artifact happens to be newest.
   artist-level, collection-level, and Bliss-only fallbacks in reports.
 
 ## Implementation phases
+
+These phases are product-delivery sequencing. They complement rather than
+replace the canonical
+[mixing research roadmap](docs/evaluation/mixing-roadmap.md#phase-1a-experimental-fixed-set-sequencing),
+whose evidence gates and open questions remain applicable throughout delivery.
 
 ### Phase 0: bootstrap and contracts
 
@@ -927,13 +1054,17 @@ server without modifying the source playlist, existing queue entries, or
 - Implement reorder and Preserve order and fill gaps Preview/Create workflows.
 - Register the track context action **Bliss me there…** with Preview and
   **Append to queue** confirmation.
-- Add Applications/My Apps and Extras dashboard entry points.
+- Add the single Applications/My Apps dashboard entry point and do not register
+  a duplicate Extras entry.
+- Implement the mandatory `Settings.pm` page for validated durable preferences
+  without duplicating inherited BlissMixer settings or per-job controls.
 - Add dependency status, progress, cancellation, history, and report views.
 - Keep advanced algorithm controls collapsed and inherit BlissMixer settings by
   default.
 
-**Exit gate:** the complete workflow is usable from Material and classic web
-interfaces and gives actionable failure messages.
+**Exit gate:** the complete workflow is usable through the targeted
+Applications/My Apps and context-menu interfaces, durable preferences survive
+restart and migration, and failures produce actionable messages.
 
 ### Phase 6: packaging and private beta
 
@@ -985,6 +1116,11 @@ upgrade, and uninstall the plugin through the extension manager.
 - The source playlist is unchanged by the default workflow.
 - New playlists are written through LMS and match the returned result order.
 - Jobs are cancellable, survive UI navigation, and clean up on server shutdown.
+- Applications/My Apps is the sole management dashboard; no duplicate classic
+  Extras dashboard is registered.
+- The mandatory `Settings.pm` page validates and persists durable plugin
+  preferences while inherited BlissMixer state and per-job choices retain their
+  separate ownership.
 - Reports contain enough identity and decision data to reproduce a run without
   exposing private server data by default.
 - The `plugin.blissemall` category appears in Lyrion's logging UI; each level
@@ -1029,8 +1165,10 @@ Resolve these before or during Phase 0:
 
 ## Documentation work accompanying implementation
 
-- Keep the design rationale and evaluation model in
-  `bliss-similarity-design`.
+- Keep generic design rationale, algorithm contracts, constrained-route
+  definitions, evaluation requirements, operational invariants, and research
+  status in the canonical `bliss-similarity-design` pages linked under
+  [Canonical design references](#canonical-design-references).
 - Keep the Rust core API and compatibility rules in `bliss-mixer-core`.
 - Keep CLI schemas and optimizer algorithm details in
   `bliss-playlist-optimizer`.
@@ -1040,6 +1178,12 @@ Resolve these before or during Phase 0:
   `lms-plugins`.
 - Replace references to the untracked Python prototype with stable repository
   links only after the corresponding repositories and releases exist.
+
+Do not propagate product names or implementation topology throughout the design
+site. When implementation work reveals a reusable concept or changes a generic
+semantic contract, update the relevant canonical design page first and link to
+it from the owning implementation document. Avoid copying the same normative
+algorithm or evaluation prose into multiple repositories.
 
 The one-shot reports remain historical evidence. They should inform golden
 tests and aggregate case studies, but their private paths, credentials, catalog
