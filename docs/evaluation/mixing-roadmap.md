@@ -2,7 +2,7 @@
 
 **Status:** Living research and design proposal  
 **Primary scope:** Phased downstream experimentation and rollout  
-**Last reviewed:** 2026-07-14
+**Last reviewed:** 2026-07-19
 
 ## Delivery phases
 
@@ -39,6 +39,37 @@ contracts still follow the ownership boundary above.
 - establish separate relevance, diversity, and local-versus-global coherence
   measures;
 - retain an exact baseline path and avoid schema changes where possible.
+
+### Phase 1a: experimental fixed-set sequencing
+
+Fixed-set sequencing can be evaluated alongside Phase 1 without changing the
+23-feature schema or the current database layout. A standalone experimental
+one-shot prototype already demonstrates the mechanics, but its implementation
+is currently untracked and is not part of the shipped LMS BlissMixer system.
+
+The next research steps are to:
+
+- preserve an exact reorder-only membership contract;
+- evaluate directional Adaptive continuation scoring with a strict sliding
+  seed window, hard repeat constraints, and original/random/reversed controls;
+- report total, mean, upper-tail, and worst-leg costs rather than only the
+  selected objective;
+- compare smoothness-only and secondary energy-arc routes;
+- evaluate automatic and explicit-count bridges as a separate membership-changing
+  ablation with frozen endpoint-local Last.fm evidence;
+- add listener review and boundary-aware experiments before treating
+  whole-track cost as transition quality; and
+- close the reproducibility and test gaps described in the
+  [evaluation contract](mixing-evaluation.md#fixed-set-sequencing-evaluation)
+  and [operational contract](../mixing/operations.md#one-shot-reproducibility-and-deployment-observability).
+
+If the evidence is favorable, a later product could expose a dedicated ordering
+command or API whose input is an explicit track set and whose output preserves
+membership unless a bridge policy is requested. LMS BlissMixer integration
+could then add preview, audition, accept, cancellation, progress, and
+transactional persistence. None of that product surface is implemented today,
+and it should not be hidden inside the existing mix endpoint merely because the
+prototype reuses Adaptive scoring.
 
 ### Phase 2: analysis prototype
 
@@ -123,6 +154,12 @@ contracts still follow the ownership boundary above.
 | Unknown tables are lost during a Bliss database rebuild | Prefer a sidecar DB until lifecycle behavior is verified. |
 | DSP complexity makes deployment fragile | Keep analysis offline and phase advanced psychoacoustics separately. |
 | A smoothness objective reduces variety | Evaluate variety independently and cap transition influence. |
+| Fixed-set ordering is mistaken for recommendation | Assert exact membership in reorder-only mode and report bridges as explicit additions. |
+| A heuristic route is described as globally optimal | Record seed and restarts, compare controls, and label the result as the best route found. |
+| Route-only percentiles make the worst leg self-trigger bridge insertion | Use a frozen cross-context candidate reference distribution and report its construction. |
+| Bridge insertion improves one leg but invalidates the next context or repeat policy | Rescore both affected legs with the bridge in the outgoing context and validate the complete route. |
+| Inserted artists recursively widen Last.fm evidence | Freeze the profile from the original playlist and prohibit bridges from becoming lookup seeds. |
+| A scanner-created database ID is treated as playlist identity | Verify deployed bytes and ordered catalog URLs; treat catalog IDs as transient observations. |
 | Structural variance becomes a genre proxy | Treat it as confidence/context, not a genre label; avoid early hard gates. |
 | Short anchors produce unstable tempo or tonal estimates | Store confidence/validity and downweight unreliable components. |
 | Rank fusion makes a weak candidate pool look confident | Log pool quality and later compare calibrated score fusion. |
@@ -185,3 +222,13 @@ duplicated here.
 26. Which Raspberry Pi configurations can run AudioMuse-AI analysis and
     clustering alongside Lyrion without unacceptable memory, storage, thermal,
     or playback impact, and how does that compare with the Bliss pipeline?
+27. Does contextual fixed-set ordering improve listener-rated flow over the
+    original, random, and reversed controls without reducing perceived variety?
+28. Which route-search method and restart budget provide a useful quality/cost
+    tradeoff, and when is a stronger solver warranted?
+29. Should a future ordering surface live in `bliss-mixer`, LMS BlissMixer, or a
+    separate offline tool, and how should preview and transactional acceptance
+    work?
+30. Which bridge thresholds and evidence tiers generalize beyond the two
+    exploratory playlists, and should explicit-count mode remain an expert-only
+    operation?

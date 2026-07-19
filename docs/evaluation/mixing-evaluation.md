@@ -2,7 +2,7 @@
 
 **Status:** Living research and design proposal  
 **Primary scope:** Task-specific quality, coherence, diversity, personalization, and transitions  
-**Last reviewed:** 2026-07-14
+**Last reviewed:** 2026-07-19
 
 ## Dataset and fixtures
 
@@ -130,6 +130,94 @@ practical, by track or artist so repeated entities do not make generalization
 look easier than it is. Record survey time, skips, abandoned rounds, and useful
 improvement per judgment. The target is not merely a more accurate learner; it
 is a useful improvement with a tolerable interaction cost.
+
+## Fixed-set sequencing evaluation
+
+Evaluate the [experimental fixed-set sequencing and bridge
+insertion](../mixing/fixed-set-sequencing.md) workflow as a separate task from
+retrieval. The curated input defines the membership baseline; ordering quality
+cannot compensate for losing, replacing, or silently adding a track.
+
+### Structural correctness
+
+Every run must verify:
+
+- **Reorder-only membership:** the output path multiset exactly equals the
+  original path multiset, every path occurs once, and each extended-M3U metadata
+  block remains attached to its track.
+- **Bridged membership:** all original members remain exactly once, every added
+  path is unique and outside the original set, and the number of additions
+  equals the requested explicit bridge count or the separately reported
+  automatic decision.
+- **Repeat policy:** zero track, artist, and album look-back violations under
+  the captured LMS BlissMixer settings, checked again after every insertion and
+  on the final route.
+- **Determinism:** identical frozen inputs, algorithm parameters, random seed,
+  and restart count reproduce the selected order and reported scores.
+
+An explicit bridge-count run that cannot find the requested number of
+acceptable repeat-safe tracks should fail. Returning fewer additions without
+changing the declared mode would make the output contract ambiguous.
+
+### Route metrics and controls
+
+For every evaluated order, report the leg count and at least:
+
+- total and mean transition cost;
+- worst transition cost and position;
+- an upper-tail statistic such as the 90th or 95th percentile;
+- the complete route objective, with the worst-leg penalty reported
+  separately; and
+- artist and album repeat counts even when both are zero.
+
+Compare against the same membership in:
+
+- its original order;
+- several seeded random orders, reporting their distribution rather than one
+  convenient sample;
+- reversed original and reversed optimized orders; and
+- the best reorder-only route before any bridge is added.
+
+The reversed controls are particularly important for Adaptive scoring because
+its sliding context makes route costs directional. Search restarts are not
+independent baselines: they are attempts by the same optimizer.
+
+### Bridge ablation and evidence
+
+Compare the reorder-only backbone with the bridged result and, where practical,
+with the same bridge candidates inserted under simpler pairwise scoring. For
+each accepted bridge, report:
+
+- the direct leg that triggered consideration;
+- incoming, outgoing, maximum-leg, and two-leg costs after contextual
+  rescoring;
+- the Last.fm evidence tier: both endpoints, one endpoint, collection fallback,
+  original-artist fallback, or Bliss-only fallback;
+- the endpoint sources that supplied evidence;
+- whether the endpoint-local pool was empty; and
+- any rejected insertion caused by acoustic or repeat constraints.
+
+Aggregate results should state how often collection-wide fallback was used.
+The frozen original-playlist artist profile must be verified so bridge tracks
+cannot generate recursively favorable evidence.
+
+### Human assessment
+
+Assess at least three concepts separately:
+
+1. **Relevance:** does each track still belong in the playlist or local context?
+2. **Variety:** does the sequence avoid unwanted homogeneity and repetition?
+3. **Local flow:** does each directional transition sound appropriate?
+
+Listening review is essential. The prototype's whole-track Adaptive cost is a
+proxy that cannot observe the actual outro, intro, silence, fade, or section at
+the playback boundary. A lower objective or improved upper tail is useful
+diagnostic evidence, not validation of audible transition quality. Blind or
+counterbalanced reviews should include the original, optimized, and bridged
+variants without revealing their objective scores.
+
+The current aggregate observations are recorded as a deliberately limited
+[two-playlist exploratory case study](fixed-set-case-study.md).
 
 ## Transition evaluation
 

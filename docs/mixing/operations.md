@@ -2,7 +2,7 @@
 
 **Status:** Living research and design proposal  
 **Primary scope:** Research scope, UX, observability, and performance  
-**Last reviewed:** 2026-07-14
+**Last reviewed:** 2026-07-19
 
 ## Psychoacoustic scope
 
@@ -82,6 +82,100 @@ Debug output should make a decision explainable without logging raw audio:
   penalty, final score, and missing-data fallback;
 - analysis/schema version mismatches;
 - time spent in global search, metadata lookup, and reranking.
+
+## One-shot reproducibility and deployment observability
+
+The [fixed-set sequencing prototype](fixed-set-sequencing.md) operates outside
+the shipped LMS BlissMixer flow and can affect a saved playlist if its result is
+deployed manually. Its evidence is useful only when the complete decision can
+be reconstructed from frozen inputs and the deployed catalog state is checked
+afterward.
+
+### Frozen input and executable identity
+
+Each run should record:
+
+- the input playlist's SHA-256 and track count;
+- the Bliss database SHA-256, integrity result, schema or table identity,
+  eligible-track count, and exact analysis coverage for the curated and bridge
+  candidate sets;
+- the learned-matrix SHA-256, dimensions, and feature-schema identity;
+- a snapshot of the relevant `plugin.blissmixer` preferences, including the
+  selected algorithm, learned blend, seed behavior, and track, artist, and
+  album repeat windows;
+- the frozen original-playlist artist-profile SHA-256, source-artist count,
+  successful and failed lookup counts, and query policy;
+- the exact optimizer identity: repository commit, dirty-state indicator,
+  hashes of the executable scripts, interpreter and dependency versions, and
+  platform; and
+- where parity is checked, the native `bliss-mixer` version and binary hash.
+
+Hashes belong in private run artifacts. A public report may state that identity
+was frozen and parity passed without publishing run-specific hashes, private
+paths, server addresses, credentials, or playlist contents.
+
+### Algorithm and decision trace
+
+Record every input that can change the route:
+
+- algorithm mode and whether Static weights are active or provenance-only;
+- strict sliding seed-window size and single-seed behavior;
+- learned-matrix blend;
+- random seed and restart count;
+- track, artist, and album look-back windows;
+- route objective and worst-leg weight;
+- energy-arc policy and selection thresholds; and
+- bridge mode, automatic threshold, maximum budget or explicit count,
+  two-leg acceptance limits, and Last.fm fallback policy.
+
+For each selected leg, retain the ordered seed context, next track, raw
+continuation cost, and any normalized value. For each bridge proposal, retain
+the direct gap, both rescored legs, evidence tier and sources, local-pool state,
+repeat-policy result, acceptance or rejection reason, and the final insertion
+position. This is the minimum trace needed to distinguish a metric decision
+from a semantic fallback or a constraint failure.
+
+When a compatible native mixer binary is available, compare the prototype with
+that binary on frozen real seed contexts. At minimum, validate seed count,
+algorithm selection, and the effective blended diagonal within a declared
+tolerance. Matrix parity alone does not prove full route parity: later work
+should also compare candidate distances, rankings, filters, and single-seed
+fallback behavior where the API exposes enough diagnostics.
+
+### Extended-M3U contract
+
+Reordering must preserve each existing track's complete entry block. A newly
+inserted bridge must use the exact LMS-style three-line representation:
+
+```text
+#EXTURL:<LMS-compatible file URL>
+#EXTINF:<duration>,<title>
+<filesystem path>
+```
+
+The file URL must match LMS escaping rather than a generic approximation. The
+parser may accept an LMS playlist containing a transient leading `#CURTRACK`
+marker before `#EXTM3U`. Generated optimized playlists start with `#EXTM3U` and
+must not copy `#CURTRACK` or other transient playback-state markers. Validate
+header placement, block adjacency, encoding, path uniqueness, expected count,
+and—where the target filesystem is available—file existence before deployment.
+
+### Post-deployment verification
+
+Writing valid bytes is not sufficient. After deployment:
+
+1. hash and re-read the deployed playlist;
+2. run the supported playlist scanner or rescan flow;
+3. confirm that scanning has actually completed;
+4. compare the catalog's decoded playlist URLs with the M3U position by
+   position; and
+5. verify track count, uniqueness, metadata, and absence of staging files.
+
+Scanner metadata can cause an existing playlist row to be removed and recreated
+during a supported rescan or repair. The LMS playlist database ID may therefore
+change and must not be treated as stable playlist identity. Use the intended
+playlist name/location, frozen input and output hashes, and exact ordered URLs
+for verification; record a catalog ID only as transient deployment evidence.
 
 ## Performance expectations
 

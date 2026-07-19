@@ -68,6 +68,7 @@ nav:
       - Enhanced analysis inputs: mixing/analysis-inputs.md
       - Similarity strategies: mixing/similarity-strategies.md
       - Context and diversity: mixing/context-and-diversity.md
+      - Fixed-set sequencing: mixing/fixed-set-sequencing.md
       - Personalization: mixing/personalization.md
       - Transition-aware selection: mixing/transitions.md
       - Operational concerns: mixing/operations.md
@@ -77,6 +78,7 @@ nav:
   - Evaluation and delivery:
       - Analysis evaluation: evaluation/analysis-evaluation.md
       - Mixing evaluation: evaluation/mixing-evaluation.md
+      - Fixed-set case study: evaluation/fixed-set-case-study.md
       - Analysis roadmap: evaluation/analysis-roadmap.md
       - Mixing roadmap: evaluation/mixing-roadmap.md
   - References:

@@ -2,7 +2,7 @@
 
 **Status:** Living research and design proposal  
 **Primary scope:** Baseline metrics, candidate generation, and population-aware weighting  
-**Last reviewed:** 2026-07-14
+**Last reviewed:** 2026-07-19
 
 ## Baseline and experimental whole-track similarity
 
@@ -38,7 +38,7 @@ retrieval.
 |---|---|---|---|
 | **Static Weights** | Applies four user-controlled feature-family weights, performs a separate 23-dimensional KD-tree search for each seed, and keeps the best per-seed score when merging results. | Remains the most interpretable control. Candidate perceptual or structural families can first be added through late fusion; validated families could later receive explicit controls or enter a rebuilt index. | Its preweighted KD-tree admits candidates using only the current representation. An enhanced scorer cannot recover a track excluded by that gate. Per-seed best-score merging also represents a union of neighborhoods rather than agreement with the complete context. |
 | **Extended Isolation Forest** | Builds a joint anomaly model from the seed tracks, after constructing a candidate pool with the existing KD-tree. | Provides a distribution-based alternative to distance from a seed or centre. Standardized enhanced descriptors could be tested as forest input, while independent reranking allows safer ablation. | Equal treatment of dimensions makes scale, redundancy, and correlated descriptor families consequential. A high-dimensional forest trained from few seeds may be unstable, and its KD-tree prefilter uses a different criterion from its final anomaly score. |
-| **Adaptive Weighting** | Computes a seed-variance Mahalanobis matrix, optionally blends the personal learned matrix, represents multiple seeds by their mean, and scans the full database. | Is the closest existing host for population-aware regularization, schema-aware personal metrics, enhanced scalar families, and more robust context representations. | Low variance proves seed agreement, not perceptual importance. A single mean can erase multimodal contexts, and every expanded matrix must match the exact feature schema, order, scale, and normalization. |
+| **Adaptive Weighting** | Computes a seed-variance Mahalanobis matrix, optionally blends the personal learned matrix directly into it, represents multiple seeds by their mean, and scans the full database. | Is the closest existing host for population-aware regularization, schema-aware personal metrics, enhanced scalar families, more robust context representations, and experimental directional continuation scoring. | Low variance proves seed agreement, not perceptual importance. A single mean can erase multimodal contexts, and every expanded matrix must match the exact feature schema, order, scale, and normalization. |
 
 The intended layering is shown below. The filter box represents preservation of
 the existing hard-exclusion and fallback semantics; its exact capture point in
@@ -102,6 +102,41 @@ For every experiment, record the original algorithm, original score and rank,
 pool size, filter outcome, enhanced score and rank, and final selection. Compare
 both quality within the retrieved pool and whether the baseline retrieval stage
 omitted tracks that the enhanced criterion would otherwise rank highly.
+
+## Adaptive as a directional continuation score
+
+The current mix API uses Adaptive Weighting to select candidates from the
+library. It does not accept an already curated collection and return a route.
+The [experimental fixed-set sequencing](fixed-set-sequencing.md) prototype
+reuses the same metric calculation at each proposed route position while
+performing ordering in a separate one-shot search.
+
+For two or more ordered seeds, Adaptive:
+
+1. takes the strictly ordered trailing seed window;
+2. computes the raw-feature mean and population variance for that context;
+3. assigns inverse-variance diagonal weights;
+4. normalizes those weights to the feature dimensionality—currently a total of
+   23 for the Version 2 vector; and
+5. blends the learned matrix directly with the variance-derived matrix using
+   the configured learned-matrix influence.
+
+The normalization total is **not** the sum of the four Static feature sliders.
+Those sliders are a separate algorithm's configuration and must not influence
+Adaptive mode. With one seed, variance is undefined; when a compatible learned
+matrix is loaded, the current mixer and prototype use that matrix alone. The
+first transition of every route necessarily exercises this single-seed path.
+
+The score is a contextual candidate-to-seed-centre distance. Changing earlier
+route positions changes the seed window, centre, variance matrix, and later
+scores. It is therefore directional and generally asymmetric at the route
+level: reversing an order is not equivalent even though a Mahalanobis distance
+under one already constructed matrix is symmetric.
+
+This reuse is valuable because it can be evaluated with the current 23-feature
+database and learned matrix, without pretending that the mix endpoint already
+implements route optimization. A future ordering command or API would need its
+own input, output, constraint, cancellation, and diagnostics contract.
 
 ## Population-aware adaptive weighting
 

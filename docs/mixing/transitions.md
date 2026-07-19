@@ -2,7 +2,7 @@
 
 **Status:** Living research and design proposal  
 **Primary scope:** Boundary descriptors, compatibility, and late reranking  
-**Last reviewed:** 2026-07-14
+**Last reviewed:** 2026-07-19
 
 ## Transition-aware selection
 
@@ -133,6 +133,37 @@ Transition reranking must preserve the common filters documented in
 album, artist, and title constraints. Exact ordering needs implementation-level
 review because some current filters retain fallback candidates rather than
 discarding them permanently.
+
+### Relationship to fixed-set sequencing
+
+[Fixed-set sequencing](fixed-set-sequencing.md) and transition-aware reranking
+operate at different levels:
+
+- the current one-shot sequencing prototype orders an entire curated set using
+  contextual distances over the existing whole-track Bliss descriptors;
+- transition-aware reranking uses outro and intro evidence to refine local
+  boundary compatibility after the relevant tracks or candidate pool are
+  known.
+
+Whole-track contextual sequencing is therefore the currently executable
+baseline. Boundary-aware scoring is a later refinement that depends on analysis
+products not present in the Version 2 vector; it is not another name for the
+same algorithm. A future system could first find a strong fixed-set route and
+then use anchors to rescore local alternatives, or combine the terms in one
+route objective after their scales and relative influence have been validated.
+
+Bridge insertion makes the distinction especially important. Inserting `X`
+between `A` and `B` changes both `A -> X` and `X -> B`. Under contextual
+whole-track scoring, the outgoing leg must be recomputed from a seed window
+that includes `X`. Under boundary-aware scoring, both new physical boundaries
+must likewise be evaluated: `A.outro -> X.intro` and
+`X.outro -> B.intro`. Scoring only the incoming bridge leg is insufficient.
+
+Every tentative insertion must also preserve track, artist, and album
+look-back constraints across the complete resulting route. A bridge that
+improves acoustic compatibility but creates a repeat-window violation is not a
+valid repair. These constraints remain hard regardless of whether the local
+score uses whole-track vectors or future anchors.
 
 ### Relationship to path interpolation
 
