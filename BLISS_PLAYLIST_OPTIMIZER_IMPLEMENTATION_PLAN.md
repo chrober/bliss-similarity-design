@@ -2,9 +2,10 @@
 
 **Status:** Proposed  
 **Date:** 2026-07-19  
-**Primary objective:** Productize the proven fixed-set playlist sequencing and
-bridge-insertion workflow as a separately maintained Lyrion plugin without
-requiring Python on the server and without modifying `lms-blissmixer`.  
+**Primary objective:** Productize the proven playlist sequencing and
+bridge-insertion workflow, add order-preserving gap filling and destination
+routes for the live queue, and deliver it as a separately maintained Lyrion
+plugin without requiring Python on the server or modifying `lms-blissmixer`.
 **Reference implementation:** The untracked Python tools and the 2025/2026
 execution reports in this repository remain the behavioral oracle until the
 Rust implementation reaches declared parity.
@@ -45,6 +46,8 @@ private process state to it.
 The first product release must support:
 
 - reordering every track of an existing saved playlist exactly once;
+- preserving an existing playlist order as immutable anchors and filling its
+  gaps without moving those original tracks;
 - preserving the source playlist by default and writing a new optimized copy;
 - the strict sliding Adaptive seed context used by the current BlissMixer;
 - dynamic variance weights and learned-matrix blending;
@@ -55,6 +58,8 @@ The first product release must support:
   when the local artist pool is empty;
 - reproducible JSON and human-readable reports;
 - playlist context-menu, Applications/My Apps, and classic Extras entry points;
+- a track context action that can append a fluent route from the current queue
+  tail to a selected destination track;
 - safe LMS-native playlist creation and M3U serialization; and
 - native packages for the server platforms declared by a plugin release.
 
@@ -66,7 +71,7 @@ The following are not required for the first release:
 - publishing raw playlists, private music metadata, server details, or Last.fm
   responses;
 - intro/outro audio decoding or boundary-anchor analysis;
-- optimizing the unsaved current player queue; or
+- globally optimizing or replacing the unsaved current player queue; or
 - automatically overwriting a source playlist.
 
 ## Repository plan
@@ -215,6 +220,7 @@ must no longer duplicate it.
 The native optimizer builds on `bliss-mixer-core` and owns:
 
 - parsing and validating an explicit fixed track set;
+- selecting either reorderable originals or immutable ordered anchors;
 - deterministic directional route construction;
 - strict sliding-context rescoring at every proposed position;
 - open-path nearest-neighbour, insertion, randomized greedy, 2-opt, swap, and
@@ -224,10 +230,11 @@ The native optimizer builds on `bliss-mixer-core` and owns:
 - optional start/end locks and forbidden adjacencies;
 - energy-arc evaluation as a secondary selector;
 - bridge candidate generation from the analyzed local library;
-- contextual two-leg bridge evaluation;
+- contextual evaluation of one or more inserted tracks between fixed endpoints;
 - frozen cross-context reference distributions;
 - endpoint artist-evidence tiers supplied by the caller;
-- automatic and exact-count bridge policies; and
+- automatic and exact-count bridge policies;
+- source-to-destination route generation for the live-queue action; and
 - structured progress, warnings, results, and reproducibility diagnostics.
 
 The optimizer must not call Last.fm directly. It receives a frozen semantic
@@ -255,6 +262,8 @@ Each request includes an explicit `schema_version` and, at minimum:
 - the ordered source track identities;
 - the captured BlissMixer algorithm settings;
 - route objective and deterministic search settings;
+- ordering policy (`optimize_order`, `preserve_order`, or
+  `queue_destination`) and immutable endpoints/anchors where applicable;
 - look-back windows;
 - extension mode and bridge budget/count;
 - the frozen LastMix artist graph and coverage/failure metadata; and
@@ -332,6 +341,7 @@ BlissEmAll/
   Settings.pm
   Jobs.pm
   OptimizerProcess.pm
+  QueueRoute.pm
   BlissCompatibility.pm
   LastMixAdapter.pm
   PlaylistWriter.pm
@@ -348,6 +358,7 @@ Register a namespaced command family such as:
 ```text
 blissemall capabilities
 blissemall optimize
+blissemall route_to
 blissemall status
 blissemall cancel
 blissemall result
@@ -394,14 +405,16 @@ The primary entry point is one playlist context-menu provider:
 
 > Bliss 'Em All…
 
-It opens a workflow rather than changing the playlist immediately. Every mode
-starts with the same invariants:
+It opens a workflow rather than changing the playlist immediately. The user
+first chooses whether Bliss 'Em All may optimize the order or must preserve the
+source order as immutable anchors. Every saved-playlist mode then starts with
+the same invariants:
 
 - let `S` be the number of unique original tracks;
 - preserve all `S` original tracks exactly once and never remove one to satisfy
   a target length;
-- optimize the directional order of those originals before selecting bridge
-  positions;
+- either optimize their directional order or retain their exact source order,
+  according to the selected workflow;
 - apply the captured artist, album, and track look-back windows to the complete
   final sequence;
 - admit only analyzed, unique, acoustically acceptable bridge tracks under the
@@ -414,8 +427,10 @@ The modes then differ as follows.
 
 #### Reorder only
 
-Find the best feasible ordering of the supplied set and add nothing. The output
-contains exactly `S` tracks. This is the safest mode for a playlist whose
+With **Optimize order** selected, find the best feasible ordering of the
+supplied set and add nothing. The output contains exactly `S` tracks. This
+mode is not offered with **Preserve order**, where it would be a no-op. It is
+the safest mode for a playlist whose
 membership has already been curated and answers only the question, "In what
 order should these tracks play?"
 
@@ -427,11 +442,11 @@ tracks or silently weaken those windows.
 
 #### Extend automatically
 
-First produce the reorder-only route, then inspect its direct transitions. A
-bridge is considered only for a transition that exceeds the configured severe-
-gap threshold and for which an eligible insertion improves the two contextual
-legs. The optimizer may therefore add zero tracks when the reordered playlist
-is already sufficiently fluent.
+Establish the original route using the selected ordering policy, then inspect
+its direct transitions. A bridge is considered only for a transition that
+exceeds the configured severe-gap threshold and for which an eligible insertion
+improves the contextual route. The optimizer may therefore add zero tracks when
+the reordered or preserved playlist is already sufficiently fluent.
 
 Automatic mode is deliberately conservative. It uses a configurable maximum
 bridge budget, adds at most one bridge to an original transition in version 1,
@@ -447,21 +462,25 @@ not a target or best-effort hint. The optimizer ranks the most useful viable
 insertion positions, normally starting with the hardest internal transitions,
 while jointly preserving contextual quality and repeat windows.
 
-Version 1 permits at most one added track in each original internal transition.
-The start and end slots may be used when the requested count cannot be met from
-eligible internal slots—for example when doubling a 20-track playlist requires
-20 additions but it has only 19 internal transitions, or when one internal gap
-has no acceptable bridge. If exactly `N` acceptable unique tracks cannot be
-placed under these rules, Preview fails visibly and creates no playlist. It
-must never quietly return fewer additions.
+With **Optimize order**, version 1 permits at most one added track in each
+original internal transition. Start and end slots may be used when the requested
+count cannot be met from eligible internal slots—for example when doubling a
+20-track playlist requires 20 additions but it has only 19 internal
+transitions, or when one internal gap has no acceptable bridge. With
+**Preserve order**, multiple additions may instead form a route inside one
+fixed anchor gap; opening and closing additions remain explicit opt-ins. If
+exactly `N` acceptable unique tracks cannot be placed under the selected
+rules, Preview fails visibly and creates no playlist. It must never quietly
+return fewer additions.
 
 `N = 0` is equivalent to Reorder only. The UI should state the resulting total
 before execution, for example, "20 original + 8 additional = 28 tracks."
 
 #### One bridge per transition
 
-This is a strict structural preset. After ordering the `S` originals, insert
-exactly one bridge between every adjacent pair of original tracks. It therefore
+This is a strict structural preset. After establishing the optimized or
+preserved order of the `S` originals, insert exactly one bridge between every
+adjacent pair of original tracks. It therefore
 adds `S - 1` tracks and produces `2S - 1` total tracks:
 
 ```text
@@ -484,9 +503,11 @@ target is invalid because this product does not discard curated originals.
 
 Double length sets `T = 2S`, and therefore requests `N = S` additions. This is
 not the same as One bridge per transition: that preset adds only `S - 1` and
-produces `2S - 1`. Double length normally fills viable internal transitions and
-uses an endpoint slot where necessary. It retains the same strict failure rule
-as Add exactly N tracks if the target cannot be reached safely.
+produces `2S - 1`. With optimized ordering, Double length normally fills
+viable internal transitions and uses an endpoint slot where necessary. With
+preserved ordering, it may place multiple additions inside fixed anchor gaps
+and uses endpoints only when explicitly enabled. It retains the same strict
+failure rule as Add exactly N tracks if the target cannot be reached safely.
 
 The UI should always show the calculation before Preview:
 
@@ -496,6 +517,51 @@ Target:       40 tracks
 To be added:  20 tracks
 Mode:         Double length (strict)
 ```
+
+#### Preserve order and fill gaps
+
+Treat every original track as an immutable anchor. The output must contain the
+original playlist as an identical ordered subsequence: none of its tracks may
+move relative to another original. Bliss 'Em All may add tracks only around or
+between those anchors, so this workflow answers, "How can these intended
+transitions become fluent without changing my running order?"
+
+The default form fills internal gaps only. The user then chooses the desired
+addition policy: automatic, exactly `N`, one bridge per original transition,
+or a target/double length. More than one inserted track may be used within a
+difficult gap when required by an exact target; whether this is implemented
+with waypoints, chained bridge search, or another route-search technique is an
+optimizer detail rather than part of the UX contract. Opening and closing
+tracks are separate opt-in controls and must never be used silently just to
+satisfy a count.
+
+Preview must visualize each unchanged anchor and its proposed inserted
+sub-sequence, show why each gap was or was not filled, and prove that filtering,
+repeat windows, and contextual scoring were evaluated over the complete final
+sequence. A preserve-order request fails instead of quietly reordering anchors
+or weakening constraints.
+
+#### Track action: Bliss me there…
+
+Register **Bliss me there…** on the context menu of a playable local track. Its
+destination is the selected track; its source is the last playable track
+already in the selected player's queue. If no usable source exists, the action
+is disabled with an explanation.
+
+The action never removes, reorders, or replaces existing queue entries. It
+finds zero or more intermediate local tracks, applies the current queue tail as
+look-back context, and appends the intermediates followed by the selected
+destination. If the direct transition is already acceptable, Auto may append
+only the destination. The user can choose Auto or an exact number of
+intermediate tracks and sees a short Preview before confirming **Append to
+queue**.
+
+The selected destination is fixed, while intermediate tracks remain subject to
+analysis coverage, uniqueness, repeat windows, acoustic quality, and the
+configured LastMix evidence policy. If no valid route exists, the queue remains
+unchanged and the UI identifies the blocking constraint. Every invocation gets
+a normal job ID and report so its decisions are as reproducible as saved-
+playlist optimization.
 
 The workflow displays source size, analysis coverage, inherited BlissMixer
 settings, output name, LastMix availability, and a collapsed advanced section.
@@ -511,6 +577,63 @@ Also expose one management dashboard through both:
 The dashboard owns playlist selection, active jobs, progress, cancellation,
 reports, history, and dependency status. The Settings page contains durable
 defaults only, not individual jobs.
+
+### Lyrion server logging
+
+Follow the integration pattern used by `lms-blissmixer`: register one standard
+Lyrion log category with `Slim::Utils::Log`, place it in the scanner-related
+group, and let administrators change its level through Lyrion's normal logging
+UI. The plugin declaration should be equivalent to:
+
+```perl
+my $log = Slim::Utils::Log->addLogCategory({
+    category     => 'plugin.blissemall',
+    defaultLevel => 'INFO',
+    logGroups    => 'SCANNER',
+});
+```
+
+Add the corresponding `DEBUG_PLUGIN_BLISSEMALL` label to `strings.txt` so
+the category has a clear user-facing name in Server Settings > Logging.
+
+The primary operational log is therefore the normal Lyrion server log, not a
+private plugin log that users must discover separately. Use a short, opaque job
+ID in every job-related message so a UI result, native-helper run, report, and
+server-log sequence can be correlated.
+
+Apply levels consistently:
+
+| Level | Server-log contract |
+| --- | --- |
+| **ERROR** | An unexpected failure prevented a safe result: invalid/corrupt helper output, child-process failure, database failure, playlist write or verification failure, or an uncaught internal error. Include the stable error code and job ID. |
+| **WARN** | The job can continue only with reduced capability or needs attention: partial LastMix coverage, an allowed Bliss-only fallback, analysis starting during a job, skipped unavailable evidence, rejected output-name collision, or a cleanup/recovery issue. Expected infeasibility reported cleanly in Preview is INFO, not ERROR. |
+| **INFO** | Concise lifecycle and audit summary: capability state at startup, job start, action/mode, original and requested counts, inherited scoring mode and look-back windows, stage changes, completion/cancellation, output count, objective improvement, warning count, report ID, and elapsed time. Do not emit one line per candidate or track. |
+| **DEBUG** | Reproduction and diagnosis detail: sanitized request options, stage timings, candidate/filter counts, per-gap decision summaries, route-search restarts, repeat-window rejections, semantic evidence tiers, helper diagnostics, and LMS persistence/verification steps. Full private track lists and paths still belong only in an explicitly exported private report. |
+
+Use `main::INFOLOG`/`main::DEBUGLOG`, `$log->is_info`, and
+`$log->is_debug` guards around expensive message construction, matching
+Lyrion conventions already used by BlissMixer. Warnings and errors must not
+depend on those guards.
+
+The native optimizer must keep its machine-readable result and progress
+protocol separate from diagnostics. Give each request a job ID and requested
+helper log level. The plugin derives helper verbosity from the active
+`plugin.blissemall` level, captures structured helper diagnostic events, and
+maps their `error`, `warn`, `info`, and `debug` levels into the same
+Lyrion category. This serves the same purpose as BlissMixer passing
+`--logging debug` to its native process, without mixing human log lines into
+the optimizer result JSON. Unexpected raw stderr is captured with size/rate
+limits, redacted, logged at WARN or DEBUG as appropriate, and referenced from
+the job report.
+
+Logging and reports have different purposes: the server log explains lifecycle
+and failure at an operational level; the retained job report carries the
+structured decision evidence needed for reproduction. Neither may log
+credentials, authorization values, database contents, raw Last.fm payloads, or
+complete playlists by default. Track titles, artist names, playlist paths, and
+filesystem paths must be omitted or minimized at INFO and sanitized at DEBUG.
+Add automated tests for level filtering, job-ID correlation, multiline stderr,
+rate limiting, and redaction.
 
 ## Testing and parity strategy
 
@@ -571,7 +694,10 @@ The existing Python tools remain the oracle during migration:
 - Perl compile checks and focused unit tests with mocked LMS objects;
 - capability-state, path-validation, command, job-lifecycle, and LastMix tests;
 - plugin ZIP structure and executable-presence validation;
-- LMS-native playlist writer and exact-order integration tests; and
+- LMS-native playlist writer and exact-order integration tests;
+- transactional live-queue append and fixed-destination tests;
+- log-level, job-correlation, helper-diagnostic, throttling, and redaction
+  tests; and
 - installation, upgrade, disable, uninstall, and server-restart tests on a
   disposable LMS instance.
 
@@ -672,28 +798,39 @@ matrix, per-leg, objective, and repeat parity.
 
 - Port frozen reference distributions and two-leg bridge scoring.
 - Implement automatic and exact-count modes.
+- Implement immutable-anchor gap filling and destination-route requests.
 - Accept and validate the frozen artist-evidence graph.
 - Enforce the endpoint-local fallback policy and full-route repeat constraints.
 - Add detailed acceptance/rejection reporting.
 
-**Exit gate:** bridge fixtures cover every evidence tier, impossible exact-count
-requests fail visibly, and Python/Rust parity passes.
+**Exit gate:** bridge fixtures cover every evidence tier, preserve-order outputs
+retain an identical anchor subsequence, destination routes end at their fixed
+target, impossible exact-count requests fail visibly, and Python/Rust parity
+passes.
 
 ### Phase 4: headless LMS plugin backend
 
 - Implement capability checks and preference capture.
-- Add job creation, status, cancellation, and report commands.
+- Add job creation, status, cancellation, report, and `route_to` commands.
+- Register `plugin.blissemall`, relay structured helper diagnostics, and
+  enforce the logging/redaction contract.
 - Implement LastMix profile collection.
 - Invoke the native optimizer safely.
 - Create and positionally verify new playlists through LMS APIs.
+- Append a validated destination route to the selected player queue without
+  altering its existing entries.
 
-**Exit gate:** a CLI/JSON-RPC request can create a verified optimized copy on a
-test Lyrion server without modifying the source or `lms-blissmixer`.
+**Exit gate:** CLI/JSON-RPC requests can create a verified optimized or
+order-preserved copy and append a validated destination route on a test Lyrion
+server without modifying the source playlist, existing queue entries, or
+`lms-blissmixer`; job events are correlated in the Lyrion server log.
 
 ### Phase 5: user experience
 
 - Register the playlist context-menu provider.
-- Implement Preview and Create workflow screens.
+- Implement reorder and Preserve order and fill gaps Preview/Create workflows.
+- Register the track context action **Bliss me there…** with Preview and
+  **Append to queue** confirmation.
 - Add Applications/My Apps and Extras dashboard entry points.
 - Add dependency status, progress, cancellation, history, and report views.
 - Keep advanced algorithm controls collapsed and inherit BlissMixer settings by
@@ -732,6 +869,10 @@ upgrade, and uninstall the plugin through the extension manager.
 - `bliss-mixer` and `bliss-playlist-optimizer` use the same released core
   scoring implementation.
 - Reorder-only mode preserves every original track exactly once.
+- Preserve order and fill gaps returns the originals as an identical ordered
+  subsequence and never moves an anchor.
+- **Bliss me there…** leaves the existing queue unchanged and atomically appends
+  only a validated route ending at the selected destination.
 - Exact bridge count either produces exactly the requested count or fails
   without creating a misleading partial result.
 - All outputs satisfy captured repeat windows.
@@ -744,6 +885,9 @@ upgrade, and uninstall the plugin through the extension manager.
 - Jobs are cancellable, survive UI navigation, and clean up on server shutdown.
 - Reports contain enough identity and decision data to reproduce a run without
   exposing private server data by default.
+- The `plugin.blissemall` category appears in Lyrion's logging UI; each level
+  follows the documented contract, correlates by job ID, and passes redaction
+  tests.
 - Each advertised platform has an executable smoke test and a real installation
   result.
 - Lyrion validates the published ZIP SHA-1 and installs it from
@@ -771,7 +915,10 @@ Resolve these before or during Phase 0:
 8. Report retention duration and whether users can explicitly export a private
    full report.
 9. Whether replacing a source playlist is omitted entirely from version 1.
-10. Whether to propose a small future public capability API to the
+10. Default Auto behavior and exact-count limits for Preserve order and fill
+    gaps and **Bliss me there…**, including whether endpoint additions are ever
+    enabled by default.
+11. Whether to propose a small future public capability API to the
     `lms-blissmixer` maintainer; this must not block the companion plugin.
 
 ## Documentation work accompanying implementation
