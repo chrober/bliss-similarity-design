@@ -177,6 +177,46 @@ change and must not be treated as stable playlist identity. Use the intended
 playlist name/location, frozen input and output hashes, and exact ordered URLs
 for verification; record a catalog ID only as transient deployment evidence.
 
+## Future interactive execution contract
+
+If constrained sequencing becomes an interactive application capability, its
+operational boundary should be a versioned request/result contract rather than
+an implicit sequence of UI or filesystem actions. The request should declare:
+
+- the ordering policy: exact-permutation optimization, immutable-anchor gap
+  filling, or a destination-constrained route;
+- immutable anchors, queue prefix, start or end locks, and whether opening or
+  closing additions are permitted;
+- artifact and feature-schema identities, captured scoring settings, repeat
+  windows, search effort, deterministic seed, and bridge or route-length policy;
+  and
+- a frozen, provider-neutral semantic-evidence snapshot with source endpoint,
+  provider, raw rank or score, cache state, identity-match confidence, coverage,
+  and failure metadata.
+
+The result should identify the executable and schema versions, classify every
+original and inserted track, expose per-leg contexts and costs, prove the hard
+constraints, and explain every semantic fallback. A stable job identifier may
+correlate progress, cancellation, diagnostics, and the retained report, but it
+must not replace the immutable input and artifact identities needed for
+reproduction. Cancellation or failure must not expose a partial result as a
+completed playlist.
+
+An integrated host should persist playlists through its supported playlist
+objects or commands, create a new result by default, and verify the stored
+order track for track. Direct extended-M3U serialization remains important for
+file interoperability and parity testing, but manual file replacement should
+not become the application transaction model. Likewise, a
+destination-constrained queue operation should append a fully validated suffix
+atomically and leave the existing queue unchanged on failure.
+
+Remote semantic evidence is optional input. Disabled providers, network
+failure, partial responses, or bounded stale-cache use must be reported as
+capability states and should fall back to available evidence or Bliss-only
+scoring. They must not turn a feasible local acoustic route into an operational
+failure. Credentials, raw responses, complete playlists, and private paths
+remain excluded from normal logs.
+
 ## Performance expectations
 
 - Audio decoding and feature extraction happen offline.

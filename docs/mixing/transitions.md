@@ -165,11 +165,22 @@ improves acoustic compatibility but creates a repeat-window violation is not a
 valid repair. These constraints remain hard regardless of whether the local
 score uses whole-track vectors or future anchors.
 
+If a gap contains several inserted tracks, the affected region is a short
+route rather than a set of independent bridge decisions. Whole-track
+contextual scoring must be replayed from the earliest insertion through the
+right anchor because each addition changes later seed windows. Boundary-aware
+scoring must likewise evaluate every newly created physical boundary. Both
+views still require one final repeat-policy check over the complete sequence.
+
 ### Relationship to path interpolation
 
 [PATH_INTERPOLATION.md](https://github.com/chrober/lms-blissmixer/blob/master/PATH_INTERPOLATION.md) solves a different problem:
 constructing several intermediate tracks between a known source and target.
 Transition-aware mixing selects the next track from a global candidate pool.
 
-The two features can eventually share anchor distance and evaluation utilities,
-but neither should depend on the other for its first implementation.
+A destination-constrained route is a path-interpolation variant in which the
+existing source context and destination are immutable and only the intermediate
+suffix is selectable. Order-preserving gap filling applies the same idea
+between consecutive immutable playlist anchors. Neither is the same as
+exact-permutation fixed-set ordering, although all three can share route
+scoring, anchor distance, hard-constraint, and evaluation utilities.
