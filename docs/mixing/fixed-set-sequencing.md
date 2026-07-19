@@ -50,6 +50,37 @@ selection](transitions.md). Fixed-set sequencing can be evaluated now with the
 existing whole-track Bliss representation because it requires no new analysis
 schema.
 
+## Constrained-route variants
+
+Exact-permutation reordering is one member of a broader family of constrained
+sequencing problems. Three policies should remain distinct in an API,
+evaluation, and user-facing explanation:
+
+- **Optimize order:** every curated track is reorderable and must appear exactly
+  once. This is the fixed-set problem implemented by the current one-shot
+  prototype.
+- **Preserve order and fill gaps:** every curated track is an immutable anchor.
+  The output must contain the originals as an identical ordered subsequence,
+  while zero or more explicitly classified additions may be placed between
+  them. Opening and closing additions are separate policy choices rather than
+  implicit ways to satisfy a requested count.
+- **Destination-constrained route:** the source context and final destination
+  are fixed, while zero or more intermediate tracks may be selected. When the
+  source is a live queue, existing entries form an immutable prefix and only a
+  validated suffix ending at the destination may be appended.
+
+The latter two are generic design extensions, not capabilities of the current
+one-shot implementation. They also differ from retrieval: their anchors or
+destination are requirements, not merely seeds that may disappear from the
+result.
+
+When several tracks are inserted into one anchor gap, they form a small
+directional route rather than independent bridges. Contextual scoring must be
+recomputed from the earliest affected position through the right anchor, and
+hard repeat constraints must be checked over the complete tentative sequence.
+Optimizing every insertion independently would miss interactions between the
+inserted tracks and their changing seed windows.
+
 ## Reorder-only contract
 
 A reorder-only result must be an exact permutation of the input:
@@ -243,6 +274,37 @@ orders candidates; it does not replace acoustic scoring.
 This tiered bridge policy is specific to the one-shot prototype. It is not the
 same algorithm as the existing LMS BlissMixer Last.fm weighting option, even
 when both draw metadata from the LastMix integration.
+
+### Generalized semantic evidence
+
+A provider-neutral extension should keep semantic evidence separate from the
+acoustic continuation score and preserve where every assertion came from. A
+useful evidence ordering is:
+
+1. a candidate recording supported by both transition endpoints;
+2. a candidate recording supported by one endpoint;
+3. candidate-artist support local to both or one endpoint;
+4. an artist from the frozen original-collection profile, but only when the
+   endpoint-local semantic pool is empty; and
+5. Bliss-only candidacy when no usable semantic evidence remains.
+
+Stable recording and artist identifiers should be preferred where the library
+and provider expose them. Normalized artist/title matching may be retained as a
+lower-confidence fallback, but ambiguous external results must not silently
+become local candidates. An externally suggested item is usable only after it
+resolves to one local, analyzed track.
+
+Raw scores from different providers need not share a scale. Combination should
+therefore use a declared tier or normalized-rank policy while retaining the
+provider, source endpoint, raw rank or score, lookup time, and identity-match
+confidence. Disabled, unavailable, partial, cached, or stale providers are
+evidence states rather than failures of acoustic sequencing; a Bliss-only path
+must remain possible whenever the local candidate set permits one.
+
+As with the prototype's artist profile, the complete evidence snapshot must be
+frozen from the original request. Inserted tracks must not become new lookup
+seeds, recursively expand the semantic graph, or change the evidence available
+to later candidates.
 
 ### Dynamic contextual percentile scale
 

@@ -149,6 +149,13 @@ Every run must verify:
   path is unique and outside the original set, and the number of additions
   equals the requested explicit bridge count or the separately reported
   automatic decision.
+- **Order-preserving gap filling:** the complete original sequence is an
+  identical ordered subsequence of the output. Each addition is assigned to a
+  declared internal, opening, or closing gap, and endpoint additions occur only
+  when the policy explicitly permits them.
+- **Destination-constrained routing:** the existing source sequence remains an
+  identical prefix, the selected destination occurs exactly once at the end of
+  the appended route, and a failed request leaves the source unchanged.
 - **Repeat policy:** zero track, artist, and album look-back violations under
   the captured LMS BlissMixer settings, checked again after every insertion and
   on the final route.
@@ -200,6 +207,28 @@ each accepted bridge, report:
 Aggregate results should state how often collection-wide fallback was used.
 The frozen original-playlist artist profile must be verified so bridge tracks
 cannot generate recursively favorable evidence.
+
+For provider-neutral experiments, extend this trace with recording-level
+support, artist-level support, provider identity, identity-match confidence,
+cache state, and the precise fallback that admitted the candidate. Do not merge
+raw provider scores as though they shared a scale. Evaluate both-endpoint and
+one-endpoint recording support before artist support, and allow
+collection-profile evidence only when the endpoint-local semantic pool is
+empty. The complete evidence snapshot must remain frozen from the original
+request so inserted tracks cannot recursively expand it.
+
+Provider behavior needs explicit controls: all providers disabled, each
+provider alone, all enabled, partial coverage, unavailable service, and a
+declared stale-cache policy. These runs determine whether semantic evidence
+adds value beyond Bliss-only scoring and whether failure correctly degrades
+capability instead of invalidating an otherwise feasible acoustic route.
+
+For a multi-track gap route, report every created leg and rescore through the
+right immutable anchor. Compare it with the direct anchor-to-anchor leg and
+with the best admissible single insertion. For a destination-constrained route,
+compare the direct source-to-destination transition with routes of controlled
+intermediate length; route length and discovery value must be reported beside
+flow rather than treated as free improvements.
 
 ### Human assessment
 

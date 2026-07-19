@@ -57,6 +57,16 @@ The next research steps are to:
 - compare smoothness-only and secondary energy-arc routes;
 - evaluate automatic and explicit-count bridges as a separate membership-changing
   ablation with frozen endpoint-local Last.fm evidence;
+- compare exact-permutation ordering with immutable-anchor gap filling, proving
+  that the latter retains the original playlist as an identical ordered
+  subsequence;
+- evaluate destination-constrained routes separately, with a fixed endpoint and
+  an immutable source or queue prefix;
+- compare one-track bridges with multi-track gap routes, rescoring through the
+  right anchor rather than treating additions independently;
+- generalize semantic evidence cautiously from the prototype's artist-only
+  source to provider-neutral recording and artist tiers, with frozen evidence,
+  explicit identity confidence, and Bliss-only failure controls;
 - add listener review and boundary-aware experiments before treating
   whole-track cost as transition quality; and
 - close the reproducibility and test gaps described in the
@@ -159,6 +169,11 @@ prototype reuses Adaptive scoring.
 | Route-only percentiles make the worst leg self-trigger bridge insertion | Use a frozen cross-context candidate reference distribution and report its construction. |
 | Bridge insertion improves one leg but invalidates the next context or repeat policy | Rescore both affected legs with the bridge in the outgoing context and validate the complete route. |
 | Inserted artists recursively widen Last.fm evidence | Freeze the profile from the original playlist and prohibit bridges from becoming lookup seeds. |
+| Order-preserving gap filling silently moves a curated anchor | Assert that the original sequence is an identical ordered subsequence of every result. |
+| A destination route alters the existing source or queue | Treat the source as an immutable prefix and commit only a complete validated suffix. |
+| Multi-track additions are scored as independent bridges | Rescore from the earliest insertion through the right anchor and validate the complete route. |
+| Provider scores are combined as though they shared a scale | Retain provenance and raw values, then use declared evidence tiers or normalized ranks. |
+| Semantic-provider failure blocks an otherwise feasible route | Treat semantic evidence as optional and test disabled, partial, unavailable, cached, and Bliss-only operation. |
 | A scanner-created database ID is treated as playlist identity | Verify deployed bytes and ordered catalog URLs; treat catalog IDs as transient observations. |
 | Structural variance becomes a genre proxy | Treat it as confidence/context, not a genre label; avoid early hard gates. |
 | Short anchors produce unstable tempo or tonal estimates | Store confidence/validity and downweight unreliable components. |
@@ -229,6 +244,10 @@ duplicated here.
 29. Should a future ordering surface live in `bliss-mixer`, LMS BlissMixer, or a
     separate offline tool, and how should preview and transactional acceptance
     work?
-30. Which bridge thresholds and evidence tiers generalize beyond the two
-    exploratory playlists, and should explicit-count mode remain an expert-only
-    operation?
+30. Which bridge thresholds and acoustic or semantic evidence tiers generalize
+    beyond the two exploratory playlists, and should explicit-count mode remain
+    an expert-only operation?
+31. When does an immutable-anchor gap benefit from several inserted tracks
+    rather than one bridge, and how should route length be penalized?
+32. Which identity and confidence policy safely maps external recording or
+    artist evidence to one analyzed local track?
