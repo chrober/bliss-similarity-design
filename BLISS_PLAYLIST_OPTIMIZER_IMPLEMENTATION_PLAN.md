@@ -1,13 +1,13 @@
 # Bliss 'Em All productization and implementation plan
 
-**Status:** In progress - native bridge-scoring kernel implemented; candidate enumeration and CLI integration next
+**Status:** In progress - read-only native bridge analysis implemented; semantic evidence and bridge-selection policy next
 **Date:** 2026-07-19  
 **Primary objective:** Productize the experimentally exercised playlist sequencing and
 bridge-insertion workflow, add order-preserving gap filling and destination
 routes for the live queue, and deliver it as a separately maintained Lyrion
 plugin without requiring Python on the server or modifying `lms-blissmixer`.
-**Latest implementation checkpoint:** [Contextual bridge-scoring kernel](IMPLEMENTATION_CHECKPOINT_6.md)
-**Previous checkpoints:** [Deterministic native route search](IMPLEMENTATION_CHECKPOINT_5.md), [Parallel contextual scoring](IMPLEMENTATION_CHECKPOINT_4.md), [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md), [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)
+**Latest implementation checkpoint:** [Native bridge-analysis CLI](IMPLEMENTATION_CHECKPOINT_7.md)
+**Previous checkpoints:** [Contextual bridge-scoring kernel](IMPLEMENTATION_CHECKPOINT_6.md), [Deterministic native route search](IMPLEMENTATION_CHECKPOINT_5.md), [Parallel contextual scoring](IMPLEMENTATION_CHECKPOINT_4.md), [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md), [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)
 **Reference implementation:** The tracked Python tools and sanitized 2025/2026
 execution reports in this repository remain a migration and parity oracle until
 the Rust implementation reaches declared parity. They are not the normative
@@ -1136,13 +1136,17 @@ matrix, per-leg, objective, and repeat parity.
 
 ### Phase 3: bridges and semantic evidence
 
-**First kernel checkpoint:** bliss-playlist-optimizer revision
+**Published checkpoints:** bliss-playlist-optimizer revision
 0a59b6c2ac71a42cb5a7d641d3cc7c534194508c exposes production Rust APIs for
 the frozen Adaptive reference distribution, two-sided insertion rescoring,
 hard repeat and membership checks, acoustic acceptance gates, and deterministic
-parallel candidate ranking. Database-wide candidate enumeration, semantic
-evidence tiers, extension policies, and a versioned command artifact remain the
-next slices.
+parallel candidate ranking. Revision
+4ede2f8f4c48fe46bbdba4232ea9ac421c7512f8 adds stable TracksV2 candidate
+enumeration and a versioned, read-only `bridge` analysis artifact. It uses
+opaque database-bound candidate IDs, reports every gap and rejection class,
+and fails closed on semantic evidence until its precedence rules are
+implemented. Bridge selection, semantic evidence tiers, exact-count policies,
+and playlist persistence remain subsequent slices.
 
 - Port frozen reference distributions and two-leg bridge scoring.
 - Implement automatic and exact-count modes.
