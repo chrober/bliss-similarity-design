@@ -77,6 +77,14 @@ independently maintained implementations of Adaptive similarity. The existing
 `lms-blissmixer` plugin neither loads code from the new plugin nor exposes
 private process state to it.
 
+The first `lms-bliss-em-all` implementation owns its optional ListenBrainz
+adapter directly. [BrainzMix](https://github.com/chrober/lms-brainzmix) is a
+possible later provider or extraction target, not a prerequisite for playlist
+optimization, bridge insertion, or the first public release. The direct adapter
+must therefore sit behind a provider-neutral contract that can later be
+implemented by BrainzMix without changing optimizer requests, ranking policy,
+or user workflows.
+
 ## Scope
 
 The first product release must support:
@@ -111,6 +119,7 @@ The following are not required for the first release:
 - modifying `bliss.db` or its schema;
 - publishing raw playlists, private music metadata, server details, or raw
   semantic-provider responses;
+- installing or running BrainzMix;
 - intro/outro audio decoding or boundary-anchor analysis;
 - globally optimizing or replacing the unsaved current player queue; or
 - automatically overwriting a source playlist.
@@ -379,8 +388,8 @@ Check:
 8. Bliss analysis is not currently writing the database;
 9. LastMix availability and callable interface when Last.fm evidence is enabled;
    and
-10. HTTPS reachability and supported response shape when ListenBrainz evidence
-    is enabled.
+10. HTTPS reachability and supported response shape when the built-in
+    ListenBrainz adapter is enabled.
 
 The plugin should remain enabled when a core capability is missing, but hide or
 disable affected execution and show a precise remediation message. Missing,
@@ -415,6 +424,7 @@ BlissEmAll/
   QueueRoute.pm
   BlissCompatibility.pm
   SemanticEvidence.pm
+  SemanticProvider.pm
   LastMixAdapter.pm
   ListenBrainzAdapter.pm
   PlaylistWriter.pm
@@ -483,6 +493,16 @@ recording evidence precedes artist evidence, endpoint-local evidence precedes
 collection fallback, provider provenance and identity confidence remain
 visible, raw provider scores are not assumed comparable, and the evidence
 snapshot is frozen before optimization.
+
+`SemanticProvider.pm` defines the narrow internal contract. A provider accepts
+a frozen batch of recording/artist contexts, ordinary metadata for identity
+fallback, a request deadline, and explicit evidence types. It returns
+provider-neutral recording and artist relationships with source context,
+provider/dataset identity, raw rank or score, identity confidence, observation
+time, and cache state. Resolution to one analyzed local LMS track remains in
+the orchestration layer. Contract fixtures apply to every provider adapter,
+including LastMix, the direct ListenBrainz implementation, and any later
+BrainzMix adapter.
 
 Use Lyrion's existing MusicBrainz support rather than inventing another identity
 store. Read recording and artist MBIDs from the resolved LMS track and artist
@@ -1075,6 +1095,8 @@ whose evidence gates and open questions remain applicable throughout delivery.
 - Commit or otherwise establish the existing `chrober/lms-plugins` repository.
 - Choose final package, plugin, command, and UUID names.
 - Freeze request/result schema version 1 drafts.
+- Freeze the provider-neutral `SemanticProvider` request/result contract and
+  reusable contract fixtures before implementing either network adapter.
 - Prepare sanitized parity fixtures and Python oracle commands.
 - Decide licenses and preserve extracted-code attribution.
 
@@ -1126,7 +1148,8 @@ passes.
 - Register `plugin.blissemall`, relay structured helper diagnostics, and
   enforce the logging/redaction contract.
 - Implement provider-neutral evidence orchestration, the guarded LastMix
-  adapter, the ListenBrainz adapter, caches, timeouts, and circuit breakers.
+  adapter, and a built-in direct ListenBrainz adapter behind the same contract,
+  including caches, timeouts, and circuit breakers.
 - Invoke the native optimizer safely.
 - Create and positionally verify new playlists through LMS APIs.
 - Append a validated destination route to the selected player queue without
@@ -1206,6 +1229,10 @@ upgrade, and uninstall the plugin through the extension manager.
   keys, with lower-confidence fallbacks reported explicitly.
 - Last.fm and ListenBrainz are independently optional; every mode succeeds with
   both disabled or unavailable when a Bliss-only solution exists.
+- BrainzMix is not installed, discovered, or required for the first release;
+  its absence never reduces core optimizer capability.
+- The built-in ListenBrainz adapter passes provider-contract fixtures that a
+  later BrainzMix-backed adapter can reuse without changing optimizer JSON.
 - Recording-, artist-, collection-, and Bliss-only evidence tiers, provider
   provenance, request failures, and cache state are visible in the report.
 - The source playlist is unchanged by the default workflow.
@@ -1252,8 +1279,10 @@ Resolve these before or during Phase 0:
 4. Minimum supported Lyrion version; begin with the actually tested release and
    widen only after compatibility testing.
 5. Default provider selection, cache/stale-cache lifetimes, and normalized
-   evidence-combination policy. Last.fm and ListenBrainz themselves are settled
-   as independently optional and failure-tolerant.
+   evidence-combination policy. Last.fm and the built-in direct ListenBrainz
+   adapter are settled as independently optional and failure-tolerant;
+   delegating ListenBrainz evidence to BrainzMix is a later compatibility
+   decision, not a Phase 0 or first-release blocker.
 6. Whether the LastMix maintainer will provide or approve a supported raw-
    similarity interface; lack of one must not block Bliss-only or ListenBrainz
    operation.
@@ -1417,10 +1446,55 @@ When the adapter is available, collect both `track.getSimilar` and
 `artist.getSimilar` evidence. Prefer the track method's recording-MBID lookup
 and retain its artist/title fallback as lower-confidence evidence.
 
-### ListenBrainz
+### ListenBrainz now; optional BrainzMix integration later
 
-Implement ListenBrainz as an independent optional HTTPS adapter. Use the
-similar-recordings and similar-artists datasets with recording/artist MBIDs,
-mark the Labs endpoints as experimental, validate response schemas strictly,
-and keep their cache/version identity in reports. ListenBrainz must neither
-require LastMix nor become a transitive requirement for the native optimizer.
+For the first release, implement ListenBrainz directly in
+`ListenBrainzAdapter.pm`; do not wait for or depend on BrainzMix. The adapter
+uses the official Labs
+[similar-recordings](https://labs.api.listenbrainz.org/similar-recordings) and
+[similar-artists](https://labs.api.listenbrainz.org/similar-artists) datasets
+with recording/artist MBIDs. When a source track has no usable MBID, it may use
+ListenBrainz's authenticated
+[metadata lookup](https://listenbrainz.readthedocs.io/en/latest/users/api/metadata.html)
+as an identity-enrichment step. Failure or ambiguity disables only the affected
+evidence path; it never blocks Bliss-only optimization.
+
+Keep responsibilities narrow so the direct implementation can be replaced or
+extracted later:
+
+- `ListenBrainzAdapter.pm` owns HTTPS transport, authentication, endpoint and
+  algorithm selection, response-schema validation, and conversion into the
+  `SemanticProvider` contract.
+- `SemanticEvidence.pm` owns frozen-context orchestration, identity-confidence
+  policy, local analyzed-track resolution, evidence-tier fusion, and fallback.
+- `bliss-playlist-optimizer` receives only the frozen provider-neutral evidence
+  graph; it never receives credentials or calls ListenBrainz.
+- Provider-specific payloads and caches remain private to the adapter. Reports
+  retain only the provider, dataset/algorithm identity, rank or score,
+  confidence, cache state, and sanitized selection rationale required by the
+  canonical observability contract.
+
+The Labs endpoints are experimental. Validate their JSON request and response
+shapes strictly, pin and report algorithm identifiers, use bounded timeouts and
+caches, and treat schema or availability changes as recoverable provider
+failure. ListenBrainz must neither require LastMix nor become a transitive
+requirement for the native optimizer.
+
+The canonical
+[BrainzMix design](https://github.com/chrober/lms-brainzmix/blob/main/docs/DESIGN.md)
+separately proposes a reusable ListenBrainz similarity-evidence service for
+DSTM and other Lyrion consumers. If that service becomes implemented and
+stable, a later `BrainzMixAdapter.pm` may satisfy the same `SemanticProvider`
+contract through versioned capability discovery and bulk similarity-evidence
+requests. That is an enhancement and ownership refactor, not a prerequisite in
+this plan.
+
+Migration must not change optimizer input or ranking semantics. A job selects
+exactly one ListenBrainz evidence path--the built-in adapter or BrainzMix--so
+the same remote evidence is not queried and counted twice. Cache namespaces and
+provider provenance remain distinct, unsupported BrainzMix schema versions
+fail closed to the built-in or Bliss-only path, and neither plugin reaches into
+the other's private Perl modules, preferences, credentials, or cache files.
+Only after parity, failure-isolation, and Raspberry Pi latency tests pass should
+BrainzMix become the preferred implementation or the direct adapter be
+deprecated.
