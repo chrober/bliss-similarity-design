@@ -1,13 +1,13 @@
 # Bliss 'Em All productization and implementation plan
 
-**Status:** In progress - native reorder-only routing implemented; bridge scoring next
+**Status:** In progress - native bridge-scoring kernel implemented; candidate enumeration and CLI integration next
 **Date:** 2026-07-19  
 **Primary objective:** Productize the experimentally exercised playlist sequencing and
 bridge-insertion workflow, add order-preserving gap filling and destination
 routes for the live queue, and deliver it as a separately maintained Lyrion
 plugin without requiring Python on the server or modifying `lms-blissmixer`.
-**Latest implementation checkpoint:** [Deterministic native route search](IMPLEMENTATION_CHECKPOINT_5.md)
-**Previous checkpoints:** [Parallel contextual scoring](IMPLEMENTATION_CHECKPOINT_4.md), [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md), [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)
+**Latest implementation checkpoint:** [Contextual bridge-scoring kernel](IMPLEMENTATION_CHECKPOINT_6.md)
+**Previous checkpoints:** [Deterministic native route search](IMPLEMENTATION_CHECKPOINT_5.md), [Parallel contextual scoring](IMPLEMENTATION_CHECKPOINT_4.md), [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md), [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)
 **Reference implementation:** The tracked Python tools and sanitized 2025/2026
 execution reports in this repository remain a migration and parity oracle until
 the Rust implementation reaches declared parity. They are not the normative
@@ -1135,6 +1135,14 @@ must not change the frozen route semantics.
 matrix, per-leg, objective, and repeat parity.
 
 ### Phase 3: bridges and semantic evidence
+
+**First kernel checkpoint:** bliss-playlist-optimizer revision
+0a59b6c2ac71a42cb5a7d641d3cc7c534194508c exposes production Rust APIs for
+the frozen Adaptive reference distribution, two-sided insertion rescoring,
+hard repeat and membership checks, acoustic acceptance gates, and deterministic
+parallel candidate ranking. Database-wide candidate enumeration, semantic
+evidence tiers, extension policies, and a versioned command artifact remain the
+next slices.
 
 - Port frozen reference distributions and two-leg bridge scoring.
 - Implement automatic and exact-count modes.
