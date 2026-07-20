@@ -1,13 +1,13 @@
 # Bliss 'Em All productization and implementation plan
 
-**Status:** In progress - native validation and contextual scoring implemented
+**Status:** In progress - native reorder-only routing implemented; bridge scoring next
 **Date:** 2026-07-19  
 **Primary objective:** Productize the experimentally exercised playlist sequencing and
 bridge-insertion workflow, add order-preserving gap filling and destination
 routes for the live queue, and deliver it as a separately maintained Lyrion
 plugin without requiring Python on the server or modifying `lms-blissmixer`.
-**Latest implementation checkpoint:** [Parallel contextual scoring](IMPLEMENTATION_CHECKPOINT_4.md)
-**Previous checkpoints:** [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md), [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)
+**Latest implementation checkpoint:** [Deterministic native route search](IMPLEMENTATION_CHECKPOINT_5.md)
+**Previous checkpoints:** [Parallel contextual scoring](IMPLEMENTATION_CHECKPOINT_4.md), [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md), [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)
 **Reference implementation:** The tracked Python tools and sanitized 2025/2026
 execution reports in this repository remain a migration and parity oracle until
 the Rust implementation reaches declared parity. They are not the normative
@@ -1116,6 +1116,14 @@ documented; no production logic has been forked without provenance.
 pass without an intentional behavior change.
 
 ### Phase 2: reorder-only native optimizer
+
+**Implemented checkpoint:** bliss-playlist-optimizer revision
+aef1a7d038d9919a927b4bef80d3965a429dcdbd provides the read-only native
+route request slice, versioned route artifact, exact-membership and repeat
+validation, deterministic parallel restarts, energy-arc selection, and
+synthetic Python parity. The remaining product-level work is folded into the
+unified optimize result/progress protocol and later playlist persistence; it
+must not change the frozen route semantics.
 
 - Implement request validation and result schemas.
 - Port the dynamic directional scorer and deterministic route search.
