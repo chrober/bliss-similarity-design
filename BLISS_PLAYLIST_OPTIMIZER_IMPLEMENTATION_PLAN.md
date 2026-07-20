@@ -409,6 +409,7 @@ BlissEmAll/
   install.xml
   Plugin.pm
   Settings.pm
+  AppMenu.pm
   Jobs.pm
   OptimizerProcess.pm
   QueueRoute.pm
@@ -766,17 +767,171 @@ It runs Preview before Create and summarizes moved tracks, added bridges,
 repeat compliance, mean/worst transition change, warnings, and semantic evidence
 tiers.
 
-Expose exactly one management dashboard through Applications/My Apps via
-`Slim::Control::Jive::registerPluginMenu`. Do not register a duplicate classic
-Extras entry. The dashboard owns playlist selection, active jobs, progress,
-cancellation, reports, history, and dependency status. Playlist and track
-context actions remain direct workflow entry points rather than additional
-management dashboards.
+### Applications/My Apps experience
+
+Expose exactly one management application through Applications/My Apps. Do not
+register a duplicate classic Extras entry. `AppMenu.pm` owns the client-facing
+menu/feed and registers one stable application item through the supported Jive
+application-menu mechanism. It may use the OPML-based feed helpers internally,
+but all actions must resolve to the documented `blissemall` commands rather
+than embed product state in menu callbacks.
+
+The Applications contribution is a client-rendered hierarchical list, not an
+assumption that every client can display a free-form HTML dashboard. Material
+and other capable clients may show icons, secondary text, counts, and richer
+formatting, while the same information remains understandable as plain text on
+more limited clients. Do not rely on color, badges, hover state, wide tables, or
+custom JavaScript for correctness.
+
+The root menu is deliberately small:
+
+```text
+Applications
+└─ Bliss 'Em All
+   ├─ Optimize a saved playlist
+   ├─ Active jobs (count when non-zero)
+   ├─ Recent results
+   ├─ System status: Ready | Attention required
+   ├─ Settings
+   └─ Help and about
+```
+
+When no optimization can run, the application remains visible. **System
+status** explains the missing capability, and **Optimize a saved playlist**
+opens the same actionable remediation instead of disappearing or failing after
+the user has configured a job.
+
+#### New playlist workflow
+
+**Optimize a saved playlist** uses progressive disclosure:
+
+1. **Select playlist:** browse or search saved playlists and show source track
+   count. A playlist context action enters here with the source preselected.
+2. **Choose ordering policy:** Optimize order or Preserve order and fill gaps.
+   Explain in one sentence whether original order may change.
+3. **Choose extension policy:** none where meaningful, Auto, exactly `N`, one
+   per original transition, target length, or double length. Show the resulting
+   count calculation before continuing.
+4. **Review job options:** output name, endpoint-addition policy where relevant,
+   inherited BlissMixer strategy and repeat windows, analysis coverage, and
+   semantic-provider state. Inherited settings are read-only; advanced
+   product-owned choices remain collapsed by default.
+5. **Run Preview:** validate capabilities and inputs, execute optimization, and
+   produce a non-persistent candidate result.
+6. **Review Preview:** inspect the summary, proposed sequence, additions,
+   warnings, and decision report before choosing Create playlist, Change
+   options, or Discard.
+
+```mermaid
+flowchart LR
+    A[Select playlist] --> B[Ordering policy]
+    B --> C[Extension policy]
+    C --> D[Review options]
+    D --> E[Run Preview]
+    E --> F{Feasible?}
+    F -->|No| G[Explain blocking constraints]
+    F -->|Yes| H[Review proposed result]
+    H -->|Change| B
+    H -->|Discard| I[No persistent change]
+    H -->|Create| J[Persist and verify new playlist]
+```
+
+Preview is mandatory before persistence. Navigating away does not cancel the
+job, and returning through **Active jobs** restores its current state. Back
+navigation before Preview preserves the draft for the current interaction;
+leaving a completed Preview does not create a playlist implicitly.
+
+#### Preview and result presentation
+
+The Preview summary leads with decisions, not diagnostics:
+
+```text
+Preview: <playlist name>
+Mode: Optimize order + Auto extension
+Tracks: 20 original -> 22 proposed
+Flow proxy: mean improved; worst leg improved
+Constraints: track/artist/album windows satisfied
+Evidence: 2 additions; endpoint-supported
+Warnings: 1
+
+> Proposed order
+> Added tracks and reasons
+> Transition summary
+> Warnings
+> Full report
+
+[Create playlist]  [Change options]  [Discard]
+```
+
+Exact numbers replace qualitative labels when available. **Proposed order** is
+a numbered submenu that marks every entry as Original or Added without exposing
+private paths. An added-track item shows its insertion gap, acoustic costs,
+semantic evidence tier, and acceptance reason. **Transition summary** leads
+with mean, upper-tail, and worst-leg changes; per-leg contexts remain a deeper
+diagnostic view. Warnings appear before the Create action and must be explicitly
+visible when operation continues with reduced semantic evidence.
+
+Create writes a new playlist by default and shows **Creating** followed by
+**Verifying**. Success presents the final name and track count plus actions to
+open the saved playlist and view the report. Persistence or verification
+failure presents a stable error code, remediation, and report link; it never
+claims success or modifies the source playlist.
+
+#### Jobs and history
+
+**Active jobs** lists jobs newest first with source name, operation, stage, and
+elapsed time. The portable stage vocabulary is: Queued, Validating, Loading,
+Optimizing, Selecting additions, Persisting, Verifying, Cancelling, Completed,
+Failed, and Cancelled. Preview-only jobs normally stop at Completed until the
+user requests persistence.
+
+Opening a running job shows current stage, bounded progress when the engine can
+measure it, start time, and **Cancel job**. Indeterminate work uses stage text
+and elapsed time rather than invented percentages. Cancellation requires
+confirmation once persistence has begun and must report whether no playlist was
+created or an incomplete output was removed.
+
+**Recent results** shows retained completed, failed, and cancelled jobs. Each
+entry exposes its summary and report; successful persisted jobs can open the
+resulting playlist. History is not a guarantee that a playlist database ID or
+path still exists, so stale results are labelled rather than silently rebound
+to another catalog item.
+
+#### System status and settings
+
+**System status** presents one concise row per capability:
+
+- BlissMixer compatibility and captured strategy support;
+- database health and analysis availability;
+- learned-matrix state when required;
+- optimizer executable/platform compatibility;
+- Last.fm and ListenBrainz state; and
+- active-job and persistence health.
+
+Each non-ready row opens an explanation and remediation. Provider failure is
+shown as reduced capability when Bliss-only operation remains available, not as
+a core failure.
 
 The mandatory `Settings.pm` page owns only the durable preferences defined
-under [Configuration ownership](#configuration-ownership). It may link back to
-the Applications dashboard for capability status, but it must not duplicate
-playlist selection, active jobs, reports, or history.
+under [Configuration ownership](#configuration-ownership). The **Settings**
+application item shows a read-only summary and, where the client supports it, a
+link to the standard server settings page; otherwise it tells the administrator
+where to open it. It must not duplicate playlist selection, active jobs,
+reports, or history.
+
+#### Context actions and consistency
+
+Playlist and track context actions are shortcuts into the same workflow state
+machine, not separate implementations. A playlist action preselects the source;
+**Bliss me there…** preselects the player, immutable queue tail, and destination
+before showing its shorter Auto/exact-intermediate Preview. Terminology,
+validation, job status, cancellation, reports, and confirmation behavior must
+remain identical regardless of entry point.
+
+All visible text is localized through `strings.txt`. Destructive or persistent
+actions use explicit verbs, confirmations, and final outcome messages. Empty,
+loading, disabled, partial-capability, error, and stale-history states require
+designed menu responses rather than blank lists or raw exceptions.
 
 ### Lyrion server logging
 
@@ -905,6 +1060,12 @@ The existing Python tools remain the oracle during migration:
 - `Settings.pm` default, validation, persistence, and migration tests;
 - Applications/My Apps registration and verification that no duplicate Extras
   dashboard is registered;
+- `AppMenu.pm` contract tests for the root menu, workflow drill-down, localized
+  labels, plain-text fallback, empty/loading/disabled/error states, and stable
+  item/action identifiers;
+- Preview-before-persistence, back-navigation, job-resume, cancellation,
+  confirmation, and playlist/track-context shortcut tests over the same workflow
+  state machine;
 - capability-state, path-validation, command, job-lifecycle, LastMix-adapter,
   ListenBrainz-adapter, cache, timeout, and offline-fallback tests;
 - plugin ZIP structure and executable-presence validation;
@@ -1054,17 +1215,23 @@ server without modifying the source playlist, existing queue entries, or
 - Implement reorder and Preserve order and fill gaps Preview/Create workflows.
 - Register the track context action **Bliss me there…** with Preview and
   **Append to queue** confirmation.
-- Add the single Applications/My Apps dashboard entry point and do not register
-  a duplicate Extras entry.
+- Implement `AppMenu.pm`, register the single Applications/My Apps entry, and
+  do not register a duplicate Extras entry.
+- Implement the documented root menu, playlist wizard, Preview/result
+  drill-down, active-job resume/cancel flow, recent-result history, capability
+  status, and limited-client text fallback.
 - Implement the mandatory `Settings.pm` page for validated durable preferences
   without duplicating inherited BlissMixer settings or per-job controls.
-- Add dependency status, progress, cancellation, history, and report views.
 - Keep advanced algorithm controls collapsed and inherit BlissMixer settings by
   default.
+- Validate the workflow on every Applications-capable client in the declared
+  compatibility matrix, including Material and at least one plain hierarchical
+  menu renderer.
 
 **Exit gate:** the complete workflow is usable through the targeted
 Applications/My Apps and context-menu interfaces, durable preferences survive
-restart and migration, and failures produce actionable messages.
+restart and migration, long-running jobs survive navigation, no persistence can
+bypass Preview and confirmation, and failures produce actionable messages.
 
 ### Phase 6: packaging and private beta
 
@@ -1118,6 +1285,17 @@ upgrade, and uninstall the plugin through the extension manager.
 - Jobs are cancellable, survive UI navigation, and clean up on server shutdown.
 - Applications/My Apps is the sole management dashboard; no duplicate classic
   Extras dashboard is registered.
+- The application exposes the documented compact root menu, keeps capability
+  failures visible and actionable, and remains usable without rich formatting.
+- Every playlist and destination-route workflow requires Preview before Create
+  or Append, shows membership and constraint outcomes, and cannot persist by
+  navigation alone.
+- Active jobs can be reopened after navigation, report honest determinate or
+  indeterminate progress, and require confirmation for cancellation during
+  persistence.
+- Playlist and track context actions enter the same workflow state machine and
+  produce the same validation, report, and confirmation behavior as the
+  Applications entry.
 - The mandatory `Settings.pm` page validates and persists durable plugin
   preferences while inherited BlissMixer state and per-job choices retain their
   separate ownership.
