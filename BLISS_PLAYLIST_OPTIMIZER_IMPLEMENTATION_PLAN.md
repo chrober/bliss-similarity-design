@@ -1,13 +1,13 @@
 # Bliss 'Em All productization and implementation plan
 
-**Status:** In progress — Phase 1 shared-core extraction committed locally
+**Status:** In progress — repositories published; shared-core integration next
 **Date:** 2026-07-19  
 **Primary objective:** Productize the experimentally exercised playlist sequencing and
 bridge-insertion workflow, add order-preserving gap filling and destination
 routes for the live queue, and deliver it as a separately maintained Lyrion
 plugin without requiring Python on the server or modifying `lms-blissmixer`.
-**Latest implementation checkpoint:** [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md)
-**Previous checkpoint:** [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)
+**Latest implementation checkpoint:** [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md)
+**Previous checkpoints:** [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)
 **Reference implementation:** The tracked Python tools and sanitized 2025/2026
 execution reports in this repository remain a migration and parity oracle until
 the Rust implementation reaches declared parity. They are not the normative
