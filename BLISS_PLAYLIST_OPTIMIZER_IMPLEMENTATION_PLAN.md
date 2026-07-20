@@ -1,13 +1,13 @@
 # Bliss 'Em All productization and implementation plan
 
-**Status:** In progress - deterministic automatic bridge-selection preview implemented; exact-count preview next
+**Status:** In progress - deterministic automatic and exact-count previews implemented; immutable-anchor gap filling next
 **Date:** 2026-07-20
 **Primary objective:** Productize the experimentally exercised playlist sequencing and
 bridge-insertion workflow, add order-preserving gap filling and destination
 routes for the live queue, and deliver it as a separately maintained Lyrion
 plugin without requiring Python on the server or modifying `lms-blissmixer`.
-**Latest implementation checkpoint:** [Automatic bridge-selection preview](IMPLEMENTATION_CHECKPOINT_9.md)
-**Previous checkpoints:** [Provider-neutral semantic bridge ranking](IMPLEMENTATION_CHECKPOINT_8.md), [Native bridge-analysis CLI](IMPLEMENTATION_CHECKPOINT_7.md), [Contextual bridge-scoring kernel](IMPLEMENTATION_CHECKPOINT_6.md), [Deterministic native route search](IMPLEMENTATION_CHECKPOINT_5.md), [Parallel contextual scoring](IMPLEMENTATION_CHECKPOINT_4.md), [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md), [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)
+**Latest implementation checkpoint:** [Exact-count bridge-selection preview](IMPLEMENTATION_CHECKPOINT_10.md)
+**Previous checkpoints:** [Automatic bridge-selection preview](IMPLEMENTATION_CHECKPOINT_9.md), [Provider-neutral semantic bridge ranking](IMPLEMENTATION_CHECKPOINT_8.md), [Native bridge-analysis CLI](IMPLEMENTATION_CHECKPOINT_7.md), [Contextual bridge-scoring kernel](IMPLEMENTATION_CHECKPOINT_6.md), [Deterministic native route search](IMPLEMENTATION_CHECKPOINT_5.md), [Parallel contextual scoring](IMPLEMENTATION_CHECKPOINT_4.md), [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md), [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)
 **Reference implementation:** The tracked Python tools and sanitized 2025/2026
 execution reports in this repository remain a migration and parity oracle until
 the Rust implementation reaches declared parity. They are not the normative
@@ -1156,12 +1156,19 @@ automatic bridge-selection preview. It processes original gaps from left to
 right, contextually rescores each retained candidate against the evolving
 route, enforces the explicit trigger and bridge budget, preserves all original
 tracks as an ordered subsequence, and reports a stable reason for every gap.
-Exact-count policies, provider adapters, applying a preview, and playlist
-persistence remain subsequent slices.
+Revision
+43e2d1a7d265f7f112dd70d2c06d330d8625f311 adds bounded deterministic
+exact-count search over original internal gaps. Feasible previews contain
+exactly the requested count; unsuccessful previews expose no partial route and
+distinguish proven structural infeasibility from search exhaustion inside the
+declared beam. Immutable-anchor multi-track gaps, endpoint slots, provider
+adapters, applying a preview, and playlist persistence remain subsequent
+slices.
 
 - Port frozen reference distributions and two-leg bridge scoring.
-- Implement automatic and exact-count modes. Automatic selection is complete
-  as a read-only preview; exact-count selection remains next.
+- Implement automatic and exact-count modes. Both are complete as read-only
+  previews for at most one bridge per original internal gap; endpoint and
+  immutable-anchor multi-track variants remain.
 - Implement immutable-anchor gap filling and destination-route requests.
 - Accept and validate the frozen provider-neutral recording/artist evidence
   graph.
