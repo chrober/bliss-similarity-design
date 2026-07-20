@@ -1,13 +1,13 @@
 # Bliss 'Em All productization and implementation plan
 
-**Status:** In progress - provider-neutral semantic bridge ranking implemented; automatic bridge-selection preview next
-**Date:** 2026-07-19  
+**Status:** In progress - deterministic automatic bridge-selection preview implemented; exact-count preview next
+**Date:** 2026-07-20
 **Primary objective:** Productize the experimentally exercised playlist sequencing and
 bridge-insertion workflow, add order-preserving gap filling and destination
 routes for the live queue, and deliver it as a separately maintained Lyrion
 plugin without requiring Python on the server or modifying `lms-blissmixer`.
-**Latest implementation checkpoint:** [Provider-neutral semantic bridge ranking](IMPLEMENTATION_CHECKPOINT_8.md)
-**Previous checkpoints:** [Native bridge-analysis CLI](IMPLEMENTATION_CHECKPOINT_7.md), [Contextual bridge-scoring kernel](IMPLEMENTATION_CHECKPOINT_6.md), [Deterministic native route search](IMPLEMENTATION_CHECKPOINT_5.md), [Parallel contextual scoring](IMPLEMENTATION_CHECKPOINT_4.md), [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md), [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)
+**Latest implementation checkpoint:** [Automatic bridge-selection preview](IMPLEMENTATION_CHECKPOINT_9.md)
+**Previous checkpoints:** [Provider-neutral semantic bridge ranking](IMPLEMENTATION_CHECKPOINT_8.md), [Native bridge-analysis CLI](IMPLEMENTATION_CHECKPOINT_7.md), [Contextual bridge-scoring kernel](IMPLEMENTATION_CHECKPOINT_6.md), [Deterministic native route search](IMPLEMENTATION_CHECKPOINT_5.md), [Parallel contextual scoring](IMPLEMENTATION_CHECKPOINT_4.md), [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md), [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)
 **Reference implementation:** The tracked Python tools and sanitized 2025/2026
 execution reports in this repository remain a migration and parity oracle until
 the Rust implementation reaches declared parity. They are not the normative
@@ -1150,11 +1150,18 @@ implemented. Revision
 provider-neutral graph, applies recording-before-artist and
 endpoint-before-collection precedence, preserves provider provenance and
 failure states, and deterministically ranks the narrowed pool before acoustic
-criteria. Bridge selection, exact-count policies, provider adapters, and
-playlist persistence remain subsequent slices.
+criteria. Revision
+9fae3c3d8fbf7c4542508fdac8de4e02c9f280f1 adds a deterministic read-only
+automatic bridge-selection preview. It processes original gaps from left to
+right, contextually rescores each retained candidate against the evolving
+route, enforces the explicit trigger and bridge budget, preserves all original
+tracks as an ordered subsequence, and reports a stable reason for every gap.
+Exact-count policies, provider adapters, applying a preview, and playlist
+persistence remain subsequent slices.
 
 - Port frozen reference distributions and two-leg bridge scoring.
-- Implement automatic and exact-count modes.
+- Implement automatic and exact-count modes. Automatic selection is complete
+  as a read-only preview; exact-count selection remains next.
 - Implement immutable-anchor gap filling and destination-route requests.
 - Accept and validate the frozen provider-neutral recording/artist evidence
   graph.
