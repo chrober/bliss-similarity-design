@@ -88,7 +88,8 @@ write, or Lyrion server change was made.
 
 The next implementation gate is a read-only native scoring/oracle command. It
 should load validated source vectors, materialize the selected dynamic scoring
-context, calculate a deterministic pairwise cost matrix, and compare that
-artifact with the checked-in Python oracle before route search or playlist
-writing is implemented. Database-wrapper migration in the existing mixer can
-continue incrementally after this consumer seam has stabilized.
+context, calculate deterministic contextual transition costs (or a pairwise
+matrix only for fixed scoring modes), and compare that artifact with the
+checked-in Python oracle before route search or playlist writing is
+implemented. Database-wrapper migration in the existing mixer can continue
+incrementally after this consumer seam has stabilized.

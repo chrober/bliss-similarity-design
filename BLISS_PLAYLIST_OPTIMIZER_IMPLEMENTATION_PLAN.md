@@ -1,13 +1,13 @@
 # Bliss 'Em All productization and implementation plan
 
-**Status:** In progress — repositories published; shared-core integration next
+**Status:** In progress - native validation and contextual scoring implemented
 **Date:** 2026-07-19  
 **Primary objective:** Productize the experimentally exercised playlist sequencing and
 bridge-insertion workflow, add order-preserving gap filling and destination
 routes for the live queue, and deliver it as a separately maintained Lyrion
 plugin without requiring Python on the server or modifying `lms-blissmixer`.
-**Latest implementation checkpoint:** [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md)
-**Previous checkpoints:** [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)
+**Latest implementation checkpoint:** [Parallel contextual scoring](IMPLEMENTATION_CHECKPOINT_4.md)
+**Previous checkpoints:** [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md), [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)
 **Reference implementation:** The tracked Python tools and sanitized 2025/2026
 execution reports in this repository remain a migration and parity oracle until
 the Rust implementation reaches declared parity. They are not the normative
@@ -1500,3 +1500,22 @@ the other's private Perl modules, preferences, credentials, or cache files.
 Only after parity, failure-isolation, and Raspberry Pi latency tests pass should
 BrainzMix become the preferred implementation or the direct adapter be
 deprecated.
+
+## Appendix D: Deterministic parallel execution policy
+
+Parallelize only independent, CPU-bound work with immutable inputs: fixed-route
+contextual legs, route-search restarts, candidate batches, and independent
+bridge-gap searches. Use indexed Rayon iterators where source order matters.
+Assign deterministic derived random seeds to parallel search units and reduce
+results with the complete objective plus a stable lexical tie-break key.
+
+Keep SQLite reads, schema validation, artifact hashing, LMS communication,
+playlist persistence, cancellation ownership, logging order, and report
+assembly sequential. Do not share a SQLite connection across Rayon workers.
+The optimizer defaults to one fewer worker than available logical CPUs so
+Lyrion retains capacity; `RAYON_NUM_THREADS` is the explicit override.
+
+Adaptive scoring is contextual: its weight matrix depends on the preceding seed
+window. Do not cache or publish it as a single static pairwise matrix. Fixed
+Euclidean, statically weighted, and learned-matrix modes may use parallel
+pairwise matrices when implemented.
