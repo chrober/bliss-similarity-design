@@ -507,38 +507,10 @@ identity confidence; combine providers only through a documented normalized
 tier/rank policy. Freeze the complete evidence bundle before optimization, and
 never turn inserted tracks into new remote-query seeds.
 
-#### Last.fm through LastMix
-
-The current `lms-blissmixer` implementation is useful precedent but not a
-formal LastMix API contract. It checks whether `Plugins/LastMix/LFM.pm` is
-already loaded and directly calls
-`Plugins::LastMix::LFM->getSimilarArtists`. Its public plugin manifest declares
-no LastMix dependency, while LastMix's registered CLI exposes only
-`lastmix play` and `lastmix add`, not raw similarity lookup. The integration
-was accepted into upstream BlissMixer in
-[PR 18](https://github.com/CDrummond/lms-blissmixer/pull/18), but that review
-contains no explicit approval from the LastMix maintainer or statement that
-`Plugins::LastMix::LFM` is a stable third-party interface.
-
-Keep this risk inside `LastMixAdapter.pm`. Runtime-check the plugin, module,
-method, and expected callback shape; never copy or extract LastMix's bundled
-Last.fm application key. Before public release, ask the LastMix maintainer for
-a supported similarity interface or explicit permission to rely on the current
-one. If that is not available, use a separately authorized Last.fm application
-identity or ship without Last.fm support. None of these outcomes may block the
-Bliss-only product.
-
-When the adapter is available, collect both `track.getSimilar` and
-`artist.getSimilar` evidence. Prefer the track method's recording-MBID lookup
-and retain its artist/title fallback as lower-confidence evidence.
-
-#### ListenBrainz
-
-Implement ListenBrainz as an independent optional HTTPS adapter. Use the
-similar-recordings and similar-artists datasets with recording/artist MBIDs,
-mark the Labs endpoints as experimental, validate response schemas strictly,
-and keep their cache/version identity in reports. ListenBrainz must neither
-require LastMix nor become a transitive requirement for the native optimizer.
+Provider-specific constraints for LastMix/Last.fm and ListenBrainz are kept in
+[Appendix C](#appendix-c-optional-semantic-provider-integration-notes). They
+specialize this policy without changing the provider-independent evidence
+model or making remote evidence mandatory.
 
 #### Availability, caching, and failure policy
 
@@ -935,60 +907,16 @@ designed menu responses rather than blank lists or raw exceptions.
 
 ### Lyrion server logging
 
-Follow the integration pattern used by `lms-blissmixer`: register one standard
-Lyrion log category with `Slim::Utils::Log`, place it in the scanner-related
-group, and let administrators change its level through Lyrion's normal logging
-UI. The plugin declaration should be equivalent to:
+Register one standard `plugin.blissemall` category in Lyrion's normal logging
+UI and use the normal server log as the primary operational log. Correlate UI,
+plugin, native-helper, and report events with a short opaque job ID.
 
-```perl
-my $log = Slim::Utils::Log->addLogCategory({
-    category     => 'plugin.blissemall',
-    defaultLevel => 'INFO',
-    logGroups    => 'SCANNER',
-});
-```
-
-Add the corresponding `DEBUG_PLUGIN_BLISSEMALL` label to `strings.txt` so
-the category has a clear user-facing name in Server Settings > Logging.
-
-The primary operational log is therefore the normal Lyrion server log, not a
-private plugin log that users must discover separately. Use a short, opaque job
-ID in every job-related message so a UI result, native-helper run, report, and
-server-log sequence can be correlated.
-
-Apply levels consistently:
-
-| Level | Server-log contract |
-| --- | --- |
-| **ERROR** | An unexpected failure prevented a safe result: invalid/corrupt helper output, child-process failure, database failure, playlist write or verification failure, or an uncaught internal error. Include the stable error code and job ID. |
-| **WARN** | The job can continue only with reduced capability or needs attention: partial Last.fm or ListenBrainz coverage, a provider outage, an unexpected Bliss-only fallback while semantic evidence was enabled, analysis starting during a job, rejected output-name collision, or a cleanup/recovery issue. Providers intentionally disabled and expected infeasibility reported cleanly in Preview are INFO, not WARN/ERROR. |
-| **INFO** | Concise lifecycle and audit summary: capability state at startup, job start, action/mode, original and requested counts, inherited scoring mode and look-back windows, stage changes, completion/cancellation, output count, objective improvement, warning count, report ID, and elapsed time. Do not emit one line per candidate or track. |
-| **DEBUG** | Reproduction and diagnosis detail: sanitized request options, stage timings, candidate/filter counts, per-gap decision summaries, route-search restarts, repeat-window rejections, semantic evidence tiers, helper diagnostics, and LMS persistence/verification steps. Full private track lists and paths still belong only in an explicitly exported private report. |
-
-Use `main::INFOLOG`/`main::DEBUGLOG`, `$log->is_info`, and
-`$log->is_debug` guards around expensive message construction, matching
-Lyrion conventions already used by BlissMixer. Warnings and errors must not
-depend on those guards.
-
-The native optimizer must keep its machine-readable result and progress
-protocol separate from diagnostics. Give each request a job ID and requested
-helper log level. The plugin derives helper verbosity from the active
-`plugin.blissemall` level, captures structured helper diagnostic events, and
-maps their `error`, `warn`, `info`, and `debug` levels into the same
-Lyrion category. This serves the same purpose as BlissMixer passing
-`--logging debug` to its native process, without mixing human log lines into
-the optimizer result JSON. Unexpected raw stderr is captured with size/rate
-limits, redacted, logged at WARN or DEBUG as appropriate, and referenced from
-the job report.
-
-Logging and reports have different purposes: the server log explains lifecycle
-and failure at an operational level; the retained job report carries the
-structured decision evidence needed for reproduction. Neither may log
-credentials, authorization values, database contents, raw semantic-provider
-payloads, or complete playlists by default. Track titles, artist names, playlist paths, and
-filesystem paths must be omitted or minimized at INFO and sanitized at DEBUG.
-Add automated tests for level filtering, job-ID correlation, multiline stderr,
-rate limiting, and redaction.
+Keep the native optimizer's machine-readable result and progress protocol
+separate from diagnostics. Logging must be level-aware, bounded, and redacted;
+the retained job report carries detailed reproduction evidence that does not
+belong in routine server logs. The exact category declaration, level contract,
+helper mapping, stderr handling, privacy rules, and required tests are defined
+in [Appendix B](#appendix-b-logging-and-diagnostic-contract).
 
 ## Testing and parity strategy
 
@@ -1367,3 +1295,132 @@ The one-shot reports remain historical evidence. They should inform golden
 tests and aggregate case studies, but their private paths, credentials, catalog
 IDs, track lists, database copies, and run hashes must not migrate into public
 product repositories.
+
+## Appendix A: Native architecture alternatives considered
+
+The selected design uses a separately versioned `bliss-mixer-core` library
+shared by the existing mixer and the playlist optimizer. Three alternatives
+remain technically possible:
+
+| Alternative | Main advantage | Main restriction compared with the selected design |
+| --- | --- | --- |
+| Extend the `bliss-mixer` HTTP API and make the optimizer its client | One scoring implementation can support new algorithms without exposing their mathematics to the optimizer. | Route search needs high-volume contextual scoring, immutable sessions, bulk requests, service discovery, lifecycle ownership, and runtime protocol compatibility. Reusing the mixer process currently owned by LMS BlissMixer would also couple jobs to its restart and timeout behavior. |
+| Keep a shared engine internal to one `bliss-mixer` Cargo workspace | Same in-process performance and type safety as a separate core, with one repository and release line. | Both native executables must live and release together; the engine is not independently reusable by another repository. |
+| Integrate optimization into `bliss-mixer`, for example as `bliss-mixer optimize` | Fewest native repositories and no HTTP dependency inside route search. | Broadens `bliss-mixer` from a mixing service into the complete optimization engine and tightly couples its release, packaging, and regression risk to both LMS integrations. |
+
+An API-based design would require versioned capability discovery, frozen
+scoring sessions, bulk candidate/context or route scoring, deterministic
+diagnostics, cancellation, and a process lifecycle independent of LMS
+BlissMixer's private mixer instance. The current `/api/mix` and `/api/list`
+contracts are not sufficient for this role. If complete route optimization were
+moved behind one high-level endpoint instead, the separate optimizer would have
+little remaining native responsibility.
+
+The current `bliss-mixer-core` choice is retained because it combines one
+scoring implementation with in-process performance, compile-time interfaces,
+independent executable ownership, and explicit semantic versioning. Its costs
+are the additional repository, release ordering, compatibility policy, and CI
+coordination described elsewhere in this plan.
+
+Revisit the decision if evidence changes one of those assumptions: consolidate
+into an internal workspace if both binaries naturally acquire one release
+cadence; integrate the optimizer command if it no longer has a meaningful
+independent boundary; or adopt a scoring service only after a bulk-session
+prototype demonstrates parity, performance, lifecycle safety, and simpler
+operations than the library approach.
+
+## Appendix B: Logging and diagnostic contract
+
+Follow the integration pattern used by `lms-blissmixer`: register one standard
+Lyrion log category with `Slim::Utils::Log`, place it in the scanner-related
+group, and let administrators change its level through Lyrion's normal logging
+UI. The plugin declaration should be equivalent to:
+
+```perl
+my $log = Slim::Utils::Log->addLogCategory({
+    category     => 'plugin.blissemall',
+    defaultLevel => 'INFO',
+    logGroups    => 'SCANNER',
+});
+```
+
+Add the corresponding `DEBUG_PLUGIN_BLISSEMALL` label to `strings.txt` so
+the category has a clear user-facing name in Server Settings > Logging.
+
+The primary operational log is therefore the normal Lyrion server log, not a
+private plugin log that users must discover separately. Use a short, opaque job
+ID in every job-related message so a UI result, native-helper run, report, and
+server-log sequence can be correlated.
+
+Apply levels consistently:
+
+| Level | Server-log contract |
+| --- | --- |
+| **ERROR** | An unexpected failure prevented a safe result: invalid/corrupt helper output, child-process failure, database failure, playlist write or verification failure, or an uncaught internal error. Include the stable error code and job ID. |
+| **WARN** | The job can continue only with reduced capability or needs attention: partial Last.fm or ListenBrainz coverage, a provider outage, an unexpected Bliss-only fallback while semantic evidence was enabled, analysis starting during a job, rejected output-name collision, or a cleanup/recovery issue. Providers intentionally disabled and expected infeasibility reported cleanly in Preview are INFO, not WARN/ERROR. |
+| **INFO** | Concise lifecycle and audit summary: capability state at startup, job start, action/mode, original and requested counts, inherited scoring mode and look-back windows, stage changes, completion/cancellation, output count, objective improvement, warning count, report ID, and elapsed time. Do not emit one line per candidate or track. |
+| **DEBUG** | Reproduction and diagnosis detail: sanitized request options, stage timings, candidate/filter counts, per-gap decision summaries, route-search restarts, repeat-window rejections, semantic evidence tiers, helper diagnostics, and LMS persistence/verification steps. Full private track lists and paths still belong only in an explicitly exported private report. |
+
+Use `main::INFOLOG`/`main::DEBUGLOG`, `$log->is_info`, and
+`$log->is_debug` guards around expensive message construction, matching
+Lyrion conventions already used by BlissMixer. Warnings and errors must not
+depend on those guards.
+
+The native optimizer must keep its machine-readable result and progress
+protocol separate from diagnostics. Give each request a job ID and requested
+helper log level. The plugin derives helper verbosity from the active
+`plugin.blissemall` level, captures structured helper diagnostic events, and
+maps their `error`, `warn`, `info`, and `debug` levels into the same
+Lyrion category. This serves the same purpose as BlissMixer passing
+`--logging debug` to its native process, without mixing human log lines into
+the optimizer result JSON. Unexpected raw stderr is captured with size/rate
+limits, redacted, logged at WARN or DEBUG as appropriate, and referenced from
+the job report.
+
+Logging and reports have different purposes: the server log explains lifecycle
+and failure at an operational level; the retained job report carries the
+structured decision evidence needed for reproduction. Neither may log
+credentials, authorization values, database contents, raw semantic-provider
+payloads, or complete playlists by default. Track titles, artist names,
+playlist paths, and filesystem paths must be omitted or minimized at INFO and
+sanitized at DEBUG. Add automated tests for level filtering, job-ID
+correlation, multiline stderr, rate limiting, and redaction.
+
+## Appendix C: Optional semantic-provider integration notes
+
+These notes specialize the provider-independent evidence and failure policies
+defined under
+[Optional semantic evidence adapters](#optional-semantic-evidence-adapters).
+
+### Last.fm through LastMix
+
+The current `lms-blissmixer` implementation is useful precedent but not a
+formal LastMix API contract. It checks whether `Plugins/LastMix/LFM.pm` is
+already loaded and directly calls
+`Plugins::LastMix::LFM->getSimilarArtists`. Its public plugin manifest declares
+no LastMix dependency, while LastMix's registered CLI exposes only
+`lastmix play` and `lastmix add`, not raw similarity lookup. The integration
+was accepted into upstream BlissMixer in
+[PR 18](https://github.com/CDrummond/lms-blissmixer/pull/18), but that review
+contains no explicit approval from the LastMix maintainer or statement that
+`Plugins::LastMix::LFM` is a stable third-party interface.
+
+Keep this risk inside `LastMixAdapter.pm`. Runtime-check the plugin, module,
+method, and expected callback shape; never copy or extract LastMix's bundled
+Last.fm application key. Before public release, ask the LastMix maintainer for
+a supported similarity interface or explicit permission to rely on the current
+one. If that is not available, use a separately authorized Last.fm application
+identity or ship without Last.fm support. None of these outcomes may block the
+Bliss-only product.
+
+When the adapter is available, collect both `track.getSimilar` and
+`artist.getSimilar` evidence. Prefer the track method's recording-MBID lookup
+and retain its artist/title fallback as lower-confidence evidence.
+
+### ListenBrainz
+
+Implement ListenBrainz as an independent optional HTTPS adapter. Use the
+similar-recordings and similar-artists datasets with recording/artist MBIDs,
+mark the Labs endpoints as experimental, validate response schemas strictly,
+and keep their cache/version identity in reports. ListenBrainz must neither
+require LastMix nor become a transitive requirement for the native optimizer.
