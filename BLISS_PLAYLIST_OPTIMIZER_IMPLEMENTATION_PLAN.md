@@ -1,13 +1,14 @@
 # Bliss 'Em All productization and implementation plan
 
-**Status:** In progress - deterministic reorder, bounded immutable-anchor gap routes, and explicit endpoint slots implemented; destination routing next
+**Status:** In progress - first live ARM64 Applications preview deployed for
+reorder-only; destination routing, playlist persistence, and bridge UX remain
 **Date:** 2026-07-21
 **Primary objective:** Productize the experimentally exercised playlist sequencing and
 bridge-insertion workflow, add order-preserving gap filling and destination
 routes for the live queue, and deliver it as a separately maintained Lyrion
 plugin without requiring Python on the server or modifying `lms-blissmixer`.
-**Latest implementation checkpoint:** [Explicit endpoint insertion](IMPLEMENTATION_CHECKPOINT_13.md)
-**Previous checkpoints:** [Multi-track preserved-gap routing](IMPLEMENTATION_CHECKPOINT_12.md), [Preserve-order gap-filling preview](IMPLEMENTATION_CHECKPOINT_11.md), [Exact-count bridge-selection preview](IMPLEMENTATION_CHECKPOINT_10.md), [Automatic bridge-selection preview](IMPLEMENTATION_CHECKPOINT_9.md), [Provider-neutral semantic bridge ranking](IMPLEMENTATION_CHECKPOINT_8.md), [Native bridge-analysis CLI](IMPLEMENTATION_CHECKPOINT_7.md), [Contextual bridge-scoring kernel](IMPLEMENTATION_CHECKPOINT_6.md), [Deterministic native route search](IMPLEMENTATION_CHECKPOINT_5.md), [Parallel contextual scoring](IMPLEMENTATION_CHECKPOINT_4.md), [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md), [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)
+**Latest implementation checkpoint:** [First live Lyrion preview](IMPLEMENTATION_CHECKPOINT_14.md)
+**Previous checkpoints:** [Explicit endpoint insertion](IMPLEMENTATION_CHECKPOINT_13.md), [Multi-track preserved-gap routing](IMPLEMENTATION_CHECKPOINT_12.md), [Preserve-order gap-filling preview](IMPLEMENTATION_CHECKPOINT_11.md), [Exact-count bridge-selection preview](IMPLEMENTATION_CHECKPOINT_10.md), [Automatic bridge-selection preview](IMPLEMENTATION_CHECKPOINT_9.md), [Provider-neutral semantic bridge ranking](IMPLEMENTATION_CHECKPOINT_8.md), [Native bridge-analysis CLI](IMPLEMENTATION_CHECKPOINT_7.md), [Contextual bridge-scoring kernel](IMPLEMENTATION_CHECKPOINT_6.md), [Deterministic native route search](IMPLEMENTATION_CHECKPOINT_5.md), [Parallel contextual scoring](IMPLEMENTATION_CHECKPOINT_4.md), [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md), [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)
 **Reference implementation:** The tracked Python tools and sanitized 2025/2026
 execution reports in this repository remain a migration and parity oracle until
 the Rust implementation reaches declared parity. They are not the normative
@@ -1231,6 +1232,13 @@ passes.
 
 ### Phase 4: headless LMS plugin backend
 
+**Implemented vertical slice:** `lms-bliss-em-all` revision
+`b7f8bb5d48a2948f8ffa01c9550c9d8a7d909a87` implements live capability
+discovery, BlissMixer preference capture, private native jobs, server-log
+correlation, and read-only reorder results. Cancellation, retained reports,
+semantic adapters, playlist persistence, destination commands, and restart
+recovery remain open.
+
 - Implement capability checks and preference capture.
 - Add job creation, status, cancellation, report, and `route_to` commands.
 - Register `plugin.blissemall`, relay structured helper diagnostics, and
@@ -1249,6 +1257,12 @@ server without modifying the source playlist, existing queue entries, or
 `lms-blissmixer`; job events are correlated in the Lyrion server log.
 
 ### Phase 5: user experience
+
+**Implemented vertical slice:** the plugin now registers one Applications/My
+Apps entry and provides status, saved-playlist selection, Reorder only review,
+Run preview, separated Active/Recent screens, result diagnostics, and proposed
+order on a live LMS 9.1 ARM64 server. Context menus, Create, bridge modes,
+cancel, durable history, and the wider client matrix remain open.
 
 - Register the playlist context-menu provider.
 - Implement reorder and Preserve order and fill gaps Preview/Create workflows.
