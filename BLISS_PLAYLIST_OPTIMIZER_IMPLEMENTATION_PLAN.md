@@ -1,13 +1,13 @@
 # Bliss 'Em All productization and implementation plan
 
-**Status:** In progress - deterministic reorder and immutable-anchor bridge previews implemented; multi-track gap routes and destination routing next
+**Status:** In progress - deterministic reorder and bounded immutable-anchor gap routes implemented; endpoint slots and destination routing next
 **Date:** 2026-07-21
 **Primary objective:** Productize the experimentally exercised playlist sequencing and
 bridge-insertion workflow, add order-preserving gap filling and destination
 routes for the live queue, and deliver it as a separately maintained Lyrion
 plugin without requiring Python on the server or modifying `lms-blissmixer`.
-**Latest implementation checkpoint:** [Preserve-order gap-filling preview](IMPLEMENTATION_CHECKPOINT_11.md)
-**Previous checkpoints:** [Exact-count bridge-selection preview](IMPLEMENTATION_CHECKPOINT_10.md), [Automatic bridge-selection preview](IMPLEMENTATION_CHECKPOINT_9.md), [Provider-neutral semantic bridge ranking](IMPLEMENTATION_CHECKPOINT_8.md), [Native bridge-analysis CLI](IMPLEMENTATION_CHECKPOINT_7.md), [Contextual bridge-scoring kernel](IMPLEMENTATION_CHECKPOINT_6.md), [Deterministic native route search](IMPLEMENTATION_CHECKPOINT_5.md), [Parallel contextual scoring](IMPLEMENTATION_CHECKPOINT_4.md), [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md), [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)
+**Latest implementation checkpoint:** [Multi-track preserved-gap routing](IMPLEMENTATION_CHECKPOINT_12.md)
+**Previous checkpoints:** [Preserve-order gap-filling preview](IMPLEMENTATION_CHECKPOINT_11.md), [Exact-count bridge-selection preview](IMPLEMENTATION_CHECKPOINT_10.md), [Automatic bridge-selection preview](IMPLEMENTATION_CHECKPOINT_9.md), [Provider-neutral semantic bridge ranking](IMPLEMENTATION_CHECKPOINT_8.md), [Native bridge-analysis CLI](IMPLEMENTATION_CHECKPOINT_7.md), [Contextual bridge-scoring kernel](IMPLEMENTATION_CHECKPOINT_6.md), [Deterministic native route search](IMPLEMENTATION_CHECKPOINT_5.md), [Parallel contextual scoring](IMPLEMENTATION_CHECKPOINT_4.md), [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md), [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)
 **Reference implementation:** The tracked Python tools and sanitized 2025/2026
 execution reports in this repository remain a migration and parity oracle until
 the Rust implementation reaches declared parity. They are not the normative
@@ -738,6 +738,14 @@ subsequence. Multi-track sub-routes inside one gap, opening/closing slots, and
 repair of interacting pre-existing anchor conflicts remain later work; until
 then, an input order that already violates a repeat window fails explicitly.
 
+The subsequent bounded-gap slice allows exact-count preserve-order requests to
+declare from one through eight tracks per internal gap. It builds a small
+ordered route before the right anchor, retains deterministic local and global
+beams, and recomputes every selected bridge's diagnostics in the final route.
+Candidate semantics remain frozen from the original anchor endpoints for this
+slice; dynamic provider queries or semantic chaining between inserted tracks
+are not implied.
+
 #### Track action: Bliss me there…
 
 Register **Bliss me there…** on the context menu of a playable local track. Its
@@ -1175,15 +1183,22 @@ exactly, use candidate-only Rayon parallelism, expose ordering and source-ID
 provenance, and fail with `PRESERVED_ANCHOR_REPEAT_CONFLICT` when the
 unchanged anchors already violate hard look-back windows. Multi-track routes
 inside one anchor gap, endpoint slots, provider adapters, applying a preview,
-and playlist persistence remain subsequent slices.
+and playlist persistence remain subsequent slices. Revision
+eff16c37583a04970413d74505acc5060aa9f815 adds bounded multi-track routes
+inside preserved internal gaps. The effective one-through-eight per-gap limit
+is versioned in request and result contracts; each append passes the existing
+semantic, unique-membership, repeat, and acoustic gates, the complete route
+objective is recomputed, and published bridge diagnostics are rebuilt against
+final neighbors. Endpoint slots, provider adapters, applying a preview, and
+playlist persistence remain subsequent slices.
 
 - Port frozen reference distributions and two-leg bridge scoring.
-- Implement automatic and exact-count modes. Both are complete as read-only
-  previews for at most one bridge per original internal gap; endpoint and
-  multi-track variants remain.
+- Implement automatic and exact-count modes. Automatic remains one bridge per
+  original gap; exact-count preserve-order previews support bounded multi-track
+  internal-gap routes. Endpoint variants remain.
 - Implement immutable-anchor gap filling and destination-route requests. The
-  one-bridge-per-internal-gap preserve-order slice is complete; multi-track gap
-  routes, endpoint slots, and destination requests remain.
+  bounded multi-track internal-gap preserve-order slice is complete; endpoint
+  slots and destination requests remain.
 - Accept and validate the frozen provider-neutral recording/artist evidence
   graph.
 - Enforce track-before-artist evidence tiers, endpoint-local then collection
