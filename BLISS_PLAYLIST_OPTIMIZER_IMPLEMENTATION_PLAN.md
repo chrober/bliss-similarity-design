@@ -1233,7 +1233,7 @@ passes.
 ### Phase 4: headless LMS plugin backend
 
 **Implemented vertical slice:** `lms-bliss-em-all` revision
-`b7f8bb5d48a2948f8ffa01c9550c9d8a7d909a87` implements live capability
+`01c598641f1b2e81d5d4d96b254749460300bee7` implements live capability
 discovery, BlissMixer preference capture, private native jobs, server-log
 correlation, and read-only reorder results. Cancellation, retained reports,
 semantic adapters, playlist persistence, destination commands, and restart
