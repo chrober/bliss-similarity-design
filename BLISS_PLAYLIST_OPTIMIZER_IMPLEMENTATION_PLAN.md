@@ -1,13 +1,13 @@
 # Bliss 'Em All productization and implementation plan
 
-**Status:** In progress - deterministic automatic and exact-count previews implemented; immutable-anchor gap filling next
-**Date:** 2026-07-20
+**Status:** In progress - deterministic reorder and immutable-anchor bridge previews implemented; multi-track gap routes and destination routing next
+**Date:** 2026-07-21
 **Primary objective:** Productize the experimentally exercised playlist sequencing and
 bridge-insertion workflow, add order-preserving gap filling and destination
 routes for the live queue, and deliver it as a separately maintained Lyrion
 plugin without requiring Python on the server or modifying `lms-blissmixer`.
-**Latest implementation checkpoint:** [Exact-count bridge-selection preview](IMPLEMENTATION_CHECKPOINT_10.md)
-**Previous checkpoints:** [Automatic bridge-selection preview](IMPLEMENTATION_CHECKPOINT_9.md), [Provider-neutral semantic bridge ranking](IMPLEMENTATION_CHECKPOINT_8.md), [Native bridge-analysis CLI](IMPLEMENTATION_CHECKPOINT_7.md), [Contextual bridge-scoring kernel](IMPLEMENTATION_CHECKPOINT_6.md), [Deterministic native route search](IMPLEMENTATION_CHECKPOINT_5.md), [Parallel contextual scoring](IMPLEMENTATION_CHECKPOINT_4.md), [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md), [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)
+**Latest implementation checkpoint:** [Preserve-order gap-filling preview](IMPLEMENTATION_CHECKPOINT_11.md)
+**Previous checkpoints:** [Exact-count bridge-selection preview](IMPLEMENTATION_CHECKPOINT_10.md), [Automatic bridge-selection preview](IMPLEMENTATION_CHECKPOINT_9.md), [Provider-neutral semantic bridge ranking](IMPLEMENTATION_CHECKPOINT_8.md), [Native bridge-analysis CLI](IMPLEMENTATION_CHECKPOINT_7.md), [Contextual bridge-scoring kernel](IMPLEMENTATION_CHECKPOINT_6.md), [Deterministic native route search](IMPLEMENTATION_CHECKPOINT_5.md), [Parallel contextual scoring](IMPLEMENTATION_CHECKPOINT_4.md), [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md), [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)
 **Reference implementation:** The tracked Python tools and sanitized 2025/2026
 execution reports in this repository remain a migration and parity oracle until
 the Rust implementation reaches declared parity. They are not the normative
@@ -731,6 +731,13 @@ repeat windows, and contextual scoring were evaluated over the complete final
 sequence. A preserve-order request fails instead of quietly reordering anchors
 or weakening constraints.
 
+The first native preserve-order slice implements internal gaps with at most one
+bridge per gap for both automatic and exact-count previews. It records the
+source anchors separately and proves that they are the final original-track
+subsequence. Multi-track sub-routes inside one gap, opening/closing slots, and
+repair of interacting pre-existing anchor conflicts remain later work; until
+then, an input order that already violates a repeat window fails explicitly.
+
 #### Track action: Bliss me there…
 
 Register **Bliss me there…** on the context menu of a playable local track. Its
@@ -1161,15 +1168,22 @@ Revision
 exact-count search over original internal gaps. Feasible previews contain
 exactly the requested count; unsuccessful previews expose no partial route and
 distinguish proven structural infeasibility from search exhaustion inside the
-declared beam. Immutable-anchor multi-track gaps, endpoint slots, provider
-adapters, applying a preview, and playlist persistence remain subsequent
-slices.
+declared beam. Revision
+6ae252f1c600ea0e20b66f5ac0cfaaf789d22c23 adds the first immutable-anchor
+slice: automatic and exact-count previews can preserve the source order
+exactly, use candidate-only Rayon parallelism, expose ordering and source-ID
+provenance, and fail with `PRESERVED_ANCHOR_REPEAT_CONFLICT` when the
+unchanged anchors already violate hard look-back windows. Multi-track routes
+inside one anchor gap, endpoint slots, provider adapters, applying a preview,
+and playlist persistence remain subsequent slices.
 
 - Port frozen reference distributions and two-leg bridge scoring.
 - Implement automatic and exact-count modes. Both are complete as read-only
   previews for at most one bridge per original internal gap; endpoint and
-  immutable-anchor multi-track variants remain.
-- Implement immutable-anchor gap filling and destination-route requests.
+  multi-track variants remain.
+- Implement immutable-anchor gap filling and destination-route requests. The
+  one-bridge-per-internal-gap preserve-order slice is complete; multi-track gap
+  routes, endpoint slots, and destination requests remain.
 - Accept and validate the frozen provider-neutral recording/artist evidence
   graph.
 - Enforce track-before-artist evidence tiers, endpoint-local then collection
