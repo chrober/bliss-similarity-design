@@ -1,16 +1,16 @@
 # Bliss 'Em All productization and implementation plan
 
-**Status:** In progress - full ARM64 UX shell deployed; reorder-only Preview is
-connected, while every incomplete bridge, persistence, provider, history,
-localization, cancellation, and destination-routing capability is visibly marked
-as such.
+**Status:** In progress - full ARM64 UX shell deployed; reorder-only Preview and
+explicit creation of a verified optimized copy are connected, while every
+incomplete bridge, source-overwrite, provider, history, localization,
+cancellation, and destination-routing capability is visibly marked as such.
 **Date:** 2026-07-21
 **Primary objective:** Productize the experimentally exercised playlist sequencing and
 bridge-insertion workflow, add order-preserving gap filling and destination
 routes for the live queue, and deliver it as a separately maintained Lyrion
 plugin without requiring Python on the server or modifying `lms-blissmixer`.
-**Latest implementation checkpoint:** [Complete UX shell](IMPLEMENTATION_CHECKPOINT_15.md)
-**Previous checkpoints:** [First live Lyrion preview](IMPLEMENTATION_CHECKPOINT_14.md), [Explicit endpoint insertion](IMPLEMENTATION_CHECKPOINT_13.md), [Multi-track preserved-gap routing](IMPLEMENTATION_CHECKPOINT_12.md), [Preserve-order gap-filling preview](IMPLEMENTATION_CHECKPOINT_11.md), [Exact-count bridge-selection preview](IMPLEMENTATION_CHECKPOINT_10.md), [Automatic bridge-selection preview](IMPLEMENTATION_CHECKPOINT_9.md), [Provider-neutral semantic bridge ranking](IMPLEMENTATION_CHECKPOINT_8.md), [Native bridge-analysis CLI](IMPLEMENTATION_CHECKPOINT_7.md), [Contextual bridge-scoring kernel](IMPLEMENTATION_CHECKPOINT_6.md), [Deterministic native route search](IMPLEMENTATION_CHECKPOINT_5.md), [Parallel contextual scoring](IMPLEMENTATION_CHECKPOINT_4.md), [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md), [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)
+**Latest implementation checkpoint:** [Verified optimized-copy persistence](IMPLEMENTATION_CHECKPOINT_16.md)
+**Previous checkpoints:** [Complete UX shell](IMPLEMENTATION_CHECKPOINT_15.md), [First live Lyrion preview](IMPLEMENTATION_CHECKPOINT_14.md), [Explicit endpoint insertion](IMPLEMENTATION_CHECKPOINT_13.md), [Multi-track preserved-gap routing](IMPLEMENTATION_CHECKPOINT_12.md), [Preserve-order gap-filling preview](IMPLEMENTATION_CHECKPOINT_11.md), [Exact-count bridge-selection preview](IMPLEMENTATION_CHECKPOINT_10.md), [Automatic bridge-selection preview](IMPLEMENTATION_CHECKPOINT_9.md), [Provider-neutral semantic bridge ranking](IMPLEMENTATION_CHECKPOINT_8.md), [Native bridge-analysis CLI](IMPLEMENTATION_CHECKPOINT_7.md), [Contextual bridge-scoring kernel](IMPLEMENTATION_CHECKPOINT_6.md), [Deterministic native route search](IMPLEMENTATION_CHECKPOINT_5.md), [Parallel contextual scoring](IMPLEMENTATION_CHECKPOINT_4.md), [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md), [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)
 **Reference implementation:** The tracked Python tools and sanitized 2025/2026
 execution reports in this repository remain a migration and parity oracle until
 the Rust implementation reaches declared parity. They are not the normative
@@ -1238,8 +1238,13 @@ passes.
 **Implemented vertical slice:** `lms-bliss-em-all` revision
 `01c598641f1b2e81d5d4d96b254749460300bee7` implements live capability
 discovery, BlissMixer preference capture, private native jobs, server-log
-correlation, and read-only reorder results. Cancellation, retained reports,
-semantic adapters, playlist persistence, destination commands, and restart
+correlation, and read-only reorder results. Revision
+`cddda95997adf919f609ea062fcf511a7c018957` adds the separate post-Preview
+**Create optimized copy** action, LMS-native extended-M3U serialization,
+same-directory temporary verification, atomic publication, catalog creation,
+catalog/file order verification, idempotent job results, collision rejection,
+and failure cleanup without touching the source. Cancellation, retained
+reports, semantic adapters, source overwrite, destination commands, and restart
 recovery remain open.
 
 - Implement capability checks and preference capture.
@@ -1261,17 +1266,18 @@ server without modifying the source playlist, existing queue entries, or
 
 ### Phase 5: user experience
 
-**Implemented rich per-job UX shell with one vertical slice:** the plugin now
+**Implemented rich per-job UX shell with one writable vertical slice:** the plugin now
 registers one Extras entry plus saved-playlist and local-track context
 providers. The form exposes both ordering policies, all extension choices,
 strategy controls, repeat windows, output disposition, result state, and
 explicit Working/Not connected yet labels. Adaptive parameters, repeat windows,
-search restarts, and output disposition are captured per job; Optimize order +
-Reorder only + read-only Preview remains the sole executable combination.
-Context shortcuts are informational; Create, bridge execution, cancellation,
-durable history/export, optional providers, complete localization, and the wider
-client matrix remain open. The exact feature boundary is maintained in the
-plugin repository's `docs/UX_STATUS.md`.
+search restarts, and output disposition are captured per job. Optimize order +
+Reorder only + read-only Preview is executable, and a successful Preview can be
+persisted only through the explicit **Create optimized copy** action. Context
+shortcuts are informational; source overwrite, bridge execution, cancellation,
+durable history/export, optional providers, complete localization, and the
+wider client matrix remain open. The exact feature boundary is maintained in
+the plugin repository's `docs/UX_STATUS.md`.
 
 - Register the playlist context-menu provider.
 - Implement reorder and Preserve order and fill gaps Preview/Create workflows.
