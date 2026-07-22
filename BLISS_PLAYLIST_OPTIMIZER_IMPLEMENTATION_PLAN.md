@@ -1,16 +1,17 @@
 # Bliss 'Em All productization and implementation plan
 
-**Status:** In progress - full ARM64 UX shell deployed; reorder-only Preview and
-explicit creation of a verified optimized copy are connected, while every
-incomplete bridge, source-overwrite, provider, history, localization,
-cancellation, and destination-routing capability is visibly marked as such.
-**Date:** 2026-07-21
+**Status:** In progress - full ARM64 UX shell deployed; reorder-only and
+automatic-extension Preview plus explicit creation of verified copies are
+connected, while every incomplete exact-count/preserved-order mode,
+source-overwrite, provider, history, localization, cancellation, and
+destination-routing capability is visibly marked as such.
+**Date:** 2026-07-22
 **Primary objective:** Productize the experimentally exercised playlist sequencing and
 bridge-insertion workflow, add order-preserving gap filling and destination
 routes for the live queue, and deliver it as a separately maintained Lyrion
 plugin without requiring Python on the server or modifying `lms-blissmixer`.
-**Latest implementation checkpoint:** [Verified optimized-copy persistence](IMPLEMENTATION_CHECKPOINT_16.md)
-**Previous checkpoints:** [Complete UX shell](IMPLEMENTATION_CHECKPOINT_15.md), [First live Lyrion preview](IMPLEMENTATION_CHECKPOINT_14.md), [Explicit endpoint insertion](IMPLEMENTATION_CHECKPOINT_13.md), [Multi-track preserved-gap routing](IMPLEMENTATION_CHECKPOINT_12.md), [Preserve-order gap-filling preview](IMPLEMENTATION_CHECKPOINT_11.md), [Exact-count bridge-selection preview](IMPLEMENTATION_CHECKPOINT_10.md), [Automatic bridge-selection preview](IMPLEMENTATION_CHECKPOINT_9.md), [Provider-neutral semantic bridge ranking](IMPLEMENTATION_CHECKPOINT_8.md), [Native bridge-analysis CLI](IMPLEMENTATION_CHECKPOINT_7.md), [Contextual bridge-scoring kernel](IMPLEMENTATION_CHECKPOINT_6.md), [Deterministic native route search](IMPLEMENTATION_CHECKPOINT_5.md), [Parallel contextual scoring](IMPLEMENTATION_CHECKPOINT_4.md), [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md), [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)
+**Latest implementation checkpoint:** [Live automatic extension](IMPLEMENTATION_CHECKPOINT_17.md)
+**Previous checkpoints:** [Verified optimized-copy persistence](IMPLEMENTATION_CHECKPOINT_16.md), [Complete UX shell](IMPLEMENTATION_CHECKPOINT_15.md), [First live Lyrion preview](IMPLEMENTATION_CHECKPOINT_14.md), [Explicit endpoint insertion](IMPLEMENTATION_CHECKPOINT_13.md), [Multi-track preserved-gap routing](IMPLEMENTATION_CHECKPOINT_12.md), [Preserve-order gap-filling preview](IMPLEMENTATION_CHECKPOINT_11.md), [Exact-count bridge-selection preview](IMPLEMENTATION_CHECKPOINT_10.md), [Automatic bridge-selection preview](IMPLEMENTATION_CHECKPOINT_9.md), [Provider-neutral semantic bridge ranking](IMPLEMENTATION_CHECKPOINT_8.md), [Native bridge-analysis CLI](IMPLEMENTATION_CHECKPOINT_7.md), [Contextual bridge-scoring kernel](IMPLEMENTATION_CHECKPOINT_6.md), [Deterministic native route search](IMPLEMENTATION_CHECKPOINT_5.md), [Parallel contextual scoring](IMPLEMENTATION_CHECKPOINT_4.md), [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md), [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)
 **Reference implementation:** The tracked Python tools and sanitized 2025/2026
 execution reports in this repository remain a migration and parity oracle until
 the Rust implementation reaches declared parity. They are not the normative
@@ -1245,7 +1246,13 @@ same-directory temporary verification, atomic publication, catalog creation,
 catalog/file order verification, idempotent job results, collision rejection,
 and failure cleanup without touching the source. Cancellation, retained
 reports, semantic adapters, source overwrite, destination commands, and restart
-recovery remain open.
+recovery remain open. Revision
+`9f5a66366e7e21d69f9c8612b426078db1fdb99a` connects **Extend
+automatically** to the existing native `bridge` contract, validates and
+resolves opaque candidate rows read-only, freezes local LMS URLs, exposes every
+gap decision, and persists the extended final sequence through the same
+verified writer. Optional semantic adapters remain open; the connected slice
+uses and reports the Bliss-only fallback.
 
 - Implement capability checks and preference capture.
 - Add job creation, status, cancellation, report, and `route_to` commands.
@@ -1266,18 +1273,20 @@ server without modifying the source playlist, existing queue entries, or
 
 ### Phase 5: user experience
 
-**Implemented rich per-job UX shell with one writable vertical slice:** the plugin now
+**Implemented rich per-job UX shell with two writable modes:** the plugin now
 registers one Extras entry plus saved-playlist and local-track context
 providers. The form exposes both ordering policies, all extension choices,
 strategy controls, repeat windows, output disposition, result state, and
 explicit Working/Not connected yet labels. Adaptive parameters, repeat windows,
-search restarts, and output disposition are captured per job. Optimize order +
-Reorder only + read-only Preview is executable, and a successful Preview can be
-persisted only through the explicit **Create optimized copy** action. Context
-shortcuts are informational; source overwrite, bridge execution, cancellation,
-durable history/export, optional providers, complete localization, and the
-wider client matrix remain open. The exact feature boundary is maintained in
-the plugin repository's `docs/UX_STATUS.md`.
+search restarts, and output disposition are captured per job. **Reorder only**
+and **Extend automatically** are executable; automatic mode additionally owns
+a per-job bridge budget and contextual trigger percentile and renders additions
+plus one decision per original gap. A successful Preview can be persisted only
+through the explicit **Create optimized copy** action. Context shortcuts are
+informational; exact-count and preserved-order modes, source overwrite,
+cancellation, durable history/export, optional providers, complete
+localization, and the wider client matrix remain open. The exact feature
+boundary is maintained in the plugin repository's `docs/UX_STATUS.md`.
 
 - Register the playlist context-menu provider.
 - Implement reorder and Preserve order and fill gaps Preview/Create workflows.
