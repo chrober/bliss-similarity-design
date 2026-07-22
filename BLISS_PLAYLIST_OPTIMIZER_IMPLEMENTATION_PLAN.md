@@ -109,7 +109,7 @@ The first product release must support:
 - MusicBrainz recording and artist IDs already maintained by Lyrion as the
   preferred external identity keys;
 - reproducible JSON and human-readable reports;
-- playlist context-menu and Applications/My Apps entry points;
+- playlist context-menu and an Extras rich-job-editor entry point;
 - a mandatory `Settings.pm` surface for validated durable preferences, with
   safe defaults that permit zero-configuration Bliss-only operation;
 - a track context action that can append a fluent route from the current queue
@@ -127,7 +127,8 @@ The following are not required for the first release:
 - installing or running BrainzMix;
 - intro/outro audio decoding or boundary-anchor analysis;
 - globally optimizing or replacing the unsaved current player queue; or
-- automatically overwriting a source playlist.
+- automatically overwriting a source playlist without an explicit per-job
+  choice, reviewed Preview, warning, and confirmation.
 
 ## Repository plan
 
@@ -423,7 +424,8 @@ BlissEmAll/
   install.xml
   Plugin.pm
   Settings.pm
-  AppMenu.pm
+  Web.pm
+  JobOptions.pm
   Jobs.pm
   OptimizerProcess.pm
   QueueRoute.pm
@@ -790,39 +792,30 @@ It runs Preview before Create and summarizes moved tracks, added bridges,
 repeat compliance, mean/worst transition change, warnings, and semantic evidence
 tiers.
 
-### Applications/My Apps experience
+### Extras rich-job-editor experience
 
-Expose exactly one management application through Applications/My Apps. Do not
-register a duplicate classic Extras entry. `AppMenu.pm` owns the client-facing
-menu/feed and registers one stable application item through the supported Jive
-application-menu mechanism. It may use the OPML-based feed helpers internally,
-but all actions must resolve to the documented `blissemall` commands rather
-than embed product state in menu callbacks.
+Expose exactly one management surface through **Extras > Bliss 'Em All** using
+an LMS web-page contribution. This placement is the result of verifying the
+conditional UX requirement against Lyrion's implementation: the generic
+Applications/OPML/XMLBrowser path supports hierarchical navigation and a
+special single text-input prompt, but does not preserve arbitrary checkbox,
+dropdown, and numeric fields as a portable multi-field form. Direct Jive choice
+items exist, but they are client menu controls rather than an equivalent form
+available across Material, classic web, and other clients.
 
-The Applications contribution is a client-rendered hierarchical list, not an
-assumption that every client can display a free-form HTML dashboard. Material
-and other capable clients may show icons, secondary text, counts, and richer
-formatting, while the same information remains understandable as plain text on
-more limited clients. Do not rely on color, badges, hover state, wide tables, or
-custom JavaScript for correctness.
+`Web.pm` owns the Extras page and `JobOptions.pm` owns normalization of the job
+draft. Do not register a second Applications/My Apps dashboard. Context-menu
+shortcuts enter or point to this same workflow rather than maintaining another
+configuration implementation.
 
-The root menu is deliberately small:
+The page groups source/mode, strategy parameters, repeat constraints, search
+effort, output disposition, capability warnings, and Preview/result state.
+Fields must be usable without custom JavaScript. Labels and explanatory text,
+not color alone, distinguish Working from Not connected yet controls.
 
-```text
-Applications
-└─ Bliss 'Em All
-   ├─ Optimize a saved playlist
-   ├─ Active jobs (count when non-zero)
-   ├─ Recent results
-   ├─ System status: Ready | Attention required
-   ├─ Settings
-   └─ Help and about
-```
-
-When no optimization can run, the application remains visible. **System
-status** explains the missing capability, and **Optimize a saved playlist**
-opens the same actionable remediation instead of disappearing or failing after
-the user has configured a job.
+When no optimization can run, the Extras entry remains visible. The page lists
+the blocking capabilities and disables the Run action instead of disappearing
+or failing only after the user has configured a job.
 
 #### New playlist workflow
 
@@ -835,15 +828,20 @@ the user has configured a job.
 3. **Choose extension policy:** none where meaningful, Auto, exactly `N`, one
    per original transition, target length, or double length. Show the resulting
    count calculation before continuing.
-4. **Review job options:** output name, endpoint-addition policy where relevant,
-   inherited BlissMixer strategy and repeat windows, analysis coverage, and
-   semantic-provider state. Inherited settings are read-only; advanced
-   product-owned choices remain collapsed by default.
+4. **Review job options:** output name/disposition, endpoint-addition policy
+   where relevant, mixing strategy and its parameters, track/artist/album
+   repeat windows, analysis coverage, and semantic-provider state. BlissMixer
+   values initialize the fields but are only defaults; validated edits belong
+   to this job and never update BlissMixer preferences. A zero repeat window
+   disables that constraint, which makes single-artist and single-album source
+   collections valid when the user chooses it.
 5. **Run Preview:** validate capabilities and inputs, execute optimization, and
    produce a non-persistent candidate result.
 6. **Review Preview:** inspect the summary, proposed sequence, additions,
-   warnings, and decision report before choosing Create playlist, Change
-   options, or Discard.
+   warnings, and decision report before choosing Create optimized copy,
+   Overwrite source, Change options, or Discard. Create-copy is the default.
+   Overwrite requires a distinct warning and explicit confirmation after the
+   Preview; selecting it in the draft never mutates a playlist by itself.
 
 ```mermaid
 flowchart LR
@@ -895,10 +893,12 @@ diagnostic view. Warnings appear before the Create action and must be explicitly
 visible when operation continues with reduced semantic evidence.
 
 Create writes a new playlist by default and shows **Creating** followed by
-**Verifying**. Success presents the final name and track count plus actions to
-open the saved playlist and view the report. Persistence or verification
-failure presents a stable error code, remediation, and report link; it never
-claims success or modifies the source playlist.
+**Verifying**. If the job explicitly chose Overwrite source, persistence uses
+an atomic replacement/backup strategy only after a separate confirmation and
+must preserve a recoverable original until verification succeeds. Success
+presents the final name and track count plus actions to open the saved playlist
+and view the report. Persistence or verification failure presents a stable
+error code, remediation, and report link and never claims success.
 
 #### Jobs and history
 
@@ -1037,11 +1037,12 @@ The existing Python tools remain the oracle during migration:
 
 - Perl compile checks and focused unit tests with mocked LMS objects;
 - `Settings.pm` default, validation, persistence, and migration tests;
-- Applications/My Apps registration and verification that no duplicate Extras
-  dashboard is registered;
-- `AppMenu.pm` contract tests for the root menu, workflow drill-down, localized
-  labels, plain-text fallback, empty/loading/disabled/error states, and stable
-  item/action identifiers;
+- Extras page registration and verification that no duplicate Applications/My
+  Apps dashboard is registered;
+- `Web.pm` form tests for playlist selection, defaults, per-job overrides,
+  localization, empty/loading/disabled/error states, and safe HTML escaping;
+- `JobOptions.pm` boundary tests, including zero repeat windows and rejection of
+  unsupported strategies or modes;
 - Preview-before-persistence, back-navigation, job-resume, cancellation,
   confirmation, and playlist/track-context shortcut tests over the same workflow
   state machine;
@@ -1260,11 +1261,12 @@ server without modifying the source playlist, existing queue entries, or
 
 ### Phase 5: user experience
 
-**Implemented full UX shell with one vertical slice:** the plugin now registers
-one Applications/My Apps entry; saved-playlist and local-track context providers;
-both ordering policies; all six extension choices where meaningful; review,
-advanced, job, result, status, settings, and help screens; and explicit
-Working/Session only/Aggregate only/Not connected yet labels. Optimize order +
+**Implemented rich per-job UX shell with one vertical slice:** the plugin now
+registers one Extras entry plus saved-playlist and local-track context
+providers. The form exposes both ordering policies, all extension choices,
+strategy controls, repeat windows, output disposition, result state, and
+explicit Working/Not connected yet labels. Adaptive parameters, repeat windows,
+search restarts, and output disposition are captured per job; Optimize order +
 Reorder only + read-only Preview remains the sole executable combination.
 Context shortcuts are informational; Create, bridge execution, cancellation,
 durable history/export, optional providers, complete localization, and the wider
@@ -1275,21 +1277,20 @@ plugin repository's `docs/UX_STATUS.md`.
 - Implement reorder and Preserve order and fill gaps Preview/Create workflows.
 - Register the track context action **Bliss me there…** with Preview and
   **Append to queue** confirmation.
-- Implement `AppMenu.pm`, register the single Applications/My Apps entry, and
-  do not register a duplicate Extras entry.
-- Implement the documented root menu, playlist wizard, Preview/result
-  drill-down, active-job resume/cancel flow, recent-result history, capability
-  status, and limited-client text fallback.
+- Implement `Web.pm` and `JobOptions.pm`, register the single Extras page, and
+  do not register a duplicate Applications/My Apps dashboard.
+- Implement the documented rich form, Preview/result drill-down, active-job
+  resume/cancel flow, recent-result history, capability status, and accessible
+  no-JavaScript fallback.
 - Implement the mandatory `Settings.pm` page for validated durable preferences
   without duplicating inherited BlissMixer settings or per-job controls.
-- Keep advanced algorithm controls collapsed and inherit BlissMixer settings by
-  default.
-- Validate the workflow on every Applications-capable client in the declared
-  compatibility matrix, including Material and at least one plain hierarchical
-  menu renderer.
+- Initialize job controls from BlissMixer defaults, validate every submitted
+  override, and never write those overrides back to BlissMixer.
+- Validate the workflow in Material and classic web skins plus the supported
+  context-menu entry points.
 
 **Exit gate:** the complete workflow is usable through the targeted
-Applications/My Apps and context-menu interfaces, durable preferences survive
+Extras and context-menu interfaces, durable preferences survive
 restart and migration, long-running jobs survive navigation, no persistence can
 bypass Preview and confirmation, and failures produce actionable messages.
 
@@ -1347,10 +1348,10 @@ upgrade, and uninstall the plugin through the extension manager.
 - The source playlist is unchanged by the default workflow.
 - New playlists are written through LMS and match the returned result order.
 - Jobs are cancellable, survive UI navigation, and clean up on server shutdown.
-- Applications/My Apps is the sole management dashboard; no duplicate classic
-  Extras dashboard is registered.
-- The application exposes the documented compact root menu, keeps capability
-  failures visible and actionable, and remains usable without rich formatting.
+- Extras is the sole management dashboard; no duplicate Applications/My Apps
+  dashboard is registered.
+- The Extras page exposes the documented per-job controls, keeps capability
+  failures visible and actionable, and remains usable without custom JavaScript.
 - Every playlist and destination-route workflow requires Preview before Create
   or Append, shows membership and constraint outcomes, and cannot persist by
   navigation alone.
@@ -1359,7 +1360,7 @@ upgrade, and uninstall the plugin through the extension manager.
   persistence.
 - Playlist and track context actions enter the same workflow state machine and
   produce the same validation, report, and confirmation behavior as the
-  Applications entry.
+  Extras entry.
 - The mandatory `Settings.pm` page validates and persists durable plugin
   preferences while inherited BlissMixer state and per-job choices retain their
   separate ownership.
@@ -1400,7 +1401,8 @@ Resolve these before or during Phase 0:
 8. Default route-search effort and a server-class-aware time/memory budget.
 9. Report retention duration and whether users can explicitly export a private
    full report.
-10. Whether replacing a source playlist is omitted entirely from version 1.
+10. Recovery/backup retention policy for the explicitly confirmed Overwrite
+    source option. Create optimized copy remains the default.
 11. Default Auto behavior and exact-count limits for Preserve order and fill
     gaps and **Bliss me there…**, including whether endpoint additions are ever
     enabled by default.
@@ -1496,7 +1498,7 @@ Apply levels consistently:
 | --- | --- |
 | **ERROR** | An unexpected failure prevented a safe result: invalid/corrupt helper output, child-process failure, database failure, playlist write or verification failure, or an uncaught internal error. Include the stable error code and job ID. |
 | **WARN** | The job can continue only with reduced capability or needs attention: partial Last.fm or ListenBrainz coverage, a provider outage, an unexpected Bliss-only fallback while semantic evidence was enabled, analysis starting during a job, rejected output-name collision, or a cleanup/recovery issue. Providers intentionally disabled and expected infeasibility reported cleanly in Preview are INFO, not WARN/ERROR. |
-| **INFO** | Concise lifecycle and audit summary: capability state at startup, job start, action/mode, original and requested counts, inherited scoring mode and look-back windows, stage changes, completion/cancellation, output count, objective improvement, warning count, report ID, and elapsed time. Do not emit one line per candidate or track. |
+| **INFO** | Concise lifecycle and audit summary: capability state at startup, job start, action/mode, original and requested counts, effective per-job scoring parameters and look-back windows, output disposition, stage changes, completion/cancellation, output count, objective improvement, warning count, report ID, and elapsed time. Do not emit one line per candidate or track. |
 | **DEBUG** | Reproduction and diagnosis detail: sanitized request options, stage timings, candidate/filter counts, per-gap decision summaries, route-search restarts, repeat-window rejections, semantic evidence tiers, helper diagnostics, and LMS persistence/verification steps. Full private track lists and paths still belong only in an explicitly exported private report. |
 
 Use `main::INFOLOG`/`main::DEBUGLOG`, `$log->is_info`, and
