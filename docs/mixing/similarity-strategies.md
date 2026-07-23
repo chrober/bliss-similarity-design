@@ -2,7 +2,7 @@
 
 **Status:** Living research and design proposal  
 **Primary scope:** Baseline metrics, candidate generation, and population-aware weighting  
-**Last reviewed:** 2026-07-19
+**Last reviewed:** 2026-07-23
 
 ## Baseline and experimental whole-track similarity
 
@@ -24,6 +24,27 @@ The first experiments should use late fusion or reranking because they preserve
 an exact baseline result and make ablations straightforward. Expanding the core
 Bliss vector is a later option that would require coordinated schema, matrix,
 and compatibility changes across repositories.
+
+### Conditional vocal similarity
+
+Vocal descriptors require conditional scoring rather than ordinary zero-filled
+dimensions. The distance should combine a vocal-presence mismatch with vocal
+character distance only when both tracks contain supported vocal evidence.
+Character may include the temporal activity profile, pitch distribution,
+delivery or technique probabilities, and a model-identified embedding.
+
+If both tracks are confidently instrumental, the character terms are omitted.
+If only one contains vocals, a separate configurable presence mismatch applies.
+When both contain supported vocal evidence, the consumer may compare continuous
+register and temporal activity together with probabilistic, multi-label delivery
+or technique evidence. Low-confidence terms are omitted or downweighted rather
+than converted to zeros.
+
+This is an aspect-conditioned consumer view, not a new universal meaning of song
+similarity. A general mix may use a small vocal contribution, while a vocal-style
+query or boundary-aware transition task may weight it more strongly. Any fused
+score must still be ablated against vocal presence alone so a larger model is not
+credited for information already supplied by a simple detector.
 
 ## Relationship to existing mixing strategies
 

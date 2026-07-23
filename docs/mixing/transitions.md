@@ -2,7 +2,7 @@
 
 **Status:** Living research and design proposal  
 **Primary scope:** Boundary descriptors, compatibility, and late reranking  
-**Last reviewed:** 2026-07-19
+**Last reviewed:** 2026-07-23
 
 ## Transition-aware selection
 
@@ -80,7 +80,10 @@ Additional penalties can later represent loudness jumps or incompatible
 boundary shapes, but each term must be normalized independently. Prior
 transition work uses section boundaries, downbeats, beat-synchronous timbre,
 chroma, loudness, and vocal presence rather than assuming that one arbitrary
-fixed window contains all relevant evidence [[2]](../research/mixing-research.md#m2). The fixed
+fixed window contains all relevant evidence [[2]](../research/mixing-research.md#m2). Where
+supported, future anchors may refine presence into vocal activity, delivery or
+technique, and intensity, but only under the confidence-gating rules of the
+[analysis representation](../analysis/representations.md#vocal-presence-and-character). The fixed
 outro-to-intro vector is therefore a deliberately simple baseline. It must be
 compared with structure-aligned regions and with feature-specific confidence;
 the published work does not validate the exact distance or weights proposed

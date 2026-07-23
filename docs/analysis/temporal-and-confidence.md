@@ -2,7 +2,7 @@
 
 **Status:** Living research and design proposal  
 **Primary scope:** Time-varying evidence and measurement contracts  
-**Last reviewed:** 2026-07-14
+**Last reviewed:** 2026-07-23
 
 ## Temporal representation design
 
@@ -18,11 +18,13 @@ flowchart TB
     AUDIO --> TIMBRE[Spectral and<br/>timbral series]
     AUDIO --> LOUD[Loudness and<br/>dynamic series]
     AUDIO --> TONAL[Tonal and<br/>chroma series]
+    AUDIO --> VOCAL[Vocal activity, pitch,<br/>and character evidence]
 
     RHYTHM --> POLICY{Temporal representation<br/>policy}
     TIMBRE --> POLICY
     LOUD --> POLICY
     TONAL --> POLICY
+    VOCAL --> POLICY
 
     POLICY -->|Resample to declared cadence| ALIGNED[Aligned frame matrix<br/>common timeline]
     POLICY -->|Retain native cadences| TYPED[Separate typed series<br/>family-specific timelines]
@@ -169,8 +171,17 @@ Confidence should accompany measurements that can be ambiguous or unsupported:
 - segmentation boundary strength;
 - alternative-structural-hypothesis support;
 - silence/fade confidence;
+- vocal-activity probability and supported-frame coverage;
+- pitch or tessitura validity only within supported voiced frames;
+- vocal-technique probability, entropy, and supported-domain evidence;
 - instrument classifier probability or entropy.
 
 Consumers should be able to downweight or omit unreliable components. Missing
 or invalid evidence must not be encoded as an ordinary zero unless zero is a
 valid, distinguishable measurement.
+
+Vocal evidence is especially conditional. A technique or pitch estimate should
+not contribute when vocal presence is absent or uncertain, and a whole-track
+summary should retain enough coverage and temporal information to distinguish
+sparse vocals from a continuously vocal track. Classifier confidence must not
+be mistaken for support outside the model's training domain.

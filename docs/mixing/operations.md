@@ -2,7 +2,7 @@
 
 **Status:** Living research and design proposal  
 **Primary scope:** Research scope, UX, observability, and performance  
-**Last reviewed:** 2026-07-19
+**Last reviewed:** 2026-07-23
 
 ## Psychoacoustic scope
 
@@ -216,6 +216,28 @@ capability states and should fall back to available evidence or Bliss-only
 scoring. They must not turn a feasible local acoustic route into an operational
 failure. Credentials, raw responses, complete playlists, and private paths
 remain excluded from normal logs.
+
+## Deterministic parallel evaluation
+
+Parallel execution is safe only for independent work over immutable snapshots,
+such as restart searches, candidate scoring under an already constructed context,
+or provider lookups whose responses are captured before route evaluation. Each
+work unit needs a stable identity and a deterministically derived random seed.
+Results must be reduced with the complete declared objective and stable tie-breaks
+so thread scheduling cannot change the selected route.
+
+Context-dependent calculations remain attached to their exact ordered seed
+window. In particular, an Adaptive matrix constructed from the preceding route
+context must not be cached or published as one static pairwise track-distance
+matrix. Different positions may legitimately assign different costs to the same
+candidate pair because their preceding contexts differ.
+
+Persistence, playlist mutation, final report assembly, and user-visible state
+changes should cross one ordered side-effect boundary after validation. Parallel
+workers return evidence; they do not independently commit partial results.
+Concurrency should also reserve enough host capacity for playback and normal
+server work. Reproducibility across thread counts belongs in the acceptance tests,
+not merely in a performance benchmark.
 
 ## Performance expectations
 

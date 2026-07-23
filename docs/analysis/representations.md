@@ -2,7 +2,7 @@
 
 **Status:** Living research and design proposal  
 **Primary scope:** Flat, temporal, structural, anchor, and learned representations  
-**Last reviewed:** 2026-07-14
+**Last reviewed:** 2026-07-23
 
 ## Representation taxonomy
 
@@ -223,6 +223,48 @@ Possible measurements include:
 
 A bass "pattern" is primarily temporal. Scalar summaries may complement, but
 should not replace, the sequence.
+
+### Vocal presence and character
+
+Vocal evidence may improve similarity because the current whole-track vector
+does not explicitly distinguish an instrumental track from one dominated by
+clean singing, speech, shouting, or extreme vocal technique. It should not be
+one mutually exclusive label: presence, register, delivery, and technique are
+different properties, and several may occur in the same frame or track.
+
+A layered experimental representation could expose:
+
+- frame- or segment-level vocal-presence probability and whole-track vocal
+  coverage;
+- lead-vocal dominance and a temporal vocal-activity profile;
+- pitch and tessitura statistics, such as median and robust range, only over
+  supported voiced frames;
+- multi-label probabilities for clean singing, spoken or rap delivery, breathy
+  or whispered voice, falsetto or head voice, shout, scream, growl, and rough
+  or distorted phonation;
+- evidence for choir, backing, duet, or otherwise multiple voices; and
+- an optional model-identified vocal embedding at frame, segment, or track
+  level.
+
+These outputs need temporal aggregation. A song can move from an instrumental
+intro to a clean verse and a screamed chorus; one track-level class would erase
+the distinction that may matter most for sequencing or transition scoring.
+Missing vocal evidence is not an ordinary zero: style, pitch, and technique are
+inapplicable when no vocal is detected and should be confidence-gated.
+
+Terms such as soprano describe more than fundamental-frequency range and are
+not reliably inferred from pitch alone. Continuous register and tessitura
+evidence is the safer initial product. Any categorical voice-type estimate must
+declare its supported repertoire, annotation policy, confidence, and biases.
+Existing binary male/female vocal models should at most be interpreted as
+model-relative perceived vocal presentation, not biological sex, gender
+identity, or singer identity.
+
+The first prototype should prioritize vocal activity and coverage, then test
+whether technique probabilities or a compact embedding add held-out similarity
+value. Source separation may improve vocal-specific analysis, but it is an
+optional high-cost backend with artifact and deployment tradeoffs, not a
+requirement for the baseline analyzer.
 
 ### Instrument and source character
 

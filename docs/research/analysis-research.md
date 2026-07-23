@@ -2,7 +2,7 @@
 
 **Status:** Living research and design proposal  
 **Primary scope:** Audio representation, structure, similarity, and evaluation validity  
-**Last reviewed:** 2026-07-14
+**Last reviewed:** 2026-07-23
 
 ## Scope and research questions
 
@@ -243,6 +243,47 @@ and subjectivity.
 - use learned structure features only as an optional, versioned backend; a
   reproducible handcrafted baseline remains necessary for ablation.
 
+## Singing voice, vocal character, and extreme techniques
+
+Monir, Kostrzewa, and Mrozek (2022) survey singing-voice detection as a
+frame- or segment-level classification problem [[28]](#r28). The literature
+supports treating vocal activity as temporal evidence rather than assigning one
+whole-track vocal label. It also shows reliance on relatively small annotated
+corpora and substantial variation in features, model families, and evaluation
+protocols. High reported accuracy on one corpus therefore does not establish
+calibration across the heterogeneous libraries targeted by Bliss.
+
+Kalbag and Lerch (2022) study scream detection and classification in heavy-metal
+music using more than 280 minutes of manually annotated material and compare
+cepstral, spectral, and temporal representations [[29]](#r29). Their results
+establish that extreme techniques such as screams and growls can be analyzed from
+polyphonic music, but the narrow domain is equally important: a genre-specific
+classifier is feasibility evidence, not a universal vocal taxonomy.
+
+Audio-language models provide another research probe. CLAP learns a joint audio
+and natural-language space and reports zero-shot classification across several
+audio domains [[30]](#r30). Flexible prompts could help explore terms such as
+clean, spoken, shouted, screamed, or growled without first fixing a production
+label set. Zero-shot similarity is nevertheless model-relative, prompt-sensitive
+evidence; it is not automatically calibrated enough for a stable descriptor or
+lightweight enough for the target deployment.
+
+**Potential implications:**
+
+- separate vocal presence and coverage from register, delivery, technique, and
+  optional embeddings;
+- retain frame or segment probabilities and aggregate them with explicit support
+  rather than forcing one track-level class;
+- prefer continuous pitch and tessitura evidence to unsupported voice-type labels;
+- treat delivery and technique as probabilistic and multi-label because clean,
+  spoken, rough, screamed, and growled evidence may overlap or change by section;
+- reinterpret binary voice-presentation classifiers as model-relative perceived
+  timbre, not biological sex, gender identity, or singer identity;
+- benchmark mixture-based analysis before optional source separation, and measure
+  both separation artifacts and deployment cost; and
+- require aspect-specific retrieval and listener evidence before vocal features
+  influence a general-purpose distance.
+
 ## Multidimensional and controllable similarity
 
 Lee et al. (2020a) [[9]](#r9) formulate music similarity as several simultaneous
@@ -273,8 +314,8 @@ representation may be predictably transformable rather than simply invariant.
 **Potential implications:**
 
 - do not define the new analysis around one universal distance;
-- retain separable evidence for rhythm, tonality, dynamics, timbre, structure,
-  and boundaries;
+- retain separable evidence for rhythm, tonality, dynamics, timbre, vocals,
+  structure, and boundaries;
 - let downstream profiles select or weight the relevant aspects;
 - distinguish invariant, sensitive, and predictably equivariant behavior;
 - treat training augmentations as part of a learned representation's semantic
@@ -416,6 +457,10 @@ onset and beat evidence, BPM histograms, danceability, HPCP, key strength,
 chords, and chord-change measures [[22]](#r22). Its model catalogue also makes
 Discogs-derived classifiers and embeddings, musicnn variants, and MAEST models
 available through defined inference wrappers [[23]](#r23).
+The catalogue includes voice-versus-instrumental and binary vocal-presentation
+classifiers, demonstrating readily available prototype backends. Their category
+semantics, training-domain bias, and noncommercial model licensing still require
+review before they can define a Bliss feature.
 
 That breadth makes Essentia valuable as an external prototype and reference
 implementation, not an automatic dependency or representation definition.
@@ -501,6 +546,10 @@ The literature motivates the following hypotheses for the prototype program:
   remain competitive with heavier learned or full-system audio-only baselines
   on target mixing tasks while requiring less analysis, storage, and deployment
   machinery.
+- **H10 - conditional vocal evidence:** vocal activity and coverage provide a
+  useful first distinction, while confidence-gated temporal register, delivery,
+  and technique evidence can improve aspect-specific similarity beyond a single
+  hard whole-track label.
 
 These are falsifiable design hypotheses. Negative results are useful: they can
 prevent unstable, redundant, or task-irrelevant descriptors from entering the
@@ -644,3 +693,15 @@ documentation, accessed July 13, 2026.
 "[AudioMuse-AI Documentation](https://neptunehub.github.io/AudioMuse-AI/)" and
 "[FAQ](https://neptunehub.github.io/AudioMuse-AI/FAQ/)," Lyrion integration,
 ARM support, and hardware guidance, accessed July 13, 2026.
+
+<a id='r28'></a>**[28]** R. Monir, D. Kostrzewa, and D. Mrozek,
+[Singing Voice Detection: A Survey](https://www.mdpi.com/1099-4300/24/1/114),
+*Entropy*, vol. 24, no. 1, art. 114, 2022, DOI 10.3390/e24010114.
+
+<a id='r29'></a>**[29]** V. Kalbag and A. Lerch,
+[Scream Detection in Heavy Metal Music](https://arxiv.org/abs/2205.05580),
+arXiv:2205.05580, 2022.
+
+<a id='r30'></a>**[30]** B. Elizalde, S. Deshmukh, M. Al Ismail, and
+H. Wang, [CLAP: Learning Audio Concepts From Natural Language
+Supervision](https://arxiv.org/abs/2206.04769), arXiv:2206.04769, 2022.

@@ -2,7 +2,7 @@
 
 **Status:** Living research and design proposal  
 **Primary scope:** Optional products, schemas, and shared computation  
-**Last reviewed:** 2026-07-14
+**Last reviewed:** 2026-07-23
 
 ## Proposed API direction
 
@@ -129,11 +129,22 @@ flowchart LR
 
     S --> MODEL[Optional learned-model<br/>input pipeline]
     MODEL --> EMBED[Model-identified<br/>embeddings]
+
+    S --> VDET[Optional vocal-activity<br/>evidence]
+    VDET --> VOCAL[Confidence-gated vocal<br/>summaries and temporal products]
+    MODEL -. optional classifier or embedding .-> VOCAL
 ```
 
 The goal is not one monolithic analysis pass at any cost. It is to avoid
 unnecessary duplicate transforms while allowing independent algorithms and
 tests.
+
+Optional vocal analysis should be staged rather than always paying its maximum
+cost. A lightweight activity detector can establish supported frames and vocal
+coverage before pitch, delivery, technique, or embedding backends run. Vocal
+source separation is a possible higher-cost backend, not a baseline dependency;
+its exact model, preprocessing, aggregation, gating policy, and artifact identity
+belong in the representation schema and provenance.
 
 ### Streaming and retention
 

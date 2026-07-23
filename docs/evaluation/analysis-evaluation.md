@@ -2,7 +2,7 @@
 
 **Status:** Living research and design proposal  
 **Primary scope:** Descriptor validity, representation tests, retrieval, and listener studies  
-**Last reviewed:** 2026-07-14
+**Last reviewed:** 2026-07-23
 
 ## Descriptor tests
 
@@ -30,6 +30,27 @@ Every proposed descriptor needs:
 - learned-model artifact and pooling mismatch rejection;
 - measured transformation behavior for declared invariant, sensitive, and
   equivariant properties.
+
+### Vocal-evidence evaluation
+
+Vocal experiments need annotated time segments and track-level listening review,
+not only tag classification. Test at least instrumental music, sparse and
+continuous vocals, clean-to-harsh changes, speech or rap, choirs or multiple
+voices, processed or pitch-shifted voices, live recordings, and genres outside
+the model's training distribution.
+
+Report vocal-activity calibration and temporal coverage before evaluating pitch,
+delivery, or technique. Pitch and tessitura errors count only where voiced-frame
+support is valid. Technique outputs are multi-label probabilities, so evaluation
+must include calibration, per-label support, co-occurrence, domain shift, and the
+effect of confidence gating. Any perceived vocal-presentation experiment must be
+defined as a timbral perception task rather than biological sex, gender identity,
+or singer identity.
+
+Similarity ablations should compare presence alone, presence plus continuous
+register/activity, presence plus technique or embedding, and the complete fused
+view. This separates genuine character information from gains caused merely by
+distinguishing vocal and instrumental tracks.
 
 ## Experimental protocol
 
@@ -97,7 +118,8 @@ Evaluation should include:
 
 - symmetric song-similarity triplets with an explicitly named aspect;
 - aspect-conditioned nearest-neighbor review for rhythm, harmony, energy,
-  timbre, instrumentation, and structure where supported;
+  timbre, instrumentation, vocal presence or character, and structure where
+  supported;
 - invariance under alternate masters and codecs;
 - sensitivity/equivariance tests for tempo, pitch, gain, trim, and boundary
   transformations as declared by the schema;
@@ -115,6 +137,7 @@ include:
 - Which pair is closer in rhythmic feel?
 - Which pair has more similar harmonic movement?
 - Which track has more compatible energy development?
+- Which pair has more similar vocal activity and delivery?
 - Which successor creates the smoother transition from this exact outro?
 - Which result better continues the seed group while avoiding repetition?
 

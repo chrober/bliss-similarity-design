@@ -2,7 +2,7 @@
 
 **Status:** Living research and design proposal  
 **Primary scope:** Phased bliss-rs research and API evolution  
-**Last reviewed:** 2026-07-14
+**Last reviewed:** 2026-07-23
 
 ## Delivery phases
 
@@ -32,6 +32,7 @@
 
 - prototype tempo confidence/stability and onset density;
 - prototype dynamics and bass-energy summaries;
+- prototype lightweight vocal-activity, coverage, and temporal-profile evidence;
 - compare current chroma with a perceptually motivated TIV or equivalent tonal
   representation;
 - prototype tonal dispersion, harmonic-change rate/magnitude, and
@@ -58,6 +59,8 @@
   MERT research baseline;
 - record exact model, input, pooling, objective, and augmentation provenance;
 - evaluate frame/segment and whole-track pooling independently;
+- probe vocal delivery and extreme-technique classifiers or audio-language models
+  as identified research baselines, not assumed production dependencies;
 - compare learned, interpretable, and fused representations on the same held-out
   tasks;
 - measure CPU, memory, artifact size, licensing, and platform constraints;
@@ -93,6 +96,8 @@
 | Version 3 breaks downstream models | Coordinate schema identity, migrations, and explicit rejection. |
 | New features dominate by scale or redundancy | Define normalization and baseline weights before promotion. |
 | Instrument classifiers introduce bias and deployment burden | Keep optional and lower priority; expose probabilities and model identity. |
+| Hard vocal categories erase mixed techniques and encode unsupported identity claims | Prefer temporal, multi-label evidence; use continuous register measures and describe binary presentation models as model-relative perception only. |
+| Vocal source separation adds compute and can introduce artifacts | Keep separation optional; compare mixture-based detection first and measure incremental value on target hardware. |
 | Learned embeddings hide task-incompatible invariances | Record objective/augmentations and test transformation behavior per task. |
 | Learned-model artifacts disappear or change | Store immutable identity and reject incompatible data; retain non-model baselines. |
 | A full-system comparator wins through lyrics, metadata, clustering, or UX rather than better audio evidence | Report audio-only and multimodal configurations separately; do not call a system comparison a descriptor ablation. |
@@ -147,3 +152,11 @@
 23. On which Raspberry Pi configurations does AudioMuse-AI provide acceptable
     initial analysis, incremental analysis, clustering, idle, and concurrent
     playback performance compared with the Bliss pipeline?
+24. What is the lightest vocal-activity detector that remains calibrated across
+    the target library and provides useful temporal coverage?
+25. Which continuous register, activity, or timbral measurements add similarity
+    value beyond vocal-versus-instrumental detection?
+26. Can clean, spoken, shouted, screamed, growled, and other overlapping delivery
+    evidence generalize beyond small or genre-specific annotated corpora?
+27. Does optional vocal-source separation improve the retained descriptors enough
+    to justify its compute, artifact, licensing, and deployment costs?
