@@ -18,6 +18,90 @@ execution reports in this repository remain a migration and parity oracle until
 the Rust implementation reaches declared parity. They are not the normative
 design specification.
 
+## Roadmap status at a glance
+
+This table is the authoritative high-level implementation inventory. It is
+updated whenever a checkpoint changes user-visible or lower-layer capability.
+A checked native-engine row does **not** imply that the corresponding Lyrion
+workflow is connected; those are listed separately.
+
+| Status | Meaning |
+| --- | --- |
+| ✅ Implemented | Complete for the row's stated scope and covered by a published checkpoint. |
+| 🟡 Partial | Some layers or UX scaffolding exist, but the capability is not complete end to end. |
+| ⬜ Not implemented | Roadmap contract exists, but no usable implementation is connected. |
+
+Current inventory: **29 implemented**, **15 partial**, and **19 not implemented
+or later-roadmap** rows. These are feature rows, not a percentage-complete
+release estimate; foundational and user-facing capabilities intentionally have
+the same row weight.
+
+| Area | Roadmap feature | Status | Current boundary / remaining work |
+| --- | --- | --- | --- |
+| Foundation | Component identities and public repositories | ✅ Implemented | Core, optimizer, plugin, design, mixer fork, and extension-index ownership are established. |
+| Foundation | Shared `bliss-mixer-core` library | ✅ Implemented | Database, matrix, Adaptive scoring, filtering, and diagnostics are shared rather than copied. |
+| Foundation | `bliss-mixer` consumes the shared core | ✅ Implemented | The maintained learned-matrix-enabled mixer fork and optimizer use the same core. |
+| Foundation | Versioned native request/result schemas and artifact validation | ✅ Implemented | Read-only database/schema, matrix, identity, hash, and result validation are in place. |
+| Foundation | Differential parity, fixtures, and CI across all product layers | 🟡 Partial | Core/optimizer fixtures and Python parity exist; complete plugin, browser, packaging, and release-matrix coverage remains. |
+| Scoring | Directional Adaptive context scoring | ✅ Implemented | Uses the strict rolling window of preceding tracks for each directional leg. |
+| Scoring | Dynamic variance weights and learned-matrix blending | ✅ Implemented | Per-context dynamic matrices and the configured learned blend are used; static UI sliders are not substituted. |
+| Scoring | Matrix-free Adaptive fallback | ⬜ Not implemented | The deployed optimizer currently reports `MATRIX_REQUIRED`; the learned matrix is still mandatory. |
+| Scoring | Static-weighted and random-forest route strategies | ⬜ Not implemented | The UX shell shows them as disabled future choices; the native route workflow currently supports Adaptive only. |
+| Scoring | Deterministic parallel scoring and route search | ✅ Implemented | Indexed Rayon work, derived seeds, stable tie-breaking, and bounded CPU defaults are implemented. |
+| Native routing | Reorder-only fixed-set optimization | ✅ Implemented | Exact membership, repeat windows, aggregate/worst-leg objectives, restarts, and optional energy-arc selection are available. |
+| Native routing | Contextual bridge candidate analysis | ✅ Implemented | Stable Bliss candidates, two-sided rescoring, acoustic gates, rejection reasons, and database-bound identities are available. |
+| Native routing | Provider-neutral semantic evidence ranking | ✅ Implemented | Recording-before-artist and endpoint-before-collection tiers, provenance, failure state, and Bliss fallback are supported in optimizer input. |
+| Native routing | Automatic bridge insertion | ✅ Implemented | Conservative threshold/budget selection over the evolving route is implemented. |
+| Native routing | Exact-count insertion | ✅ Implemented | Strict exactly-N bounded search fails without returning a misleading partial route. |
+| Native routing | Immutable-anchor preserved-order routing | ✅ Implemented | Original tracks remain an identical ordered subsequence. |
+| Native routing | Multiple inserted tracks inside one preserved gap | ✅ Implemented | Bounded one-through-eight-track internal gap routes are supported. |
+| Native routing | Explicit opening and closing insertion slots | ✅ Implemented | Capacity-one endpoint slots are independent opt-ins in exact-count native requests. |
+| Native routing | Fixed-destination route generation | ⬜ Not implemented | Required by **Bliss me there…**; native destination requests remain open. |
+| Lyrion integration | BlissMixer compatibility and inherited defaults | ✅ Implemented | Database, matrix, strategy parameters, and repeat windows are captured read-only. |
+| Lyrion integration | Per-job scoring, repeat, search, and extension controls | ✅ Implemented | Working modes receive validated job-local overrides without changing BlissMixer preferences. |
+| Lyrion integration | Extras rich-job editor | ✅ Implemented | The live ARM64 server exposes the form, relevance rules, Advanced controls, result area, and working/not-connected labels. |
+| Lyrion integration | Durable plugin settings surface | ✅ Implemented | `Settings.pm` persists suffixes, resource defaults, provider flags, cache policy, and retention defaults; unused future settings remain labelled. |
+| Lyrion integration | Complete capability/system-status dashboard | 🟡 Partial | Core readiness and problems are visible; provider, active-job, and persistence-health rows are incomplete. |
+| Lyrion integration | Namespaced command API | 🟡 Partial | `blissemall status` exists; optimize, cancel, result, history, and `route_to` commands are not all exposed. |
+| Playlist workflow | Reorder existing tracks: Preview | ✅ Implemented | Live, asynchronous, read-only Preview with per-job constraints and actionable infeasibility is working. |
+| Playlist workflow | Reorder existing tracks: create optimized copy | ✅ Implemented | Reviewed output can be written as a verified new LMS playlist without changing the source. |
+| Playlist workflow | Add automatically: Preview and create copy | ✅ Implemented | Bliss-only automatic insertion is connected end to end and may correctly add zero tracks. |
+| Playlist workflow | Add exactly N tracks | 🟡 Partial — next | Native exact-count selection is complete; per-job field, plugin invocation, result UI, persistence, and live exercise are next. |
+| Playlist workflow | One bridge per source-track transition | ⬜ Not implemented | The strict `S - 1` preset is visible but disabled and has no plugin orchestration. |
+| Playlist workflow | Reach target length | ⬜ Not implemented | The `T - S` exact-count wrapper and calculation UI are not connected. |
+| Playlist workflow | Double playlist length | ⬜ Not implemented | The strict `N = S` preset and endpoint policy are not connected. |
+| Playlist workflow | Preserve source order and fill gaps | 🟡 Partial | Native single/multi-gap and endpoint routing exists; the Lyrion workflow remains disabled and cannot Preview or persist. |
+| Playlist workflow | Opening/closing-track controls | 🟡 Partial | Native flags exist; job fields, validation text, and Lyrion result rendering are missing. |
+| Playlist workflow | Safe optimized-copy publication | ✅ Implemented | LMS-native M3U formatting, verification, exclusive creation, catalog creation, and order checks are working. |
+| Playlist workflow | Unicode-safe automatic names and collision numbering | ✅ Implemented | Blank names preserve the decoded source filename and choose the next free suffix; explicit collisions fail visibly. |
+| Playlist workflow | Explicit source-playlist overwrite | ⬜ Not implemented | Requires advanced opt-in, warning, confirmation, backup, recovery, and verification. |
+| Entry points | Saved-playlist context action | 🟡 Partial | The shortcut is registered but informational; it directs the user to Extras instead of carrying workflow state. |
+| Entry points | Track action **Bliss me there…** | 🟡 Partial | The context item is informational; destination routing, Preview, and append-to-queue are missing. |
+| Jobs and UX | Running, success, failure, and copy feedback | ✅ Implemented | Automatic polling and prominent actionable outcome banners are live. |
+| Jobs and UX | Accessible theme-independent status colors | ✅ Implemented | Warning/error/success/info contrast and theme-aware secondary text are deployed. |
+| Jobs and UX | Monochrome Extras icon | ✅ Implemented | Material resolves the supported `timeline` marker; other consumers receive the packaged monochrome route PNG. |
+| Jobs and UX | Active-job navigation/resume and honest progress | 🟡 Partial | Current in-memory jobs can be polled by ID and show stages; durable navigation recovery and bounded progress are incomplete. |
+| Jobs and UX | Job cancellation and cleanup | ⬜ Not implemented | No cancellable process handle or persistence-phase cancellation confirmation is exposed. |
+| Jobs and UX | Durable recent-result history and report export | ⬜ Not implemented | Results and detailed artifacts are not retained as a user-facing durable history. |
+| Jobs and UX | Complete localization and no-JavaScript accessibility | 🟡 Partial | Settings have EN/DE strings and the form submits normally; the main workflow is English-first and full fallback/client testing remains. |
+| Semantic providers | Bliss-only offline operation | ✅ Implemented | Current connected workflows require no network service and report Bliss-only evidence. |
+| Semantic providers | Lyrion MusicBrainz identity use | 🟡 Partial | The identity policy and provider-neutral contracts exist; end-to-end external evidence collection/resolution is not connected. |
+| Semantic providers | Last.fm/LastMix recording and artist adapter | ⬜ Not implemented | Permission/API boundary, batching, caching, failures, and local-track resolution remain. |
+| Semantic providers | Direct ListenBrainz adapter | ⬜ Not implemented | Recording/artist datasets, authentication where needed, schema validation, and resolution remain. |
+| Semantic providers | Provider caches, stale-offline use, timeouts, and circuit breakers | ⬜ Not implemented | Durable preferences exist, but no network adapter currently consumes them. |
+| Semantic providers | Optional BrainzMix-backed adapter | ⬜ Later roadmap | Not required for the first release; must reuse the provider-neutral contract if added. |
+| Observability | Lyrion log category and job correlation | 🟡 Partial | `plugin.blissemall`, lifecycle records, parameters, and stable errors exist; full structured helper relay, rate limiting, and redaction tests remain. |
+| Observability | Reproducible JSON and human-readable reports | 🟡 Partial | Native request/result artifacts and diagnostics exist; durable sanitized report retention/export is missing. |
+| Reliability | Analysis-running and database-consistency coordination | 🟡 Partial | Read-only access, artifact identity, and unchanged-database checks exist; complete scan scheduling, snapshot, and restart cases remain. |
+| Reliability | Server-restart recovery | ⬜ Not implemented | In-memory jobs/results do not survive LMS restart. |
+| Reliability | Privacy/redaction audit and failure-matrix testing | 🟡 Partial | Public fixtures/docs are sanitized and runtime logging is restrained; formal redaction tests and the complete outage/recovery matrix remain. |
+| Packaging | ARM64 development deployment | ✅ Implemented | The plugin and bundled optimizer are repeatedly exercised on the live ARM64 LMS server. |
+| Packaging | Supported multi-platform native/plugin packages | ⬜ Not implemented | Release-grade ARM64/x86-64 Linux, Windows, and macOS artifacts and smoke tests remain. |
+| Packaging | Versioned plugin ZIPs and checksums | ⬜ Not implemented | Development deployment still uses the manual plugin directory. |
+| Release | Extension-repository listing | ⬜ Not implemented | `chrober/lms-plugins/repo.xml` has not yet published Bliss 'Em All packages. |
+| Release | Private beta install/upgrade/failure testing | ⬜ Not implemented | Clean install, upgrade, uninstall, outage, scanner, cancellation, and recovery cases remain. |
+| Release | Public release and compatibility documentation | ⬜ Not implemented | No discoverable public release, compatibility matrix, or extension-manager installation exists yet. |
+
 ## Canonical design references
 
 The generic design contracts live in the published documentation and are
