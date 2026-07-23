@@ -18,9 +18,40 @@ execution reports in this repository remain a migration and parity oracle until
 the Rust implementation reaches declared parity. They are not the normative
 design specification.
 
-## Roadmap status at a glance
+## User features at a glance
 
-This table is the authoritative high-level implementation inventory. It is
+This is the product-level view: what a Lyrion user can actually do today.
+`✅` means usable end to end, `🟡` means only part of the experience is
+connected, and `⬜` means it remains on the roadmap. The detailed engineering
+inventory follows this table.
+
+| User feature | Status | What is available now / still missing |
+| --- | --- | --- |
+| Reorder a curated saved playlist for better flow | ✅ Available | Select a playlist, optimize every original track exactly once, Preview the route, and save a copy. |
+| Add bridge tracks automatically where transitions are difficult | ✅ Available | Bliss-only automatic insertion is connected; it may correctly decide that zero additions are needed. |
+| Add exactly N tracks | 🟡 Engine only — next | Strict exact-count routing exists natively, but the N field, Lyrion job wiring, result UI, persistence exercise, and live verification are not connected. |
+| Add one bridge between every pair of original tracks | ⬜ Planned | The strict one-per-transition preset is visible but disabled. |
+| Reach a chosen target length or double the playlist | ⬜ Planned | These strict presets will wrap exact-count insertion and explain the original/additional/total calculation. |
+| Preserve the existing song order and fill its gaps | 🟡 Engine only | Native immutable-anchor and multi-track gap routing exists; the Lyrion option is still disabled and cannot Preview or save. |
+| Allow explicit opening or closing additions | 🟡 Engine only | Native capacity-one endpoint slots exist; user controls and result presentation are missing. |
+| Choose scoring, context, repeat windows, and search effort per job | ✅ Available | Working modes accept job-local overrides initialized from BlissMixer without changing its global preferences. |
+| Use optional similar-track/artist evidence | ⬜ Planned | Last.fm/LastMix and ListenBrainz adapters, caching, failure handling, and MusicBrainz-based local resolution remain to be built. |
+| Optimize without Internet access | ✅ Available | Current workflows operate entirely from local Bliss analysis and tolerate both semantic providers being absent. |
+| Preview safely before changing anything | ✅ Available | Optimization runs asynchronously and read-only, with proposed order/additions and actionable failures shown before persistence. |
+| Create an optimized copy while preserving the source | ✅ Available | LMS-native M3U creation, verification, catalog registration, and exclusive non-overwriting publication are connected. |
+| Automatically choose a safe copy name | ✅ Available | Unicode filenames are preserved; blank names receive the next free numbered suffix and explicit collisions fail visibly. |
+| Explicitly overwrite the source playlist | ⬜ Planned | Advanced confirmation, backup, recovery, and post-write verification are not implemented. |
+| Start from the Extras job editor | ✅ Available | The rich per-job editor is the working primary interface. |
+| Start from a saved-playlist context action | 🟡 Shortcut only | The item exists but currently directs the user to Extras instead of preselecting and carrying the playlist into the workflow. |
+| Use **Bliss me there…** to append a fluent route to a selected track | 🟡 Placeholder only | The context action exists, but destination routing, Preview, and append-to-queue are not implemented. |
+| See running, success, failure, and copy outcomes in the UI | ✅ Available | The page polls current jobs and presents accessible, actionable status banners without requiring log inspection. |
+| Cancel jobs, resume after restart, and browse/export past results | 🟡 Limited | Current in-memory jobs can be polled by ID; cancellation, restart recovery, durable history, and report export are missing. |
+| Configure durable defaults and inspect system readiness | 🟡 Partial | The settings page and core readiness checks exist; complete provider, active-job, and persistence-health status is unfinished. |
+| Install and update from a Lyrion extension repository | ⬜ Planned | Release ZIPs, checksums, repository entries, clean install/upgrade tests, and the public release remain. |
+
+## Detailed roadmap status
+
+This table is the authoritative detailed implementation inventory. It is
 updated whenever a checkpoint changes user-visible or lower-layer capability.
 A checked native-engine row does **not** imply that the corresponding Lyrion
 workflow is connected; those are listed separately.
