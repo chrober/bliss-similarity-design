@@ -11,8 +11,8 @@ marked as such.
 bridge-insertion workflow, add order-preserving gap filling and destination
 routes for the live queue, and deliver it as a separately maintained Lyrion
 plugin without requiring Python on the server or modifying `lms-blissmixer`.  
-**Latest implementation checkpoint:** [Live exact-count extension](IMPLEMENTATION_CHECKPOINT_21.md)  
-**Previous checkpoints:** [Accessible outcomes and monochrome Extras icon](IMPLEMENTATION_CHECKPOINT_20.md), [Clarified job controls and extension icon](IMPLEMENTATION_CHECKPOINT_19.md), [Visible outcomes and safe copy naming](IMPLEMENTATION_CHECKPOINT_18.md), [Live automatic extension](IMPLEMENTATION_CHECKPOINT_17.md), [Verified optimized-copy persistence](IMPLEMENTATION_CHECKPOINT_16.md), [Complete UX shell](IMPLEMENTATION_CHECKPOINT_15.md), [First live Lyrion preview](IMPLEMENTATION_CHECKPOINT_14.md), [Explicit endpoint insertion](IMPLEMENTATION_CHECKPOINT_13.md), [Multi-track preserved-gap routing](IMPLEMENTATION_CHECKPOINT_12.md), [Preserve-order gap-filling preview](IMPLEMENTATION_CHECKPOINT_11.md), [Exact-count bridge-selection preview](IMPLEMENTATION_CHECKPOINT_10.md), [Automatic bridge-selection preview](IMPLEMENTATION_CHECKPOINT_9.md), [Provider-neutral semantic bridge ranking](IMPLEMENTATION_CHECKPOINT_8.md), [Native bridge-analysis CLI](IMPLEMENTATION_CHECKPOINT_7.md), [Contextual bridge-scoring kernel](IMPLEMENTATION_CHECKPOINT_6.md), [Deterministic native route search](IMPLEMENTATION_CHECKPOINT_5.md), [Parallel contextual scoring](IMPLEMENTATION_CHECKPOINT_4.md), [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md), [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)  
+**Latest implementation checkpoint:** [Prepared-library cache and measured Pi performance](IMPLEMENTATION_CHECKPOINT_22.md)  
+**Previous checkpoints:** [Live exact-count extension](IMPLEMENTATION_CHECKPOINT_21.md), [Accessible outcomes and monochrome Extras icon](IMPLEMENTATION_CHECKPOINT_20.md), [Clarified job controls and extension icon](IMPLEMENTATION_CHECKPOINT_19.md), [Visible outcomes and safe copy naming](IMPLEMENTATION_CHECKPOINT_18.md), [Live automatic extension](IMPLEMENTATION_CHECKPOINT_17.md), [Verified optimized-copy persistence](IMPLEMENTATION_CHECKPOINT_16.md), [Complete UX shell](IMPLEMENTATION_CHECKPOINT_15.md), [First live Lyrion preview](IMPLEMENTATION_CHECKPOINT_14.md), [Explicit endpoint insertion](IMPLEMENTATION_CHECKPOINT_13.md), [Multi-track preserved-gap routing](IMPLEMENTATION_CHECKPOINT_12.md), [Preserve-order gap-filling preview](IMPLEMENTATION_CHECKPOINT_11.md), [Exact-count bridge-selection preview](IMPLEMENTATION_CHECKPOINT_10.md), [Automatic bridge-selection preview](IMPLEMENTATION_CHECKPOINT_9.md), [Provider-neutral semantic bridge ranking](IMPLEMENTATION_CHECKPOINT_8.md), [Native bridge-analysis CLI](IMPLEMENTATION_CHECKPOINT_7.md), [Contextual bridge-scoring kernel](IMPLEMENTATION_CHECKPOINT_6.md), [Deterministic native route search](IMPLEMENTATION_CHECKPOINT_5.md), [Parallel contextual scoring](IMPLEMENTATION_CHECKPOINT_4.md), [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md), [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)  
 **Reference implementation:** The tracked Python tools and sanitized 2025/2026
 execution reports in this repository remain a migration and parity oracle until
 the Rust implementation reaches declared parity. They are not the normative
@@ -27,6 +27,7 @@ inventory follows this table.
 
 | User feature | Status | What is available now / still missing |
 | --- | --- | --- |
+| Re-run playlist optimization without re-preparing an unchanged Bliss library | ✅ Available | The plugin supplies a guarded database identity; warm jobs reuse a checksum-protected decoded library and report cache/timing diagnostics. Multi-gap bridge scoring can still be slow. |
 | Reorder a curated saved playlist for better flow | ✅ Available | Select a playlist, optimize every original track exactly once, Preview the route, and save a copy. |
 | Add bridge tracks automatically where transitions are difficult | ✅ Available | Bliss-only automatic insertion is connected; it may correctly decide that zero additions are needed. |
 | Add exactly N tracks | ✅ Available | Enter a strict count per job, Preview exactly that many unique internal additions or a clear failure, and save the reviewed result as a verified copy. The current connected limit is one addition per internal optimized transition (`N <= S - 1`). |
@@ -62,13 +63,14 @@ workflow is connected; those are listed separately.
 | 🟡 Partial | Some layers or UX scaffolding exist, but the capability is not complete end to end. |
 | ⬜ Not implemented | Roadmap contract exists, but no usable implementation is connected. |
 
-Current inventory: **30 implemented**, **14 partial**, and **19 not implemented
+Current inventory: **32 implemented**, **14 partial**, and **20 not implemented
 or later-roadmap** rows. These are feature rows, not a percentage-complete
 release estimate; foundational and user-facing capabilities intentionally have
 the same row weight.
 
 | Area | Roadmap feature | Status | Current boundary / remaining work |
 | --- | --- | --- | --- |
+| Foundation | Bulk database preparation and identity-bound decoded-library cache | ✅ Implemented | Cold jobs use one ordered SQLite query; warm jobs reuse the database hash, successful integrity result, and checksum-protected decoded library only for an unchanged plugin-supplied file identity. |
 | Foundation | Component identities and public repositories | ✅ Implemented | Core, optimizer, plugin, design, mixer fork, and extension-index ownership are established. |
 | Foundation | Shared `bliss-mixer-core` library | ✅ Implemented | Database, matrix, Adaptive scoring, filtering, and diagnostics are shared rather than copied. |
 | Foundation | `bliss-mixer` consumes the shared core | ✅ Implemented | The maintained learned-matrix-enabled mixer fork and optimizer use the same core. |
@@ -122,7 +124,9 @@ the same row weight.
 | Semantic providers | Provider caches, stale-offline use, timeouts, and circuit breakers | ⬜ Not implemented | Durable preferences exist, but no network adapter currently consumes them. |
 | Semantic providers | Optional BrainzMix-backed adapter | ⬜ Later roadmap | Not required for the first release; must reuse the provider-neutral contract if added. |
 | Observability | Lyrion log category and job correlation | 🟡 Partial | `plugin.blissemall`, lifecycle records, parameters, and stable errors exist; full structured helper relay, rate limiting, and redaction tests remain. |
+| Observability | Native per-stage timings and repeatable Pi benchmark | ✅ Implemented | Optional result diagnostics report total/stage milliseconds and cache state; INFO/DEBUG plugin logs relay sanitized summaries, and a portable Perl cold/warm benchmark harness is published. |
 | Observability | Reproducible JSON and human-readable reports | 🟡 Partial | Native request/result artifacts and diagnostics exist; durable sanitized report retention/export is missing. |
+| Performance | High-recall bridge-candidate shortlist before strict contextual reranking | ⬜ Not implemented | The cache makes route-only jobs single-digit seconds, but exhaustive per-gap full-library bridge scoring and exact selection remain too slow for larger requests. |
 | Reliability | Analysis-running and database-consistency coordination | 🟡 Partial | Read-only access, artifact identity, and unchanged-database checks exist; complete scan scheduling, snapshot, and restart cases remain. |
 | Reliability | Server-restart recovery | ⬜ Not implemented | In-memory jobs/results do not survive LMS restart. |
 | Reliability | Privacy/redaction audit and failure-matrix testing | 🟡 Partial | Public fixtures/docs are sanitized and runtime logging is restrained; formal redaction tests and the complete outage/recovery matrix remain. |
