@@ -1,18 +1,18 @@
 # Bliss 'Em All productization and implementation plan
 
-**Status:** In progress - full ARM64 UX shell deployed; source-order
-optimization with no additions, automatic additions, or an exact addition
-count, plus explicit creation of verified copies, is connected, while every
-incomplete preserved-order mode, source-overwrite, provider, history,
-localization, cancellation, and destination-routing capability is visibly
-marked as such.  
+**Status:** In progress - full ARM64 UX shell deployed; optimized source order
+supports no additions, automatic additions, or an exact count, while preserved
+source order supports automatic and exact-count internal-gap additions. Explicit
+creation of verified copies is connected; incomplete multi-track/endpoint,
+source-overwrite, provider, history, localization, cancellation, and
+destination-routing capabilities remain visibly marked.  
 **Date:** 2026-07-26  
 **Primary objective:** Productize the experimentally exercised playlist sequencing and
 bridge-insertion workflow, add order-preserving gap filling and destination
 routes for the live queue, and deliver it as a separately maintained Lyrion
 plugin without requiring Python on the server or modifying `lms-blissmixer`.  
-**Latest implementation checkpoint:** [Strict-rank bridge shortlist and live scaling](IMPLEMENTATION_CHECKPOINT_23.md)  
-**Previous checkpoints:** [Prepared-library cache and measured Pi performance](IMPLEMENTATION_CHECKPOINT_22.md), [Live exact-count extension](IMPLEMENTATION_CHECKPOINT_21.md), [Accessible outcomes and monochrome Extras icon](IMPLEMENTATION_CHECKPOINT_20.md), [Clarified job controls and extension icon](IMPLEMENTATION_CHECKPOINT_19.md), [Visible outcomes and safe copy naming](IMPLEMENTATION_CHECKPOINT_18.md), [Live automatic extension](IMPLEMENTATION_CHECKPOINT_17.md), [Verified optimized-copy persistence](IMPLEMENTATION_CHECKPOINT_16.md), [Complete UX shell](IMPLEMENTATION_CHECKPOINT_15.md), [First live Lyrion preview](IMPLEMENTATION_CHECKPOINT_14.md), [Explicit endpoint insertion](IMPLEMENTATION_CHECKPOINT_13.md), [Multi-track preserved-gap routing](IMPLEMENTATION_CHECKPOINT_12.md), [Preserve-order gap-filling preview](IMPLEMENTATION_CHECKPOINT_11.md), [Exact-count bridge-selection preview](IMPLEMENTATION_CHECKPOINT_10.md), [Automatic bridge-selection preview](IMPLEMENTATION_CHECKPOINT_9.md), [Provider-neutral semantic bridge ranking](IMPLEMENTATION_CHECKPOINT_8.md), [Native bridge-analysis CLI](IMPLEMENTATION_CHECKPOINT_7.md), [Contextual bridge-scoring kernel](IMPLEMENTATION_CHECKPOINT_6.md), [Deterministic native route search](IMPLEMENTATION_CHECKPOINT_5.md), [Parallel contextual scoring](IMPLEMENTATION_CHECKPOINT_4.md), [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md), [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)  
+**Latest implementation checkpoint:** [Preserve source order and fill gaps](IMPLEMENTATION_CHECKPOINT_24.md)  
+**Previous checkpoints:** [Strict-rank bridge shortlist and live scaling](IMPLEMENTATION_CHECKPOINT_23.md), [Prepared-library cache and measured Pi performance](IMPLEMENTATION_CHECKPOINT_22.md), [Live exact-count extension](IMPLEMENTATION_CHECKPOINT_21.md), [Accessible outcomes and monochrome Extras icon](IMPLEMENTATION_CHECKPOINT_20.md), [Clarified job controls and extension icon](IMPLEMENTATION_CHECKPOINT_19.md), [Visible outcomes and safe copy naming](IMPLEMENTATION_CHECKPOINT_18.md), [Live automatic extension](IMPLEMENTATION_CHECKPOINT_17.md), [Verified optimized-copy persistence](IMPLEMENTATION_CHECKPOINT_16.md), [Complete UX shell](IMPLEMENTATION_CHECKPOINT_15.md), [First live Lyrion preview](IMPLEMENTATION_CHECKPOINT_14.md), [Explicit endpoint insertion](IMPLEMENTATION_CHECKPOINT_13.md), [Multi-track preserved-gap routing](IMPLEMENTATION_CHECKPOINT_12.md), [Preserve-order gap-filling preview](IMPLEMENTATION_CHECKPOINT_11.md), [Exact-count bridge-selection preview](IMPLEMENTATION_CHECKPOINT_10.md), [Automatic bridge-selection preview](IMPLEMENTATION_CHECKPOINT_9.md), [Provider-neutral semantic bridge ranking](IMPLEMENTATION_CHECKPOINT_8.md), [Native bridge-analysis CLI](IMPLEMENTATION_CHECKPOINT_7.md), [Contextual bridge-scoring kernel](IMPLEMENTATION_CHECKPOINT_6.md), [Deterministic native route search](IMPLEMENTATION_CHECKPOINT_5.md), [Parallel contextual scoring](IMPLEMENTATION_CHECKPOINT_4.md), [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md), [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)  
 **Reference implementation:** The tracked Python tools and sanitized 2025/2026
 execution reports in this repository remain a migration and parity oracle until
 the Rust implementation reaches declared parity. They are not the normative
@@ -33,7 +33,7 @@ inventory follows this table.
 | Add exactly N tracks | ✅ Available | Enter a strict count per job, Preview exactly that many unique internal additions or a clear failure, and save the reviewed result as a verified copy. The current connected limit is one addition per internal optimized transition (`N <= S - 1`); a selected Bliss row absent from LMS still fails safely before persistence. |
 | Add one bridge between every pair of original tracks | ⬜ Planned | The strict one-per-transition preset is visible but disabled. |
 | Reach a chosen target length or double the playlist | ⬜ Planned | These strict presets will wrap exact-count insertion and explain the original/additional/total calculation. |
-| Preserve the existing song order and fill its gaps | 🟡 Engine only | Native immutable-anchor and multi-track gap routing exists; the Lyrion option is still disabled and cannot Preview or save. |
+| Preserve the existing song order and fill its gaps | ✅ Available | Choose preserved source order with automatic or exact-count additions. Every original remains in exact relative order; this first UI slice permits one addition per internal gap and no endpoints. |
 | Allow explicit opening or closing additions | 🟡 Engine only | Native capacity-one endpoint slots exist; user controls and result presentation are missing. |
 | Choose scoring, context, repeat windows, and search effort per job | ✅ Available | Working modes accept job-local overrides initialized from BlissMixer without changing its global preferences. |
 | Use optional similar-track/artist evidence | ⬜ Planned | Last.fm/LastMix and ListenBrainz adapters, caching, failure handling, and MusicBrainz-based local resolution remain to be built. |
@@ -63,7 +63,7 @@ workflow is connected; those are listed separately.
 | 🟡 Partial | Some layers or UX scaffolding exist, but the capability is not complete end to end. |
 | ⬜ Not implemented | Roadmap contract exists, but no usable implementation is connected. |
 
-Current inventory: **33 implemented**, **15 partial**, and **19 not implemented
+Current inventory: **34 implemented**, **14 partial**, and **19 not implemented
 or later-roadmap** rows. These are feature rows, not a percentage-complete
 release estimate; foundational and user-facing capabilities intentionally have
 the same row weight.
@@ -104,7 +104,7 @@ the same row weight.
 | Playlist workflow | One bridge per source-track transition | ⬜ Not implemented | The strict `S - 1` preset is visible but disabled and has no plugin orchestration. |
 | Playlist workflow | Reach target length | ⬜ Not implemented | The `T - S` exact-count wrapper and calculation UI are not connected. |
 | Playlist workflow | Double playlist length | ⬜ Not implemented | The strict `N = S` preset and endpoint policy are not connected. |
-| Playlist workflow | Preserve source order and fill gaps | 🟡 Partial | Native single/multi-gap and endpoint routing exists; the Lyrion workflow remains disabled and cannot Preview or persist. |
+| Playlist workflow | Preserve source order and fill gaps | ✅ Implemented | Automatic and exact-count internal-gap Previews are connected, visibly prove immutable source order, and feed the existing verified-copy path. The current UI permits one addition per gap and no endpoints. |
 | Playlist workflow | Opening/closing-track controls | 🟡 Partial | Native flags exist; job fields, validation text, and Lyrion result rendering are missing. |
 | Playlist workflow | Safe optimized-copy publication | ✅ Implemented | LMS-native M3U formatting, verification, exclusive creation, catalog creation, and order checks are working. |
 | Playlist workflow | Unicode-safe automatic names and collision numbering | ✅ Implemented | Blank names preserve the decoded source filename and choose the next free suffix; explicit collisions fail visibly. |
