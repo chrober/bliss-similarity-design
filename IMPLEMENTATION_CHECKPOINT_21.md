@@ -1,6 +1,6 @@
 # Bliss 'Em All - live exact-count extension checkpoint
 
-**Date:** 2026-07-26
+**Date:** 2026-07-26  
 **State:** Strict per-job exact-count extension is deployed and verified end to
 end on ARM64 Lyrion Music Server
 
@@ -81,9 +81,50 @@ All modified deployed package files matched their local source SHA-256 values.
 The pre-deployment plugin backup remains outside the scanned plugin tree under
 `Cache/BlissEmAll-backups`.
 
+## Runtime performance observation
+
+The live exact-count previews took on the order of one minute on the ARM64
+server. That is materially slower than BlissMixer's hot-path queue continuation,
+which commonly returns in hundreds of milliseconds, but the two operations do
+different amounts of work:
+
+- BlissMixer keeps an HTTP worker alive. Its static path uses a resident KD-tree;
+  its Adaptive path performs one parallel full-library distance scan around one
+  seed-context centroid and returns a small batch.
+- Bliss 'Em All currently launches a process per job, reads and SHA-256-hashes
+  the complete `bliss.db`, runs SQLite `quick_check`, reloads the usable library
+  and matrix, optimizes the complete source route, and then scores bridge
+  candidates separately for every source transition.
+- Each bridge candidate is evaluated as two directional contextual legs with
+  repeat and acoustic gates. For a playlist with `S` source tracks and `C`
+  eligible library tracks, the exhaustive bridge-analysis term is approximately
+  `(S - 1) * C` two-leg evaluations before exact-count selection.
+- `candidate_limit` currently limits only how many already-ranked candidates are
+  retained in the result. Lowering it does not reduce the exhaustive scoring
+  work.
+
+Rayon already parallelizes independent route restarts and candidate scoring,
+using one fewer worker than the available logical CPUs by default. The next
+performance work should therefore begin with per-stage timings, then cache the
+database hash/integrity result and decoded library by file identity, and finally
+introduce a measured high-recall candidate shortlist before exact contextual
+reranking. A persistent optimizer service is a larger alternative if caching in
+the one-process-per-job design is insufficient. Any shortlist must retain the
+strict final scorer, deterministic results, and recall/parity tests; simply
+raising the Rayon worker count is unlikely to remove the dominant I/O and
+repeated full-library work.
+
 ## Next gate
 
-Connect **One bridge per source-track transition** as a preset over the strict
-exact-count path. It should calculate `N = S - 1`, show the resulting
-`2S - 1` total before Preview, reuse all exact-count failure and persistence
-invariants, and remain distinct from the later Double length preset (`N = S`).
+Add per-stage native timings and establish a repeatable Raspberry Pi benchmark
+before connecting another preset. First remove avoidable repeat work by caching
+the database hash/integrity result and decoded library against the same file
+identity already guarded by the plugin. Use those measurements to decide whether
+a high-recall candidate shortlist is sufficient or a persistent optimizer
+service is justified.
+
+After that performance gate, connect **One bridge per source-track transition**
+as a preset over the strict exact-count path. It should calculate `N = S - 1`,
+show the resulting `2S - 1` total before Preview, reuse all exact-count failure
+and persistence invariants, and remain distinct from the later Double length
+preset (`N = S`).
