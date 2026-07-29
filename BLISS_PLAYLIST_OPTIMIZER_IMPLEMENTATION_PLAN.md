@@ -9,8 +9,9 @@ destination-routing capabilities remain visibly marked.
 **Date:** 2026-07-29  
 **Primary objective:** Productize the experimentally exercised playlist sequencing and
 bridge-insertion workflow, add order-preserving gap filling and destination
-routes for the live queue, and deliver it as a separately maintained Lyrion
-plugin without requiring Python on the server or modifying `lms-blissmixer`.  
+routes for the live queue, add saved-playlist generation from a short immutable
+seed set, and deliver it as a separately maintained Lyrion plugin without
+requiring Python on the server or modifying `lms-blissmixer`.  
 **Latest implementation checkpoint:** [Draft retention, audit clarity, and second-server deployment](IMPLEMENTATION_CHECKPOINT_26.md)  
 **Previous checkpoints:** [LMS-local bridge inventory and persistent audit](IMPLEMENTATION_CHECKPOINT_25.md), [Preserve source order and fill gaps](IMPLEMENTATION_CHECKPOINT_24.md), [Strict-rank bridge shortlist and live scaling](IMPLEMENTATION_CHECKPOINT_23.md), [Prepared-library cache and measured Pi performance](IMPLEMENTATION_CHECKPOINT_22.md), [Live exact-count extension](IMPLEMENTATION_CHECKPOINT_21.md), [Accessible outcomes and monochrome Extras icon](IMPLEMENTATION_CHECKPOINT_20.md), [Clarified job controls and extension icon](IMPLEMENTATION_CHECKPOINT_19.md), [Visible outcomes and safe copy naming](IMPLEMENTATION_CHECKPOINT_18.md), [Live automatic extension](IMPLEMENTATION_CHECKPOINT_17.md), [Verified optimized-copy persistence](IMPLEMENTATION_CHECKPOINT_16.md), [Complete UX shell](IMPLEMENTATION_CHECKPOINT_15.md), [First live Lyrion preview](IMPLEMENTATION_CHECKPOINT_14.md), [Explicit endpoint insertion](IMPLEMENTATION_CHECKPOINT_13.md), [Multi-track preserved-gap routing](IMPLEMENTATION_CHECKPOINT_12.md), [Preserve-order gap-filling preview](IMPLEMENTATION_CHECKPOINT_11.md), [Exact-count bridge-selection preview](IMPLEMENTATION_CHECKPOINT_10.md), [Automatic bridge-selection preview](IMPLEMENTATION_CHECKPOINT_9.md), [Provider-neutral semantic bridge ranking](IMPLEMENTATION_CHECKPOINT_8.md), [Native bridge-analysis CLI](IMPLEMENTATION_CHECKPOINT_7.md), [Contextual bridge-scoring kernel](IMPLEMENTATION_CHECKPOINT_6.md), [Deterministic native route search](IMPLEMENTATION_CHECKPOINT_5.md), [Parallel contextual scoring](IMPLEMENTATION_CHECKPOINT_4.md), [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md), [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)  
 **Reference implementation:** The tracked Python tools and sanitized 2025/2026
@@ -34,6 +35,7 @@ inventory follows this table.
 | Add exactly N tracks | ✅ Available | Enter a strict count per job, Preview exactly that many unique internal additions or a clear failure, and save the reviewed result as a verified copy. The current connected limit is one addition per internal optimized transition (`N <= S - 1`); non-LMS Bliss rows are removed before search and every selected bridge is still revalidated before persistence. |
 | Add one bridge between every pair of original tracks | ⬜ Planned | The strict one-per-transition preset is visible but disabled. |
 | Reach a chosen target length or double the playlist | ⬜ Planned | These strict presets will wrap exact-count insertion and explain the original/additional/total calculation. |
+| Grow a short seed playlist into a full similar playlist | ⬜ Planned | A distinct **Grow from these seeds** workflow will retain every seed, select an exact target count against the complete original seed set, control diversity and repeats, sequence the result for flow, and save a reviewed copy. Existing bridge insertion does not yet provide this generative workflow. |
 | Preserve the existing song order and fill its gaps | ✅ Available | Choose preserved source order with automatic or exact-count additions. Every original remains in exact relative order; this first UI slice permits one addition per internal gap and no endpoints. |
 | Allow explicit opening or closing additions | 🟡 Engine only | Native capacity-one endpoint slots exist; user controls and result presentation are missing. |
 | Choose scoring, context, repeat windows, and search effort per job | ✅ Available | Working modes accept job-local overrides initialized from BlissMixer without changing its global preferences. |
@@ -65,7 +67,7 @@ workflow is connected; those are listed separately.
 | 🟡 Partial | Some layers or UX scaffolding exist, but the capability is not complete end to end. |
 | ⬜ Not implemented | Roadmap contract exists, but no usable implementation is connected. |
 
-Current inventory: **37 implemented**, **13 partial**, and **19 not implemented
+Current inventory: **37 implemented**, **13 partial**, and **20 not implemented
 or later-roadmap** rows. These are feature rows, not a percentage-complete
 release estimate; foundational and user-facing capabilities intentionally have
 the same row weight.
@@ -92,6 +94,7 @@ the same row weight.
 | Native routing | Immutable-anchor preserved-order routing | ✅ Implemented | Original tracks remain an identical ordered subsequence. |
 | Native routing | Multiple inserted tracks inside one preserved gap | ✅ Implemented | Bounded one-through-eight-track internal gap routes are supported. |
 | Native routing | Explicit opening and closing insertion slots | ✅ Implemented | Capacity-one endpoint slots are independent opt-ins in exact-count native requests. |
+| Native routing | Seed-set relevance selection and diversity-aware growth | ⬜ Not implemented | Requires exact-target candidate selection against the immutable complete original seed set, LMS-local membership, diversity and repeat feasibility, and subsequent contextual sequencing. Existing bridge search is endpoint-oriented and must not be stretched into this different objective. |
 | Native routing | Fixed-destination route generation | ⬜ Not implemented | Required by **Bliss me there…**; native destination requests remain open. |
 | Lyrion integration | BlissMixer compatibility and inherited defaults | ✅ Implemented | Database, matrix, strategy parameters, and repeat windows are captured read-only. |
 | Lyrion integration | Per-job scoring, repeat, search, and extension controls | ✅ Implemented | Working modes receive validated job-local overrides without changing BlissMixer preferences. |
@@ -106,6 +109,7 @@ the same row weight.
 | Playlist workflow | One bridge per source-track transition | ⬜ Not implemented | The strict `S - 1` preset is visible but disabled and has no plugin orchestration. |
 | Playlist workflow | Reach target length | ⬜ Not implemented | The `T - S` exact-count wrapper and calculation UI are not connected. |
 | Playlist workflow | Double playlist length | ⬜ Not implemented | The strict `N = S` preset and endpoint policy are not connected. |
+| Playlist workflow | Grow a short seed playlist to an exact target | ⬜ Not implemented | Needs a distinct workflow selector, target-count and relevance/diversity controls, seed-membership proofs, selection-versus-sequencing diagnostics, Preview, and verified-copy persistence. The two-track `Test` playlist growing to 25 tracks is the first live acceptance fixture. |
 | Playlist workflow | Preserve source order and fill gaps | ✅ Implemented | Automatic and exact-count internal-gap Previews are connected, visibly prove immutable source order, and feed the existing verified-copy path. The current UI permits one addition per gap and no endpoints. |
 | Playlist workflow | Opening/closing-track controls | 🟡 Partial | Native flags exist; job fields, validation text, and Lyrion result rendering are missing. |
 | Playlist workflow | Safe optimized-copy publication | ✅ Implemented | LMS-native M3U formatting, verification, exclusive creation, catalog creation, and order checks are working. |
@@ -839,6 +843,46 @@ To be added:  20 tracks
 Mode:         Double length (strict)
 ```
 
+#### Grow from these seeds
+
+This is a separate playlist-generation workflow, not another bridge-insertion
+preset. It answers, "Using these tracks as the musical reference, create a
+substantially larger saved playlist that remains relevant and also plays
+fluently." A two-track seed playlist growing to 25 tracks is therefore valid;
+it is not treated as a request to place 23 bridges in the single gap between
+two anchors.
+
+Let `S` be the number of unique source seeds and `T > S` the requested exact
+total. The output contains every original seed exactly once and selects
+`N = T - S` unique additions from the current LMS-local analyzed library. The
+complete original seed set remains the immutable relevance reference throughout
+the job. A previously selected addition may influence transition context and
+repeat feasibility, but it must never become a replacement relevance seed that
+allows the result to drift progressively away from the user's originals.
+
+Candidate selection and sequencing are explicit separate objectives:
+
+1. Build a sufficiently broad candidate pool using the configured Bliss
+   strategy against the complete original seed set, with optional
+   recording/artist evidence when available.
+2. Select exactly `N` additions under a declared relevance floor, uniqueness,
+   artist/album/track repeat windows, and diversity policy.
+3. Optimize the complete `S + N` membership for directional flow using the
+   evolving Adaptive context and the same hard repeat constraints.
+
+The first slice optimizes the final order and marks the originals as Seeds in
+Preview. Preserving the seeds' relative order can be added later as an explicit
+policy; it is not silently inferred from the source playlist. Bliss-only
+offline generation is mandatory, while semantic providers remain optional and
+failure-tolerant.
+
+The target is strict: a request for 25 tracks either returns 25 valid tracks or
+fails without creating a partial playlist. A future target range may choose a
+count within its bounds, but the first UX asks for one exact total so the result
+is deterministic and auditable. Preview reports seed relevance separately from
+transition-flow costs and proves seed retention, local membership, uniqueness,
+and repeat compliance before the existing safe-copy path is offered.
+
 #### Preserve order and fill gaps
 
 Treat every original track as an immutable anchor. The output must contain the
@@ -982,6 +1026,24 @@ flowchart LR
     H -->|Discard| I[No persistent change]
     H -->|Create| J[Persist and verify new playlist]
 ```
+
+#### Grow-from-seeds workflow
+
+**Grow from these seeds** uses the same Extras editor, Preview gate, and
+safe-copy persistence:
+
+1. **Select seed playlist:** show its seed count and retain every unique seed.
+2. **Choose Grow from these seeds:** distinguish generation from optimizing or
+   bridging an already curated membership.
+3. **Choose exact target:** show `S` seeds, `T - S` additions, and `T` proposed
+   tracks; for example, `2 + 23 = 25`.
+4. **Review relevance and diversity:** configure the Bliss strategy,
+   relevance/diversity balance, repeat windows, search effort, and optional
+   provider state. The complete original seed set itself is fixed.
+5. **Run Preview:** select exact membership first, then sequence that membership
+   for flow without changing the fixed original relevance reference.
+6. **Review and create copy:** show Seeds versus Added tracks, relevance and
+   transition diagnostics, rejected-candidate classes, and constraint proofs.
 
 Preview is mandatory before persistence. Navigating away does not cancel the
 job, and returning through **Active jobs** restores its current state. Back
@@ -1497,6 +1559,11 @@ upgrade, and uninstall the plugin through the extension manager.
   only a validated route ending at the selected destination.
 - Exact bridge count either produces exactly the requested count or fails
   without creating a misleading partial result.
+- Grow from these seeds produces exactly the requested total, retains every
+  original seed exactly once, admits only unique analyzed LMS-local additions,
+  and keeps relevance anchored to the complete original seed set.
+- Seed-growth reports distinguish global seed relevance from contextual
+  sequencing cost and prove repeat-window compliance over the final route.
 - All outputs satisfy captured repeat windows.
 - Adaptive mode ignores static feature sliders and uses the captured dynamic
   matrix and learned blend, including defined single-seed behavior.
@@ -1573,6 +1640,10 @@ Resolve these before or during Phase 0:
     enabled by default.
 12. Whether to propose a small future public capability API to the
     `lms-blissmixer` maintainer; this must not block the companion plugin.
+13. Initial seed-growth target limits and the default balance among immutable
+    original-seed relevance, diversity, and transition flow on low-power
+    servers. The first connected slice should use an exact target and a
+    conservative server-class-aware maximum rather than an unbounded range.
 
 ## Documentation work accompanying implementation
 
