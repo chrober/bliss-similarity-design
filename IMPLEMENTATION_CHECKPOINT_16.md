@@ -1,4 +1,4 @@
-# Bliss 'Em All - verified optimized-copy persistence checkpoint
+# Better Call Bliss - verified optimized-copy persistence checkpoint
 
 **Date:** 2026-07-22
 **State:** Reorder-only Preview can now be explicitly persisted as a new,
@@ -8,14 +8,14 @@ verified LMS playlist without modifying the source
 
 | Repository | Revision | Result |
 | --- | --- | --- |
-| [chrober/lms-bliss-em-all](https://github.com/chrober/lms-bliss-em-all/tree/feature/first-ux-preview) | `cddda95997adf919f609ea062fcf511a7c018957` | Version `0.4.0` create-copy writer, post-Preview UX action, verification, failure cleanup, logging, and updated feature contract |
+| [chrober/lms-better-call-bliss](https://github.com/chrober/lms-better-call-bliss/tree/feature/first-ux-preview) | `cddda95997adf919f609ea062fcf511a7c018957` | Version `0.4.0` create-copy writer, post-Preview UX action, verification, failure cleanup, logging, and updated feature contract |
 
 ## Connected workflow
 
 The safe writable vertical slice is now:
 
 ```text
-Extras > Bliss 'Em All
+Extras > Better Call Bliss
   -> select saved playlist
   -> configure per-job Adaptive and repeat settings
   -> Run read-only preview
@@ -68,7 +68,7 @@ fingerprint and track count remained unchanged. Its M3U contained exactly 13
 native format.
 
 Reusing the same output name returned stable `OUTPUT_EXISTS`, left both source
-and existing output unchanged, and left no `.blissemall-*` temporary file.
+and existing output unchanged, and left no `.bettercallbliss-*` temporary file.
 Lifecycle records correlated `Creating`, `CreatedAndVerified`, and rejected
 creation with the Preview job ID. The final restart loaded one LMS process with
 the version `0.4.0` plugin and no capability problems.

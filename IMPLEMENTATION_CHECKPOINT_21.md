@@ -1,4 +1,4 @@
-# Bliss 'Em All - live exact-count extension checkpoint
+# Better Call Bliss - live exact-count extension checkpoint
 
 **Date:** 2026-07-26  
 **State:** Strict per-job exact-count extension is deployed and verified end to
@@ -8,7 +8,7 @@ end on ARM64 Lyrion Music Server
 
 | Repository | Revision | Result |
 | --- | --- | --- |
-| [chrober/lms-bliss-em-all](https://github.com/chrober/lms-bliss-em-all/tree/feature/first-ux-preview) | `ed246e92e8deef8f1ca3871ef50303d04008c8fe` | Version `0.6.0` exact-count job option, strict native request/result validation, result UX, safe copy persistence, and live ARM64 evidence |
+| [chrober/lms-better-call-bliss](https://github.com/chrober/lms-better-call-bliss/tree/feature/first-ux-preview) | `ed246e92e8deef8f1ca3871ef50303d04008c8fe` | Version `0.6.0` exact-count job option, strict native request/result validation, result UX, safe copy persistence, and live ARM64 evidence |
 
 No native optimizer or shared-core change was required. The deployed optimizer
 already contained the checkpoint-10 exact-count engine and later bounded-gap
@@ -79,7 +79,7 @@ deletion API and confirmed it was gone.
 
 All modified deployed package files matched their local source SHA-256 values.
 The pre-deployment plugin backup remains outside the scanned plugin tree under
-`Cache/BlissEmAll-backups`.
+`Cache/BetterCallBliss-backups`.
 
 ## Runtime performance observation
 
@@ -91,7 +91,7 @@ different amounts of work:
 - BlissMixer keeps an HTTP worker alive. Its static path uses a resident KD-tree;
   its Adaptive path performs one parallel full-library distance scan around one
   seed-context centroid and returns a small batch.
-- Bliss 'Em All currently launches a process per job, reads and SHA-256-hashes
+- Better Call Bliss currently launches a process per job, reads and SHA-256-hashes
   the complete `bliss.db`, runs SQLite `quick_check`, reloads the usable library
   and matrix, optimizes the complete source route, and then scores bridge
   candidates separately for every source transition.

@@ -1,4 +1,4 @@
-# Bliss 'Em All - accessible outcomes and monochrome Extras icon checkpoint
+# Better Call Bliss - accessible outcomes and monochrome Extras icon checkpoint
 
 **Date:** 2026-07-23
 **State:** Theme-independent status contrast and a Material-recognized
@@ -8,7 +8,7 @@ monochrome Extras icon are deployed and verified on ARM64 LMS
 
 | Repository | Revision | Result |
 | --- | --- | --- |
-| [chrober/lms-bliss-em-all](https://github.com/chrober/lms-bliss-em-all/tree/feature/first-ux-preview) | `a4b84bf0cbda6f2365e08eac5e939c94466975d1` | Version `0.5.3` accessible status banners, theme-aware secondary text, explicit icon registration, and monochrome Material icon marker |
+| [chrober/lms-better-call-bliss](https://github.com/chrober/lms-better-call-bliss/tree/feature/first-ux-preview) | `a4b84bf0cbda6f2365e08eac5e939c94466975d1` | Version `0.5.3` accessible status banners, theme-aware secondary text, explicit icon registration, and monochrome Material icon marker |
 
 No native optimizer or shared-core change was required.
 
@@ -39,7 +39,7 @@ Extras images with that fallback.
 The replacement follows Material's supported marker convention:
 
 ```text
-plugins/BlissEmAll/html/images/blissemall_MTL_icon_timeline.png
+plugins/BetterCallBliss/html/images/bettercallbliss_MTL_icon_timeline.png
 ```
 
 `Web.pm` explicitly registers that value in the `icons` page-link category
@@ -66,15 +66,15 @@ ux_contract=extras-job-editor-v6
 The live Extras payload returned:
 
 ```text
-id=PLUGIN_BLISSEMALL_NAME
-icon=plugins/BlissEmAll/html/images/blissemall_MTL_icon_timeline.png
+id=PLUGIN_BETTERCALLBLISS_NAME
+icon=plugins/BetterCallBliss/html/images/bettercallbliss_MTL_icon_timeline.png
 material_glyph=timeline
 ```
 
 The Extras page and new PNG both returned HTTP 200. The page contained the
 explicit warning and error foreground rules, and the image was served as
 `image/png` at 512x512. A rollback copy remains outside the scanned plugin
-root under `Cache/BlissEmAll-backups`.
+root under `Cache/BetterCallBliss-backups`.
 
 ## Next gate
 

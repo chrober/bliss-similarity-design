@@ -1,4 +1,4 @@
-# Bliss 'Em All - native bridge-analysis CLI checkpoint
+# Better Call Bliss - native bridge-analysis CLI checkpoint
 
 **Date:** 2026-07-20
 **State:** First read-only Phase 3 command published; no semantic-provider ranking, bridge selection, playlist write, plugin deployment, or Lyrion server mutation

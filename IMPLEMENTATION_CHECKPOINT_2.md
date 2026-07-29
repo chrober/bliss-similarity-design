@@ -1,4 +1,4 @@
-# Bliss 'Em All — repository publication checkpoint
+# Better Call Bliss — repository publication checkpoint
 
 **Date:** 2026-07-20  
 **State:** New repositories published; no releases, tags, packages, or deployment
@@ -12,7 +12,7 @@ The repository-publication gate identified in
 | --- | --- | --- |
 | [`chrober/bliss-mixer-core`](https://github.com/chrober/bliss-mixer-core) | `c3a146c0afcf1efb51bbe772ea2f092b98f23d91` | CI passed |
 | [`chrober/bliss-playlist-optimizer`](https://github.com/chrober/bliss-playlist-optimizer) | `cecf06cd2c2b70348b29df919b64be97d1c80775` | CI passed |
-| [`chrober/lms-bliss-em-all`](https://github.com/chrober/lms-bliss-em-all) | `da07c822f6fc213498f3ebce14502dd05894d247` | Non-installable scaffold; no workflow yet |
+| [`chrober/lms-better-call-bliss`](https://github.com/chrober/lms-better-call-bliss) | `da07c822f6fc213498f3ebce14502dd05894d247` | Non-installable scaffold; no workflow yet |
 
 All three repositories are public, use `main` as their default branch, and the
 corresponding local branch tracks an identical `origin/main` commit.

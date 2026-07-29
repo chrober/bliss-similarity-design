@@ -1,4 +1,4 @@
-# Bliss 'Em All - complete UX shell checkpoint
+# Better Call Bliss - complete UX shell checkpoint
 
 **Date:** 2026-07-21
 **State:** Complete planned hierarchical UX shell deployed and verified on LMS
@@ -9,14 +9,14 @@ capability is explicitly labelled in the UI and documentation
 
 | Repository | Revision | Result |
 | --- | --- | --- |
-| [chrober/lms-bliss-em-all](https://github.com/chrober/lms-bliss-em-all/tree/feature/first-ux-preview) | `aa4f5819b0102dd0fbfb757242fde280aef81b08` | Version `0.2.0` full UX shell, context providers, expanded settings, result drill-downs, capability labels, and UX status contract |
+| [chrober/lms-better-call-bliss](https://github.com/chrober/lms-better-call-bliss/tree/feature/first-ux-preview) | `aa4f5819b0102dd0fbfb757242fde280aef81b08` | Version `0.2.0` full UX shell, context providers, expanded settings, result drill-downs, capability labels, and UX status contract |
 
 ## UX now visible
 
 The Applications flow now exposes the intended product decisions:
 
 ```text
-Bliss 'Em All
+Better Call Bliss
 |- Optimize a saved playlist
 |  `- playlist
 |     |- Optimize order
@@ -35,7 +35,7 @@ Bliss 'Em All
 `- Feature availability and help
 ```
 
-The playlist context menu contains an informational **Bliss 'Em All...**
+The playlist context menu contains an informational **Better Call Bliss...**
 shortcut, and local tracks contain an informational **Bliss me there...**
 entry. Neither starts a job until the shared workflow-state adapter exists.
 
@@ -72,7 +72,7 @@ preferences.
 ## Deployment rule discovered
 
 piCorePlayer adds `<LMS cache>/Plugins` as its manual plugin root. Development
-builds belong at `Cache/Plugins/BlissEmAll`. `Cache/InstalledPlugins/Plugins`
+builds belong at `Cache/Plugins/BetterCallBliss`. `Cache/InstalledPlugins/Plugins`
 is extension-manager-owned; a hand-copied unregistered plugin there can be
 removed during restart. The repository documentation now records this rule.
 Production still requires a plugin ZIP and the planned extension repository.

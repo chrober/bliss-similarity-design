@@ -1,4 +1,4 @@
-# Bliss 'Em All - finalized Grow from these seeds
+# Better Call Bliss - finalized Grow from these seeds
 
 **Date:** 2026-07-29  
 **State:** Exact-target seed growth implemented, published, deployed, and accepted on ARM64  
@@ -45,10 +45,10 @@ This proves that seed growth uses the same verified, non-overwriting publication
 Version `0.11.1` was deployed to `192.168.1.111` only after playback became idle. The previous live tree is recoverable at:
 
 ```text
-/mnt/mmcblk0p2/tce/slimserver/Cache/BlissEmAll-backups/BlissEmAll-0.11.0-pre-7b16ec5-20260729
+/mnt/mmcblk0p2/tce/slimserver/Cache/BetterCallBliss-backups/BetterCallBliss-0.11.0-pre-7b16ec5-20260729
 ```
 
-After activation, `blissemall status` reported `ready=1`, no compatibility problems, and `extras-job-editor-v12`.
+After activation, `bettercallbliss status` reported `ready=1`, no compatibility problems, and `extras-job-editor-v12`.
 
 Read-only job `preview-1785338076-0001` grew the two seeds to exactly 25 tracks with 23 local additions. It completed in 4,869 ms total and 4,690 ms native on a warm database cache. Preview showed the new relevance, route, and acceptance sections plus the explicit copy action. The result reported:
 

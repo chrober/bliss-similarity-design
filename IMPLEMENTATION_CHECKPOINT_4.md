@@ -1,4 +1,4 @@
-# Bliss 'Em All - parallel contextual scoring checkpoint
+# Better Call Bliss - parallel contextual scoring checkpoint
 
 **Date:** 2026-07-20
 **State:** Read-only native contextual scoring implemented; no route mutation, playlist write, or server deployment

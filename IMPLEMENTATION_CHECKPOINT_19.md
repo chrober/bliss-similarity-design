@@ -1,4 +1,4 @@
-# Bliss 'Em All - clarified job controls and extension icon checkpoint
+# Better Call Bliss - clarified job controls and extension icon checkpoint
 
 **Date:** 2026-07-23
 **State:** The richer terminology, control relevance, directional-context
@@ -9,7 +9,7 @@ verified on ARM64 LMS
 
 | Repository | Revision | Result |
 | --- | --- | --- |
-| [chrober/lms-bliss-em-all](https://github.com/chrober/lms-bliss-em-all/tree/feature/first-ux-preview) | `5deb00752af8da2f38eed63f9e291309f27cf893` | Version `0.5.2` clarified job editor, relevance-aware controls, preserved-order no-op guard, and packaged 512x512 icon |
+| [chrober/lms-better-call-bliss](https://github.com/chrober/lms-better-call-bliss/tree/feature/first-ux-preview) | `5deb00752af8da2f38eed63f9e291309f27cf893` | Version `0.5.2` clarified job editor, relevance-aware controls, preserved-order no-op guard, and packaged 512x512 icon |
 
 No native optimizer or shared-core change was required.
 
@@ -40,7 +40,7 @@ No native optimizer or shared-core change was required.
 ## Extension icon
 
 The plugin package now contains
-`BlissEmAll/HTML/EN/plugins/BlissEmAll/html/images/blissemall.png`, and
+`BetterCallBliss/HTML/EN/plugins/BetterCallBliss/html/images/bettercallbliss.png`, and
 `install.xml` declares its public plugin URL. The 512x512 transparent ARGB image
 uses four charcoal source-track nodes on a forward route and an amber fifth
 node inserted into the path. It contains no text, note glyph, or external
@@ -79,7 +79,7 @@ browser-irrelevant automatic-addition fields were omitted, confirming that
 server defaults and the working path remained intact.
 
 The deployment backup remains outside the scanned plugin root under
-`Cache/BlissEmAll-backups`.
+`Cache/BetterCallBliss-backups`.
 
 ## Next gate
 

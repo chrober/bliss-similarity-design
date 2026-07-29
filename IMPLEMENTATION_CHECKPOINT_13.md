@@ -1,4 +1,4 @@
-# Bliss 'Em All - explicit endpoint insertion checkpoint
+# Better Call Bliss - explicit endpoint insertion checkpoint
 
 **Date:** 2026-07-21
 **State:** Read-only Phase 3 exact-count opening and closing insertion slots

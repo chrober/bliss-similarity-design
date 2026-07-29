@@ -1,4 +1,4 @@
-# Bliss 'Em All - first live Lyrion preview checkpoint
+# Better Call Bliss - first live Lyrion preview checkpoint
 
 **Date:** 2026-07-21
 **State:** First usable read-only reorder UX deployed and verified on LMS 9.1.1
@@ -9,7 +9,7 @@ destination routing, cancellation, and durable history remain disabled
 
 | Repository | Revision | Result |
 | --- | --- | --- |
-| [chrober/lms-bliss-em-all](https://github.com/chrober/lms-bliss-em-all/tree/feature/first-ux-preview) | `01c598641f1b2e81d5d4d96b254749460300bee7` | Installable read-only Applications UX, LMS capability and Unicode playlist mapping, native background job, proposed-order review, and structured failure diagnostics |
+| [chrober/lms-better-call-bliss](https://github.com/chrober/lms-better-call-bliss/tree/feature/first-ux-preview) | `01c598641f1b2e81d5d4d96b254749460300bee7` | Installable read-only Applications UX, LMS capability and Unicode playlist mapping, native background job, proposed-order review, and structured failure diagnostics |
 | [chrober/bliss-playlist-optimizer](https://github.com/chrober/bliss-playlist-optimizer) | `93bb3960cd0ce66bc7a60a9a01470bc656a2915a` | Reproducible ARM64 GitHub Actions artifact carrying optimizer `0.1.0` and core API `0.1`; [workflow](https://github.com/chrober/bliss-playlist-optimizer/actions/runs/29828872943) passed |
 
 The bundled executable SHA-256 is
@@ -17,10 +17,10 @@ The bundled executable SHA-256 is
 
 ## Visible workflow
 
-LMS now exposes **Bliss 'Em All** under Applications/My Apps. The hierarchy is:
+LMS now exposes **Better Call Bliss** under Applications/My Apps. The hierarchy is:
 
 ```text
-Bliss 'Em All
+Better Call Bliss
 |- Optimize a saved playlist
 |  `- playlist -> Reorder only -> review -> Run preview
 |- Active previews

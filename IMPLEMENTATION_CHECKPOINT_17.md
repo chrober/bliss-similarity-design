@@ -1,4 +1,4 @@
-# Bliss 'Em All - live automatic extension checkpoint
+# Better Call Bliss - live automatic extension checkpoint
 
 **Date:** 2026-07-22
 **State:** Extend automatically is connected end to end from per-job Extras UX
@@ -9,7 +9,7 @@ verified create-copy persistence
 
 | Repository | Revision | Result |
 | --- | --- | --- |
-| [chrober/lms-bliss-em-all](https://github.com/chrober/lms-bliss-em-all/tree/feature/first-ux-preview) | `9f5a66366e7e21d69f9c8612b426078db1fdb99a` | Version `0.5.0` automatic-extension job contract, read-only bridge resolver, additions/decisions UX, verified extended persistence, and updated defaults/logging/docs |
+| [chrober/lms-better-call-bliss](https://github.com/chrober/lms-better-call-bliss/tree/feature/first-ux-preview) | `9f5a66366e7e21d69f9c8612b426078db1fdb99a` | Version `0.5.0` automatic-extension job contract, read-only bridge resolver, additions/decisions UX, verified extended persistence, and updated defaults/logging/docs |
 
 No native optimizer change was required. This checkpoint consumes the already
 published deterministic `contextual-bridge-analysis-v1` and automatic
@@ -18,7 +18,7 @@ published deterministic `contextual-bridge-analysis-v1` and automatic
 ## Connected workflow
 
 ```text
-Extras > Bliss 'Em All
+Extras > Better Call Bliss
   -> select saved playlist
   -> Optimize order
   -> Extend automatically
@@ -101,7 +101,7 @@ continued to run. This produced a hybrid result view and made the failure easy
 to misdiagnose as ordinary template caching.
 
 Rollback copies must live outside every scanned plugin root. The verified
-rollback is now beneath `Cache/BlissEmAll-backups`; the stale derived template
+rollback is now beneath `Cache/BetterCallBliss-backups`; the stale derived template
 was removed, Lyrion regenerated it from the live plugin, and the final page
 contains the working automatic controls without diagnostic residue.
 

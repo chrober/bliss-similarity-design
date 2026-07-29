@@ -1,4 +1,4 @@
-# Bliss 'Em All - automatic bridge-selection preview checkpoint
+# Better Call Bliss - automatic bridge-selection preview checkpoint
 
 **Date:** 2026-07-20
 **State:** Read-only Phase 3 automatic selection published; no exact-count

@@ -1,4 +1,4 @@
-# Bliss 'Em All productization and implementation plan
+# Better Call Bliss productization and implementation plan
 
 **Status:** In progress - full ARM64 UX shell deployed; optimized source order
 supports no additions, automatic additions, or an exact count, while preserved
@@ -30,7 +30,7 @@ inventory follows this table.
 | User feature | Status | What is available now / still missing |
 | --- | --- | --- |
 | Re-run playlist optimization without re-preparing an unchanged Bliss library | ✅ Available | Warm jobs reuse a checksum-protected decoded library. Addition jobs also bound repeated evolving-route work to a deterministic 256-candidate shortlist per internal gap; the formerly four-minute native exact-eight request now completes in about 21 seconds. |
-| Exclude and review Bliss rows that are not current local LMS tracks | ✅ Available | Every addition job uses a frozen LMS-local allowlist before candidate search. A private persistent ledger records current and historically resolved unmatched rows with reason and first/last-seen observations; Extras and `blissemall status` show its count and location. |
+| Exclude and review Bliss rows that are not current local LMS tracks | ✅ Available | Every addition job uses a frozen LMS-local allowlist before candidate search. A private persistent ledger records current and historically resolved unmatched rows with reason and first/last-seen observations; Extras and `bettercallbliss status` show its count and location. |
 | Reorder a curated saved playlist for better flow | ✅ Available | Select a playlist, optimize every original track exactly once, Preview the route, and save a copy. |
 | Add bridge tracks automatically where transitions are difficult | ✅ Available | Bliss-only automatic insertion is connected; it may correctly decide that zero additions are needed. |
 | Add exactly N tracks | ✅ Available | Enter a strict count per job, Preview exactly that many unique internal additions or a clear failure, and save the reviewed result as a verified copy. The current connected limit is one addition per internal optimized transition (`N <= S - 1`); non-LMS Bliss rows are removed before search and every selected bridge is still revalidated before persistence. |
@@ -102,7 +102,7 @@ the same row weight.
 | Lyrion integration | Extras rich-job editor | ✅ Implemented | The live ARM64 server exposes the form, relevance rules, Advanced controls, result area, and working/not-connected labels. |
 | Lyrion integration | Durable plugin settings surface | ✅ Implemented | `Settings.pm` persists suffixes, resource defaults, provider flags, cache policy, and retention defaults; unused future settings remain labelled. |
 | Lyrion integration | Complete capability/system-status dashboard | 🟡 Partial | Core readiness and problems are visible; provider, active-job, and persistence-health rows are incomplete. |
-| Lyrion integration | Namespaced command API | 🟡 Partial | `blissemall status` exists; optimize, cancel, result, history, and `route_to` commands are not all exposed. |
+| Lyrion integration | Namespaced command API | 🟡 Partial | `bettercallbliss status` exists; optimize, cancel, result, history, and `route_to` commands are not all exposed. |
 | Playlist workflow | Reorder existing tracks: Preview | ✅ Implemented | Live, asynchronous, read-only Preview with per-job constraints and actionable infeasibility is working. |
 | Playlist workflow | Reorder existing tracks: create optimized copy | ✅ Implemented | Reviewed output can be written as a verified new LMS playlist without changing the source. |
 | Playlist workflow | Add automatically: Preview and create copy | ✅ Implemented | Bliss-only automatic insertion is connected end to end and may correctly add zero tracks. |
@@ -132,10 +132,10 @@ the same row weight.
 | Semantic providers | Direct ListenBrainz adapter | ⬜ Not implemented | Recording/artist datasets, authentication where needed, schema validation, and resolution remain. |
 | Semantic providers | Provider caches, stale-offline use, timeouts, and circuit breakers | ⬜ Not implemented | Durable preferences exist, but no network adapter currently consumes them. |
 | Semantic providers | Optional BrainzMix-backed adapter | ⬜ Later roadmap | Not required for the first release; must reuse the provider-neutral contract if added. |
-| Observability | Lyrion log category and job correlation | 🟡 Partial | `plugin.blissemall`, lifecycle records, parameters, and stable errors exist; full structured helper relay, rate limiting, and redaction tests remain. |
+| Observability | Lyrion log category and job correlation | 🟡 Partial | `plugin.bettercallbliss`, lifecycle records, parameters, and stable errors exist; full structured helper relay, rate limiting, and redaction tests remain. |
 | Observability | Native per-stage timings and repeatable Pi benchmark | ✅ Implemented | Optional result diagnostics report total/stage milliseconds and cache state; INFO/DEBUG plugin logs relay sanitized summaries, and a portable Perl cold/warm benchmark harness is published. |
 | Observability | Reproducible JSON and human-readable reports | 🟡 Partial | Native request/result artifacts and diagnostics exist; durable sanitized report retention/export is missing. |
-| Observability | Persistent non-LMS Bliss-row audit | ✅ Implemented | A private JSON ledger retains current and resolved unmatched identities, exact filename-case variants, reasons, metadata, row IDs, and first/last-seen observations across LMS restarts. INFO logs and `blissemall status` expose only its count and location. In the current UX, Extras renders the box only after an addition Preview has prepared or loaded the inventory in the current LMS process; loading the persisted summary at page initialization remains a clarity improvement. |
+| Observability | Persistent non-LMS Bliss-row audit | ✅ Implemented | A private JSON ledger retains current and resolved unmatched identities, exact filename-case variants, reasons, metadata, row IDs, and first/last-seen observations across LMS restarts. INFO logs and `bettercallbliss status` expose only its count and location. In the current UX, Extras renders the box only after an addition Preview has prepared or loaded the inventory in the current LMS process; loading the persisted summary at page initialization remains a clarity improvement. |
 | Performance | High-recall bridge-candidate shortlist before strict contextual reranking | ✅ Implemented | The plugin bounds evolving search to 256 candidates per internal gap after the full strict initial-gap Adaptive rank and semantic reserve. The exhaustive one-gap winner was preserved, and the formerly four-minute native exact-eight request completed in 21.1 seconds. |
 | Reliability | Analysis-running and database-consistency coordination | 🟡 Partial | Read-only access, artifact identity, and unchanged-database checks exist; complete scan scheduling, snapshot, and restart cases remain. |
 | Reliability | Server-restart recovery | ⬜ Not implemented | In-memory jobs/results do not survive LMS restart. |
@@ -143,7 +143,7 @@ the same row weight.
 | Packaging | ARM64 development deployment | ✅ Implemented | The plugin and bundled optimizer are repeatedly exercised on the live ARM64 LMS server. |
 | Packaging | Supported multi-platform native/plugin packages | ⬜ Not implemented | Release-grade ARM64/x86-64 Linux, Windows, and macOS artifacts and smoke tests remain. |
 | Packaging | Versioned plugin ZIPs and checksums | ⬜ Not implemented | Development deployment still uses the manual plugin directory. |
-| Release | Extension-repository listing | ⬜ Not implemented | `chrober/lms-plugins/repo.xml` has not yet published Bliss 'Em All packages. |
+| Release | Extension-repository listing | ⬜ Not implemented | `chrober/lms-plugins/repo.xml` has not yet published Better Call Bliss packages. |
 | Release | Private beta install/upgrade/failure testing | ⬜ Not implemented | Clean install, upgrade, uninstall, outage, scanner, cancellation, and recovery cases remain. |
 | Release | Public release and compatibility documentation | ⬜ Not implemented | No discoverable public release, compatibility matrix, or extension-manager installation exists yet. |
 
@@ -184,7 +184,7 @@ eventual owning repositories.
 
 ## Decision summary
 
-Build a companion Lyrion plugin named **Bliss 'Em All**, with its own native
+Build a companion Lyrion plugin named **Better Call Bliss**, with its own native
 Rust helper. Extract the scoring, database,
 matrix, and filtering behavior currently embedded in `bliss-mixer` into a
 versioned `bliss-mixer-core` Rust library used by both native applications.
@@ -196,7 +196,7 @@ lms-blissmixer (unchanged)
   owns analysis, bliss.db, learned matrix, and mixer preferences
                        |
                        v
-lms-bliss-em-all (new Perl plugin)
+lms-better-call-bliss (new Perl plugin)
   owns LMS integration, optional semantic providers, jobs, UX, reports, and playlists
                        |
                        v
@@ -213,7 +213,7 @@ independently maintained implementations of Adaptive similarity. The existing
 `lms-blissmixer` plugin neither loads code from the new plugin nor exposes
 private process state to it.
 
-The first `lms-bliss-em-all` implementation owns its optional ListenBrainz
+The first `lms-better-call-bliss` implementation owns its optional ListenBrainz
 adapter directly. [BrainzMix](https://github.com/chrober/lms-brainzmix) is a
 possible later provider or extraction target, not a prerequisite for playlist
 optimization, bridge insertion, or the first public release. The direct adapter
@@ -270,7 +270,7 @@ package names, plugin identifiers, release URLs, and documentation do not churn.
 | --- | --- | --- | --- |
 | `chrober/bliss-mixer-core` | New | Reusable Rust library for Bliss database access, shared models, matrices, filters, and similarity scoring | Tagged Rust library source; optional crates.io package later |
 | `chrober/bliss-playlist-optimizer` | New | Headless fixed-set ordering and bridge-selection engine | Native executables and checksums per supported platform |
-| `chrober/lms-bliss-em-all` | New | Perl Lyrion plugin, UI, jobs, optional semantic-provider adapters, playlist persistence, and bundled optimizer executables | Platform-specific LMS plugin ZIP files |
+| `chrober/lms-better-call-bliss` | New | Perl Lyrion plugin, UI, jobs, optional semantic-provider adapters, playlist persistence, and bundled optimizer executables | Platform-specific LMS plugin ZIP files |
 | `chrober/lms-plugins` | Existing; reuse | Lyrion extension repository listing the new plugin alongside BlissMixer | `repo.xml` served from the existing raw GitHub URL |
 | `chrober/bliss-mixer` | Existing | Refactor the maintained fork to consume `bliss-mixer-core` without changing `/api/mix` or `/api/list` behavior | Existing mixer binaries |
 | `chrober/lms-blissmixer` | Existing; unchanged by this project | Produces and maintains the analysis artifacts and preferences consumed by the companion plugin | Existing LMS plugin ZIP files |
@@ -278,10 +278,11 @@ package names, plugin identifiers, release URLs, and documentation do not churn.
 
 The settled component identities are:
 
-- display name: **Bliss 'Em All**;
-- GitHub repository: `chrober/lms-bliss-em-all`;
-- plugin directory and Perl namespace root: `BlissEmAll`;
-- LMS command namespace: `blissemall`; and
+- display name: **Better Call Bliss**;
+- tagline: **Playlist Breaking Bad? Better Call Bliss.**;
+- GitHub repository: `chrober/lms-better-call-bliss`;
+- plugin directory and Perl namespace root: `BetterCallBliss`;
+- LMS command namespace: `bettercallbliss`; and
 - native executable: `bliss-playlist-optimizer`.
 The existing local `D:\LMS\lms-plugins` checkout already points to
 `chrober/lms-plugins` and contains a valid `repo.xml`. It should be committed and
@@ -503,7 +504,7 @@ by that design contract.
 - Consider an optimizer-owned snapshot for long jobs if live read consistency
   cannot be guaranteed; snapshots must live in the plugin cache and never Git.
 
-## `lms-bliss-em-all` design
+## `lms-better-call-bliss` design
 
 ### Dependency model
 
@@ -540,7 +541,7 @@ Keep all observed BlissMixer compatibility assumptions in one module, for
 example:
 
 ```text
-Plugins::BlissEmAll::BlissCompatibility
+Plugins::BetterCallBliss::BlissCompatibility
 ```
 
 That adapter derives the current preferences directory, reads
@@ -551,7 +552,7 @@ never changes BlissMixer preferences.
 ### Proposed plugin modules
 
 ```text
-BlissEmAll/
+BetterCallBliss/
   install.xml
   Plugin.pm
   Settings.pm
@@ -568,7 +569,7 @@ BlissEmAll/
   PlaylistWriter.pm
   Report.pm
   strings.txt
-  HTML/EN/plugins/BlissEmAll/
+  HTML/EN/plugins/BetterCallBliss/
   Bin/<platform>/bliss-playlist-optimizer[.exe]
 ```
 
@@ -605,13 +606,13 @@ Lyrion's standard logging UI rather than `Settings.pm`.
 Register a namespaced command family such as:
 
 ```text
-blissemall capabilities
-blissemall optimize
-blissemall route_to
-blissemall status
-blissemall cancel
-blissemall result
-blissemall history
+bettercallbliss capabilities
+bettercallbliss optimize
+bettercallbliss route_to
+bettercallbliss status
+bettercallbliss cancel
+bettercallbliss result
+bettercallbliss history
 ```
 
 Commands should accept a playlist ID for the immediate request but resolve and
@@ -723,7 +724,7 @@ optimizer result.
 
 The primary entry point is one playlist context-menu provider:
 
-> Bliss 'Em All…
+> Better Call Bliss…
 
 The distinction between reorderable originals, immutable anchors, and a fixed
 destination comes from the canonical
@@ -732,7 +733,7 @@ The labels and presets below are product choices; they must expose rather than
 blur those underlying contracts.
 
 It opens a workflow rather than changing the playlist immediately. The user
-first chooses whether Bliss 'Em All may optimize the order or must preserve the
+first chooses whether Better Call Bliss may optimize the order or must preserve the
 source order as immutable anchors. Every saved-playlist mode then starts with
 the same invariants:
 
@@ -888,7 +889,7 @@ and repeat compliance before the existing safe-copy path is offered.
 
 Treat every original track as an immutable anchor. The output must contain the
 original playlist as an identical ordered subsequence: none of its tracks may
-move relative to another original. Bliss 'Em All may add tracks only around or
+move relative to another original. Better Call Bliss may add tracks only around or
 between those anchors, so this workflow answers, "How can these intended
 transitions become fluent without changing my running order?"
 
@@ -965,7 +966,7 @@ tiers.
 
 ### Extras rich-job-editor experience
 
-Expose exactly one management surface through **Extras > Bliss 'Em All** using
+Expose exactly one management surface through **Extras > Better Call Bliss** using
 an LMS web-page contribution. This placement is the result of verifying the
 conditional UX requirement against Lyrion's implementation: the generic
 Applications/OPML/XMLBrowser path supports hierarchical navigation and a
@@ -1147,7 +1148,7 @@ designed menu responses rather than blank lists or raw exceptions.
 
 ### Lyrion server logging
 
-Register one standard `plugin.blissemall` category in Lyrion's normal logging
+Register one standard `plugin.bettercallbliss` category in Lyrion's normal logging
 UI and use the normal server log as the primary operational log. Correlate UI,
 plugin, native-helper, and report events with a short opaque job ID.
 
@@ -1222,7 +1223,7 @@ The existing Python tools remain the oracle during migration:
 - smoke execution of `version`, `validate`, and a small optimization fixture on
   each runnable CI platform.
 
-`lms-bliss-em-all`:
+`lms-better-call-bliss`:
 
 - Perl compile checks and focused unit tests with mocked LMS objects;
 - `Settings.pm` default, validation, persistence, and migration tests;
@@ -1424,7 +1425,7 @@ passes.
 
 ### Phase 4: headless LMS plugin backend
 
-**Implemented vertical slice:** `lms-bliss-em-all` revision
+**Implemented vertical slice:** `lms-better-call-bliss` revision
 `01c598641f1b2e81d5d4d96b254749460300bee7` implements live capability
 discovery, BlissMixer preference capture, private native jobs, server-log
 correlation, and read-only reorder results. Revision
@@ -1449,7 +1450,7 @@ persistence.
 
 - Implement capability checks and preference capture.
 - Add job creation, status, cancellation, report, and `route_to` commands.
-- Register `plugin.blissemall`, relay structured helper diagnostics, and
+- Register `plugin.bettercallbliss`, relay structured helper diagnostics, and
   enforce the logging/redaction contract.
 - Implement provider-neutral evidence orchestration, the guarded LastMix
   adapter, and a built-in direct ListenBrainz adapter behind the same contract,
@@ -1599,7 +1600,7 @@ upgrade, and uninstall the plugin through the extension manager.
   separate ownership.
 - Reports contain enough identity and decision data to reproduce a run without
   exposing private server data by default.
-- The `plugin.blissemall` category appears in Lyrion's logging UI; each level
+- The `plugin.bettercallbliss` category appears in Lyrion's logging UI; each level
   follows the documented contract, correlates by job ID, and passes redaction
   tests.
 - Each advertised platform has an executable smoke test and a real installation
@@ -1612,8 +1613,8 @@ upgrade, and uninstall the plugin through the extension manager.
 Resolve these before or during Phase 0:
 
 1. Final plugin UUID and whether every internal command namespace should use
-   `blissemall`. The settled user-facing name is `Bliss 'Em All`, the plugin
-   repository is `lms-bliss-em-all`, and the native optimizer retains the
+   `bettercallbliss`. The settled user-facing name is `Better Call Bliss`, the plugin
+   repository is `lms-better-call-bliss`, and the native optimizer retains the
    technical name `bliss-playlist-optimizer`.
 2. Whether `bliss-mixer-core` should be public immediately or begin privately
    until extracted-code provenance is reviewed.
@@ -1656,7 +1657,7 @@ Resolve these before or during Phase 0:
 - Keep CLI schemas and optimizer algorithm details in
   `bliss-playlist-optimizer`.
 - Keep installation, dependency diagnostics, UI, and user workflows in
-  `lms-bliss-em-all`.
+  `lms-better-call-bliss`.
 - Keep only extension-repository usage and available-plugin summaries in
   `lms-plugins`.
 - Replace references to the untracked Python prototype with stable repository
@@ -1715,13 +1716,13 @@ UI. The plugin declaration should be equivalent to:
 
 ```perl
 my $log = Slim::Utils::Log->addLogCategory({
-    category     => 'plugin.blissemall',
+    category     => 'plugin.bettercallbliss',
     defaultLevel => 'INFO',
     logGroups    => 'SCANNER',
 });
 ```
 
-Add the corresponding `DEBUG_PLUGIN_BLISSEMALL` label to `strings.txt` so
+Add the corresponding `DEBUG_PLUGIN_BETTERCALLBLISS` label to `strings.txt` so
 the category has a clear user-facing name in Server Settings > Logging.
 
 The primary operational log is therefore the normal Lyrion server log, not a
@@ -1746,7 +1747,7 @@ depend on those guards.
 The native optimizer must keep its machine-readable result and progress
 protocol separate from diagnostics. Give each request a job ID and requested
 helper log level. The plugin derives helper verbosity from the active
-`plugin.blissemall` level, captures structured helper diagnostic events, and
+`plugin.bettercallbliss` level, captures structured helper diagnostic events, and
 maps their `error`, `warn`, `info`, and `debug` levels into the same
 Lyrion category. This serves the same purpose as BlissMixer passing
 `--logging debug` to its native process, without mixing human log lines into

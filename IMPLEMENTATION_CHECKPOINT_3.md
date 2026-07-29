@@ -1,4 +1,4 @@
-# Bliss 'Em All - first shared-core consumer checkpoint
+# Better Call Bliss - first shared-core consumer checkpoint
 
 **Date:** 2026-07-20
 **State:** Shared core consumed by two native applications; validation only, no playlist mutation or server deployment

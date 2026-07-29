@@ -1,4 +1,4 @@
-# Bliss 'Em All - multi-track preserved-gap routing checkpoint
+# Better Call Bliss - multi-track preserved-gap routing checkpoint
 
 **Date:** 2026-07-21
 **State:** Read-only Phase 3 exact-count multi-track internal-gap routing

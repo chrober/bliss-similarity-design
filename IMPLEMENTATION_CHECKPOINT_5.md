@@ -1,4 +1,4 @@
-# Bliss 'Em All - deterministic native route-search checkpoint
+# Better Call Bliss - deterministic native route-search checkpoint
 
 **Date:** 2026-07-20
 **State:** Read-only reorder-only route search implemented and published; no bridge insertion, playlist write, plugin deployment, or Lyrion server mutation

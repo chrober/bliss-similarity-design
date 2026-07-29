@@ -1,4 +1,4 @@
-# Bliss 'Em All - provider-neutral semantic bridge-ranking checkpoint
+# Better Call Bliss - provider-neutral semantic bridge-ranking checkpoint
 
 **Date:** 2026-07-20
 **State:** Read-only Phase 3 semantic ranking published; no provider adapter, network request, bridge selection, playlist write, plugin deployment, or Lyrion server mutation

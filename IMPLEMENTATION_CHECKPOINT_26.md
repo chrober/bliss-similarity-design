@@ -1,4 +1,4 @@
-# Bliss 'Em All - draft retention, audit clarity, and second-server deployment
+# Better Call Bliss - draft retention, audit clarity, and second-server deployment
 
 **Date:** 2026-07-29  
 **State:** UX hardening implemented, published, and deployed to the second ARM64 Lyrion server  
@@ -31,7 +31,7 @@ This is analyser database bookkeeping rather than an acoustic-similarity error. 
 
 ## Scanner resource note
 
-The observed greedy post-boot work was the normal LMS scanner pipeline, not Bliss 'Em All or the BlissMixer importer. LMS exposes **Settings → Advanced → Performance → Scanner process priority**. Positive values lower the scanner's operating-system priority: `10` is a moderate responsiveness bias and `15` is stronger, at the cost of a longer scan. This deployment did not change that server preference.
+The observed greedy post-boot work was the normal LMS scanner pipeline, not Better Call Bliss or the BlissMixer importer. LMS exposes **Settings → Advanced → Performance → Scanner process priority**. Positive values lower the scanner's operating-system priority: `10` is a moderate responsiveness bias and `15` is stronger, at the cost of a longer scan. This deployment did not change that server preference.
 
 ## Deployment and verification
 
@@ -48,7 +48,7 @@ The live Extras response contains the contrast and form-restoration contracts. I
 The pre-deployment plugin remains recoverable at:
 
 ```text
-/mnt/mmcblk0p2/tce/slimserver/Cache/BlissEmAll-backups/BlissEmAll-0.10.0-pre-1aa1587-20260729
+/mnt/mmcblk0p2/tce/slimserver/Cache/BetterCallBliss-backups/BetterCallBliss-0.10.0-pre-1aa1587-20260729
 ```
 
 Temporary upload and restart-log files were removed after verification.

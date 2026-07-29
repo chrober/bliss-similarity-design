@@ -1,4 +1,4 @@
-# Bliss 'Em All - strict-rank bridge shortlist and live scaling
+# Better Call Bliss - strict-rank bridge shortlist and live scaling
 
 **Date:** 2026-07-26  
 **State:** Native bridge-search performance gate deployed and measured on ARM64 Lyrion Music Server  
@@ -34,8 +34,8 @@ cheaper musical model for the production scoring contract.
 | --- | --- | --- |
 | `bliss-playlist-optimizer` | `f89e5e6` | Optional shortlist contract, diagnostics, semantic reserve, prepared Adaptive context, deterministic tests |
 | `bliss-playlist-optimizer` | `b6d3d10` | Final production-rank-preserving shortlist after rejecting two weaker live proxies |
-| `lms-bliss-em-all` | `d55e1c7` | Version `0.8.0`, fixed 256-candidate job contract, logging, final ARM64 binary, provenance |
-| `lms-bliss-em-all` | `6053871` | Reproducible live-validation report |
+| `lms-better-call-bliss` | `d55e1c7` | Version `0.8.0`, fixed 256-candidate job contract, logging, final ARM64 binary, provenance |
+| `lms-better-call-bliss` | `6053871` | Reproducible live-validation report |
 
 Both final optimizer GitHub Actions workflows passed:
 

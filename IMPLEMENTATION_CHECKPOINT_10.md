@@ -1,4 +1,4 @@
-# Bliss 'Em All - exact-count bridge-selection preview checkpoint
+# Better Call Bliss - exact-count bridge-selection preview checkpoint
 
 **Date:** 2026-07-20
 **State:** Read-only Phase 3 exact-count selection published; no immutable

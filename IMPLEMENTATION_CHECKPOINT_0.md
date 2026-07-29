@@ -1,4 +1,4 @@
-# Bliss 'Em All — Phase 0 bootstrap checkpoint
+# Better Call Bliss — Phase 0 bootstrap checkpoint
 
 **Date:** 2026-07-20  
 **State:** Locally committed; nothing pushed, published, packaged, or deployed
@@ -13,13 +13,13 @@ It intentionally makes no production-server changes.
 | --- | --- | --- | --- |
 | `bliss-mixer-core` | `main` | `65be970` | GPL Rust library scaffold, canonical 23-feature identity, extraction provenance policy, CI |
 | `bliss-playlist-optimizer` | `main` | `16576d5` | Native command scaffold, v1 JSON Schema drafts, examples, stable codes, sanitized parity fixture, CI |
-| `lms-bliss-em-all` | `main` | `da07c82` | Deliberately non-installable LMS plugin scaffold and fixed project identities |
-| `lms-plugins` | `main` | `cb8a513` | Validated extension-feed repository; Bliss 'Em All remains unlisted until real releases exist |
+| `lms-better-call-bliss` | `main` | `da07c82` | Deliberately non-installable LMS plugin scaffold and fixed project identities |
+| `lms-plugins` | `main` | `cb8a513` | Validated extension-feed repository; Better Call Bliss remains unlisted until real releases exist |
 | `bliss-mixer` | `feature/shared-core-extraction` | `2a6b674` | Six behavior-preserving database and matrix-loader characterization tests |
 
-The fixed plugin identities are display name `Bliss 'Em All`, Perl namespace
-`Plugins::BlissEmAll`, plugin directory `BlissEmAll`, command prefix
-`blissemall`, UUID `5ff183ce-3d88-4aa1-8fa5-28fed965af76`, and native command
+The fixed plugin identities are display name `Better Call Bliss`, Perl namespace
+`Plugins::BetterCallBliss`, plugin directory `BetterCallBliss`, command prefix
+`bettercallbliss`, UUID `5ff183ce-3d88-4aa1-8fa5-28fed965af76`, and native command
 `bliss-playlist-optimizer`.
 
 ## Contract decisions established here
@@ -78,7 +78,7 @@ commit. Ordinary compilation and all new tests pass.
   cancellation, or progress stream in Rust.
 - The LMS scaffold has no `plugin.xml`, Perl runtime, settings, menus, jobs,
   provider adapters, packages, or executable bundles and is not installable.
-- The extension feed deliberately contains no Bliss 'Em All entry.
+- The extension feed deliberately contains no Better Call Bliss entry.
 - No GitHub repository, release, pull request, or Lyrion server was changed.
 
 ## Next implementation checkpoint

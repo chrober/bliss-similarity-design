@@ -1,4 +1,4 @@
-# Bliss 'Em All - contextual bridge-scoring kernel checkpoint
+# Better Call Bliss - contextual bridge-scoring kernel checkpoint
 
 **Date:** 2026-07-20
 **State:** First read-only Phase 3 kernel published; no bridge command, semantic ranking, playlist write, plugin deployment, or Lyrion server mutation

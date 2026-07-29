@@ -1,4 +1,4 @@
-# Bliss 'Em All - preserve-order gap-filling preview checkpoint
+# Better Call Bliss - preserve-order gap-filling preview checkpoint
 
 **Date:** 2026-07-21
 **State:** Read-only Phase 3 immutable-anchor preview published for automatic

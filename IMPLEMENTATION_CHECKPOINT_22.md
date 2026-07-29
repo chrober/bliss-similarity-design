@@ -1,4 +1,4 @@
-# Bliss 'Em All - prepared-library cache and measured Pi performance
+# Better Call Bliss - prepared-library cache and measured Pi performance
 
 **Date:** 2026-07-26  
 **State:** Native timing/cache gate deployed and verified on ARM64 Lyrion Music Server  
@@ -38,7 +38,7 @@ semantics.
 | --- | --- | --- |
 | `bliss-mixer-core` | `e18bd4d` | Bulk usable-track feature/metadata query and tests |
 | `bliss-playlist-optimizer` | `ec8b6a5` | Prepared request path, timing contract, guarded cache, benchmark harness, deterministic cache tests |
-| `lms-bliss-em-all` | `12f00e4` | Cache identity/orchestration, timing log relay, ARM64 binary, version `0.7.0` |
+| `lms-better-call-bliss` | `12f00e4` | Cache identity/orchestration, timing log relay, ARM64 binary, version `0.7.0` |
 
 Both optimizer GitHub Actions workflows passed. The deployed ARM64 binary was
 built by run `30205114070` and has SHA-256
@@ -47,7 +47,7 @@ built by run `30205114070` and has SHA-256
 ## Live verification
 
 The live server at `192.168.1.112` returned HTTP 200 for Lyrion and
-`blissemall status` reported `ready=1`, `problem_count=0`, and
+`bettercallbliss status` reported `ready=1`, `problem_count=0`, and
 `extras-job-editor-v7` after restart. Version `0.7.0` and the expected binary
 checksum were verified in the active manual-plugin directory. The previous
 `0.6.0` plugin remains available beneath the established backup directory

@@ -1,4 +1,4 @@
-# Bliss 'Em All - preserve source order and fill gaps
+# Better Call Bliss - preserve source order and fill gaps
 
 **Date:** 2026-07-26  
 **State:** Preserve-order automatic and exact-count workflows deployed and verified on ARM64 Lyrion Music Server  
@@ -27,9 +27,9 @@ gaps**, then either add tracks automatically or request exactly `N` additions.
 
 | Repository | Commit | Change |
 | --- | --- | --- |
-| `lms-bliss-em-all` | `c562fa2` | Preserve-order validation, enabled UX, artifact proofs, logging, version `0.9.0`, public contract docs |
-| `lms-bliss-em-all` | `da4e99f` | Capability contract `extras-job-editor-v8` and explicit optimized-or-preserved working mode |
-| `lms-bliss-em-all` | `636f771` | Reproducible live-validation report |
+| `lms-better-call-bliss` | `c562fa2` | Preserve-order validation, enabled UX, artifact proofs, logging, version `0.9.0`, public contract docs |
+| `lms-better-call-bliss` | `da4e99f` | Capability contract `extras-job-editor-v8` and explicit optimized-or-preserved working mode |
+| `lms-better-call-bliss` | `636f771` | Reproducible live-validation report |
 
 The native optimizer remains `b6d3d10`; no Rust change was required because its
 preserved-order automatic, exact-count, and immutable-subsequence contracts were

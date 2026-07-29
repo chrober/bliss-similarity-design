@@ -1,4 +1,4 @@
-# Bliss 'Em All — Phase 1 shared-core extraction checkpoint
+# Better Call Bliss — Phase 1 shared-core extraction checkpoint
 
 **Date:** 2026-07-20  
 **State:** Locally committed and parity-tested; nothing pushed or deployed

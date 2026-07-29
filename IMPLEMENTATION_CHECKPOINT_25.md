@@ -1,4 +1,4 @@
-# Bliss 'Em All - LMS-local bridge inventory and persistent audit
+# Better Call Bliss - LMS-local bridge inventory and persistent audit
 
 **Date:** 2026-07-26  
 **State:** Pre-search LMS membership gate, persistent unmatched-row audit, and cross-restart inventory cache deployed and verified on ARM64 Lyrion Music Server  
@@ -15,10 +15,10 @@ The existing post-result proof remains independent: every selected bridge must s
 Each cold inventory pass atomically updates:
 
 ```text
-<LMS cache>/blissemall/non-lms-bliss-rows.json
+<LMS cache>/bettercallbliss/non-lms-bliss-rows.json
 ```
 
-The private `non-lms-bliss-row-audit-v1` ledger retains the database identity, LMS scan time, current and historical counts, and one entry per unmatched Bliss identity. Entries include row ID, `database_file`, title/artist/album metadata, a stable identity hash, reason, active/resolved state, first/last-seen timestamps, and observation count. A later successful comparison marks a historical row resolved instead of deleting it. Normal server logs contain only counts and the audit location; the Extras page and `blissemall status` expose the same review pointer.
+The private `non-lms-bliss-row-audit-v1` ledger retains the database identity, LMS scan time, current and historical counts, and one entry per unmatched Bliss identity. Entries include row ID, `database_file`, title/artist/album metadata, a stable identity hash, reason, active/resolved state, first/last-seen timestamps, and observation count. A later successful comparison marks a historical row resolved instead of deleting it. Normal server logs contain only counts and the audit location; the Extras page and `bettercallbliss status` expose the same review pointer.
 
 The live library currently has 63,822 usable Bliss rows: 63,819 match current local LMS tracks and three are excluded. Their private paths and metadata were verified in the ledger but are deliberately omitted from this published checkpoint.
 
@@ -34,13 +34,13 @@ On the live 63k-track ARM64 server, the cold LMS/Bliss intersection took about 1
 | --- | --- | --- |
 | `bliss-playlist-optimizer` | `60cc270` | Versioned LMS-local inventory schema, hash/database binding, source proof, pre-search row filter, diagnostics, and regression tests |
 | `bliss-playlist-optimizer` | `d6e39cd` | Strict-Clippy correction; green CI and ARM64 artifact build |
-| `lms-bliss-em-all` | `007fde1` | Plugin `0.10.0`, inventory/audit module, request integration, Extras/status UX, bundled ARM64 binary, and public contracts |
-| `lms-bliss-em-all` | `3f0eb2c` | Numeric artifact correction and faster URL-prefix membership pass |
-| `lms-bliss-em-all` | `acb4694` | Checksum-verified cross-restart inventory cache and cache-state logging |
-| `lms-bliss-em-all` | `d9a233b` | Stable cache-miss reason logging and accurate memory-hit label |
-| `lms-bliss-em-all` | `ed24692` | Scalar JSON reads preserving both cached state and historical audit entries |
-| `lms-bliss-em-all` | `92b50d4` | Post-result bridge resolution through the exact LMS catalog row |
-| `lms-bliss-em-all` | `924f10c` | Locale-byte URL construction for non-ASCII bridge paths |
+| `lms-better-call-bliss` | `007fde1` | Plugin `0.10.0`, inventory/audit module, request integration, Extras/status UX, bundled ARM64 binary, and public contracts |
+| `lms-better-call-bliss` | `3f0eb2c` | Numeric artifact correction and faster URL-prefix membership pass |
+| `lms-better-call-bliss` | `acb4694` | Checksum-verified cross-restart inventory cache and cache-state logging |
+| `lms-better-call-bliss` | `d9a233b` | Stable cache-miss reason logging and accurate memory-hit label |
+| `lms-better-call-bliss` | `ed24692` | Scalar JSON reads preserving both cached state and historical audit entries |
+| `lms-better-call-bliss` | `92b50d4` | Post-result bridge resolution through the exact LMS catalog row |
+| `lms-better-call-bliss` | `924f10c` | Locale-byte URL construction for non-ASCII bridge paths |
 
 The active ARM64 helper was built from optimizer commit `d6e39cd` by GitHub Actions run `30209142405`. Its SHA-256 is `889826b9b40e1ce3ac7a49b7c8b950d794f57608a119edea429b798562e88e52`.
 
@@ -60,7 +60,7 @@ The active ARM64 helper was built from optimizer commit `d6e39cd` by GitHub Acti
 The pre-deployment plugin is preserved at:
 
 ```text
-/mnt/mmcblk0p2/tce/slimserver/Cache/BlissEmAll-backups/BlissEmAll-0.9.0-pre-007fde1
+/mnt/mmcblk0p2/tce/slimserver/Cache/BetterCallBliss-backups/BetterCallBliss-0.9.0-pre-007fde1
 ```
 
 Temporary upload and diagnostic files were removed after verification. The persistent audit, content-addressed inventory, job artifacts, decoded Bliss-library cache, and rollback copy remain intentionally available for review and recovery.

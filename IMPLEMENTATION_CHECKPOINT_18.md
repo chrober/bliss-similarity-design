@@ -1,4 +1,4 @@
-# Bliss 'Em All - visible outcomes and safe copy naming checkpoint
+# Better Call Bliss - visible outcomes and safe copy naming checkpoint
 
 **Date:** 2026-07-22
 **State:** Browser-visible running/success/failure feedback, Unicode-safe
@@ -9,7 +9,7 @@ are deployed and verified on ARM64 LMS
 
 | Repository | Revision | Result |
 | --- | --- | --- |
-| [chrober/lms-bliss-em-all](https://github.com/chrober/lms-bliss-em-all/tree/feature/first-ux-preview) | `3c9ad2cb46b0e63e7b3824831819dab8b9ad52e1` | Version `0.5.1` automatic polling, prominent structured outcomes, decoded Unicode naming, numbered blank-name collision handling, and exclusive final-path creation |
+| [chrober/lms-better-call-bliss](https://github.com/chrober/lms-better-call-bliss/tree/feature/first-ux-preview) | `3c9ad2cb46b0e63e7b3824831819dab8b9ad52e1` | Version `0.5.1` automatic polling, prominent structured outcomes, decoded Unicode naming, numbered blank-name collision handling, and exclusive final-path creation |
 
 No native optimizer change was required.
 
@@ -76,7 +76,7 @@ was exercised through the Extras HTTP form:
    source/Extended pair proposed `Extended (2)`.
 
 The deployment rollback remains outside the scanned plugin root under
-`Cache/BlissEmAll-backups`.
+`Cache/BetterCallBliss-backups`.
 
 ## Next gate
 
