@@ -35,7 +35,7 @@ inventory follows this table.
 | Add exactly N tracks | ✅ Available | Enter a strict count per job, Preview exactly that many unique internal additions or a clear failure, and save the reviewed result as a verified copy. The current connected limit is one addition per internal optimized transition (`N <= S - 1`); non-LMS Bliss rows are removed before search and every selected bridge is still revalidated before persistence. |
 | Add one bridge between every pair of original tracks | ⬜ Planned | The strict one-per-transition preset is visible but disabled. |
 | Reach a chosen target length or double the playlist | ⬜ Planned | These strict presets will wrap exact-count insertion and explain the original/additional/total calculation. |
-| Grow a short seed playlist into a full similar playlist | ⬜ Planned | A distinct **Grow from these seeds** workflow will retain every seed, select an exact target count against the complete original seed set, control diversity and repeats, sequence the result for flow, and save a reviewed copy. Existing bridge insertion does not yet provide this generative workflow. |
+| Grow a short seed playlist into a full similar playlist | 🟡 Live activation pending | Native exact-target selection and complete-membership routing are implemented, and plugin 0.11.0 exposes the target editor, Preview normalization, addition labels, and safe-copy path. A direct ARM64 run grew the two-track `Test` playlist to exactly 25 tracks in 4.588 seconds. The deployed Perl/UI layer still needs activation at the next safe LMS restart and an end-to-end Preview/create-copy exercise. |
 | Preserve the existing song order and fill its gaps | ✅ Available | Choose preserved source order with automatic or exact-count additions. Every original remains in exact relative order; this first UI slice permits one addition per internal gap and no endpoints. |
 | Allow explicit opening or closing additions | 🟡 Engine only | Native capacity-one endpoint slots exist; user controls and result presentation are missing. |
 | Choose scoring, context, repeat windows, and search effort per job | ✅ Available | Working modes accept job-local overrides initialized from BlissMixer without changing its global preferences. |
@@ -67,7 +67,7 @@ workflow is connected; those are listed separately.
 | 🟡 Partial | Some layers or UX scaffolding exist, but the capability is not complete end to end. |
 | ⬜ Not implemented | Roadmap contract exists, but no usable implementation is connected. |
 
-Current inventory: **37 implemented**, **13 partial**, and **20 not implemented
+Current inventory: **38 implemented**, **14 partial**, and **18 not implemented
 or later-roadmap** rows. These are feature rows, not a percentage-complete
 release estimate; foundational and user-facing capabilities intentionally have
 the same row weight.
@@ -94,7 +94,7 @@ the same row weight.
 | Native routing | Immutable-anchor preserved-order routing | ✅ Implemented | Original tracks remain an identical ordered subsequence. |
 | Native routing | Multiple inserted tracks inside one preserved gap | ✅ Implemented | Bounded one-through-eight-track internal gap routes are supported. |
 | Native routing | Explicit opening and closing insertion slots | ✅ Implemented | Capacity-one endpoint slots are independent opt-ins in exact-count native requests. |
-| Native routing | Seed-set relevance selection and diversity-aware growth | ⬜ Not implemented | Requires exact-target candidate selection against the immutable complete original seed set, LMS-local membership, diversity and repeat feasibility, and subsequent contextual sequencing. Existing bridge search is endpoint-oriented and must not be stretched into this different objective. |
+| Native routing | Seed-set relevance selection and diversity-aware growth | ✅ Implemented | The `seed_growth` request ranks the LMS-local analyzed library in parallel against one Adaptive context built from the complete immutable source set, applies repeat-window capacity during exact membership selection, and routes the complete fixed membership with deterministic Rayon search. The 2-to-25 ARM64 fixture passed with shared-artist/shared-album seeds. Optional semantic-provider enrichment and explicit relevance/diversity controls remain later refinements. |
 | Native routing | Fixed-destination route generation | ⬜ Not implemented | Required by **Bliss me there…**; native destination requests remain open. |
 | Lyrion integration | BlissMixer compatibility and inherited defaults | ✅ Implemented | Database, matrix, strategy parameters, and repeat windows are captured read-only. |
 | Lyrion integration | Per-job scoring, repeat, search, and extension controls | ✅ Implemented | Working modes receive validated job-local overrides without changing BlissMixer preferences. |
@@ -109,7 +109,7 @@ the same row weight.
 | Playlist workflow | One bridge per source-track transition | ⬜ Not implemented | The strict `S - 1` preset is visible but disabled and has no plugin orchestration. |
 | Playlist workflow | Reach target length | ⬜ Not implemented | The `T - S` exact-count wrapper and calculation UI are not connected. |
 | Playlist workflow | Double playlist length | ⬜ Not implemented | The strict `N = S` preset and endpoint policy are not connected. |
-| Playlist workflow | Grow a short seed playlist to an exact target | ⬜ Not implemented | Needs a distinct workflow selector, target-count and relevance/diversity controls, seed-membership proofs, selection-versus-sequencing diagnostics, Preview, and verified-copy persistence. The two-track `Test` playlist growing to 25 tracks is the first live acceptance fixture. |
+| Playlist workflow | Grow a short seed playlist to an exact target | 🟡 Partial | Plugin 0.11.0 connects the distinct selector, exact `T` editor/calculation, immutable-seed request, strict result validation, Seed/Added review labels, form restoration, and existing verified-copy path. The deployed binary produced the 25-track `Test` result; an active player prevented the restart needed to activate and exercise the new Perl/UI layer. Rich selection-versus-transition diagnostics and optional semantic evidence remain incomplete. |
 | Playlist workflow | Preserve source order and fill gaps | ✅ Implemented | Automatic and exact-count internal-gap Previews are connected, visibly prove immutable source order, and feed the existing verified-copy path. The current UI permits one addition per gap and no endpoints. |
 | Playlist workflow | Opening/closing-track controls | 🟡 Partial | Native flags exist; job fields, validation text, and Lyrion result rendering are missing. |
 | Playlist workflow | Safe optimized-copy publication | ✅ Implemented | LMS-native M3U formatting, verification, exclusive creation, catalog creation, and order checks are working. |
