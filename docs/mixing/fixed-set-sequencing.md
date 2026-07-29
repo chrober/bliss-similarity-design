@@ -6,7 +6,7 @@ and not part of the shipped LMS BlissMixer system
 **Primary scope:** Ordering an already curated collection and optionally adding
 explicitly justified bridge tracks
 
-**Last reviewed:** 2026-07-19
+**Last reviewed:** 2026-07-29
 
 Fixed-set sequencing starts after somebody or something has already chosen the
 playlist members. Its question is not _which tracks belong in the playlist?_
@@ -329,7 +329,11 @@ acoustic leg criteria and deterministic track identity fields.
 
 This prototype sequences tracks using the existing 23 whole-track descriptors.
 It is therefore a baseline for local flow, not the boundary-aware algorithm
-described under [transition-aware selection](transitions.md):
+described under [transition-aware selection](transitions.md). It remains exposed
+to the
+[Bohemian Rhapsody Problem](../analysis/overview.md#the-bohemian-rhapsody-problem)
+whenever an aggregate describes none of the states that occur at the actual
+playback boundary:
 
 - it cannot observe whether an outro fades, ends abruptly, changes character,
   or contains silence;

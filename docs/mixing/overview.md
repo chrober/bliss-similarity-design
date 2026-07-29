@@ -2,7 +2,7 @@
 
 **Status:** Living research and design proposal  
 **Primary scope:** Cross-repository similarity and mixing policy  
-**Last reviewed:** 2026-07-14
+**Last reviewed:** 2026-07-29
 
 ## Problem statement
 
@@ -17,8 +17,9 @@ Potential failure modes include:
 - two tracks are close in the current vector space but do not feel similar;
 - a perceptually important difference is underrepresented, or an inaudible
   physical difference contributes too strongly;
-- a structurally varied track lands at a synthetic average that resembles none
-  of its actual sections;
+- a structurally varied track exhibits the
+  [Bohemian Rhapsody Problem](../analysis/overview.md#the-bohemian-rhapsody-problem):
+  it lands at a synthetic average that resembles none of its actual sections;
 - current seed tracks share a progression or structural character that a flat
   mean and variance do not express;
 - a globally appropriate candidate begins in a way that conflicts with the

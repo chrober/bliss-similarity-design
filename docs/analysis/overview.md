@@ -2,7 +2,7 @@
 
 **Status:** Living research and design proposal  
 **Primary scope:** Reusable, player-neutral bliss-rs analysis  
-**Last reviewed:** 2026-07-14
+**Last reviewed:** 2026-07-29
 
 ## Problem statement
 
@@ -23,6 +23,28 @@ Two tracks can have similar means, dispersions, tempo, and aggregate harmonic
 character while differing strongly in groove, arrangement, progression, and
 boundary shape. No alternative Euclidean or Mahalanobis matrix can reconstruct
 those missing dimensions after aggregation.
+
+## The Bohemian Rhapsody Problem
+
+This design uses the term **Bohemian Rhapsody Problem** as informal shorthand for the
+failure of one whole-track representation to describe a composition containing
+several strongly contrasting sections. The name uses Queen's *Bohemian
+Rhapsody* as a familiar example, but the problem applies to any track whose
+internal states, order, or boundary character matter more than their aggregate.
+It is a term introduced by this design, not established MIR terminology.
+
+A mean may fall between the song's actual sections and resemble none of them.
+Dispersion can indicate that the song varies, but it still cannot say which
+musical states occurred, in what order, for how long, or which state is present
+at an intro or outro. Consequently, whole-track nearest neighbours may match a
+synthetic centre, and a transition score may compare evidence from sections
+that never touch during playback.
+
+The term names the representation failure, not one prescribed solution.
+Temporal frames, multi-scale summaries, segmentation, structural descriptors,
+and boundary anchors preserve different parts of the missing evidence and must
+be evaluated separately. Adding more whole-track scalars may help detect the
+problem, but cannot in general reconstruct the discarded sequence.
 
 ## Goals
 

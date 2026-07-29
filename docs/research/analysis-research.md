@@ -2,7 +2,7 @@
 
 **Status:** Living research and design proposal  
 **Primary scope:** Audio representation, structure, similarity, and evaluation validity  
-**Last reviewed:** 2026-07-23
+**Last reviewed:** 2026-07-29
 
 ## Scope and research questions
 
@@ -15,7 +15,8 @@ work, and relates newer music-information-retrieval research to the proposed
 The review is organized around five research questions:
 
 1. **RQ1 - representation:** Which acoustic and mid-level musical properties
-   are lost when a track is reduced to one flat whole-track vector?
+   are lost when a track is reduced to one flat whole-track vector—the
+   [Bohemian Rhapsody Problem](../analysis/overview.md#the-bohemian-rhapsody-problem)?
 2. **RQ2 - time scale:** Which information should remain local, multi-scale, or
    sequential rather than being immediately aggregated?
 3. **RQ3 - similarity:** Is there a defensible general-purpose music distance,

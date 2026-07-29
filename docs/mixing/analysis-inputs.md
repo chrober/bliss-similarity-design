@@ -2,7 +2,7 @@
 
 **Status:** Living research and design proposal  
 **Primary scope:** How optional analysis products can inform downstream selection  
-**Last reviewed:** 2026-07-14
+**Last reviewed:** 2026-07-29
 
 ## Baseline and extension strategy
 
@@ -169,6 +169,10 @@ which describes a programme-level gated measurement.
 Structural variance may help detect tracks for which whole-track averages are
 least representative. It should not be assumed to mean "progressive music" or
 used as a genre classifier.
+
+This is one way to identify possible exposure to the
+[Bohemian Rhapsody Problem](../analysis/overview.md#the-bohemian-rhapsody-problem),
+but it does not recover the discarded section identity or temporal order.
 
 One scalar called structural variance is probably too broad. It can also be
 confounded by track duration, arrangement, and mastering. Candidate independent
