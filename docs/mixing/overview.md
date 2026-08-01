@@ -1,8 +1,8 @@
-# Mixing design: scope and architecture
+# Mixing design: scope and conceptual layers
 
 **Status:** Living research and design proposal  
 **Primary scope:** Cross-repository similarity and mixing policy  
-**Last reviewed:** 2026-07-29
+**Last reviewed:** 2026-08-01
 
 ## Problem statement
 
@@ -80,8 +80,8 @@ them for a particular task without discarding the strong existing baseline.
   how audio properties develop instead of reducing the complete track
   immediately to one aggregate vector.
 - **Baseline vector:** The existing 23-feature whole-track Bliss vector.
-- **Enhanced metadata:** Any versioned experimental descriptor or temporal
-  representation added by this design.
+- **Enhanced metadata:** Any identified experimental descriptor or temporal
+  representation considered by this design.
 - **Global score:** A whole-track or whole-context score produced by the selected
   existing or experimental similarity criterion.
 - **Segment:** A time range intended to represent a coherent musical section.
@@ -173,8 +173,8 @@ invariance, schema, and provenance constrain every view:
 
 ```mermaid
 flowchart LR
-    A[(Versioned analysis products<br/>baseline, globals, frames,<br/>structure, anchors, embeddings)]
-    M[Cross-cutting metadata<br/>schema, provenance,<br/>confidence, invariance]
+    A[(Analysis evidence<br/>baseline, globals, frames,<br/>structure, anchors, embeddings)]
+    M[Cross-cutting identity<br/>definitions, provenance,<br/>confidence, invariance]
 
     A --> W[Whole-track view<br/>global similarity]
     A --> C[Context or group view<br/>session and multi-seed fit]
@@ -196,122 +196,37 @@ flowchart LR
     T --> O
 ```
 
-## Proposed architecture
+## System context, not proposed architecture
 
-### High-level flow
+The site distinguishes analysis evidence from downstream use so that experiments
+can be evaluated clearly. It does not prescribe which repository, crate, module,
+binary, or public API should produce future evidence. In particular, it assigns
+no new responsibilities to `bliss-rs`.
+
+The diagram below shows research data relationships only:
 
 ```mermaid
 flowchart LR
-    A[Audio library] --> BRS[bliss-rs extraction APIs\nbaseline and optional analysis products]
-    BRS --> BA[library analysis orchestration\nbliss-analyser or companion]
-    BA --> DB[(bliss.db\nwhole-track features)]
-    BA --> EDB[(versioned enhanced sidecar\ndescriptors, temporal products, embeddings)]
+    BASE[Current Version 2 evidence] --> CONTROL[Baseline retrieval and mixing]
+    BASE --> STUDY[Comparative similarity studies]
 
-    LMS[lms-blissmixer] -->|seeds and request| MX[chrober/bliss-mixer fork]
-    LMS -->|explicit and weak feedback| FB[(preference observations)]
-    FB --> LEARN[bliss-learner\noffline personalization]
-    DB --> LEARN
-    LEARN --> PM[(versioned personal metric)]
-    PM --> MX
-    DB --> MX
-    EDB --> MX
-    MX --> S[similarity criterion\nbaseline or experimental]
-    S --> P[relevant candidate pool]
-    P --> V[diversity and exploration policy]
-    V --> T{task-specific sequencing?}
-    T -->|no| LMS
-    T -->|transition-aware| R[outro-to-intro reranker]
-    R --> LMS
+    AUDIO[Audio corpus] -. research extraction .-> EXP[Candidate global, temporal,<br/>structural, local, or learned evidence]
+    EXP --> STUDY
+
+    STUDY --> REL[Relevance evaluation]
+    STUDY --> DIV[Diversity evaluation]
+    STUDY --> SEQ[Sequencing and transition evaluation]
+
+    FB[Consented listener or behavioral evidence] -. optional .-> PERS[Personalization studies]
+    PERS --> STUDY
 ```
 
-### Component responsibilities
+The current repositories described elsewhere in the site provide baseline and
+experimental evidence for these relationships. An experiment may precompute
+candidate representations, store them temporarily, or evaluate them in a
+downstream application without implying that its arrangement is the correct
+production architecture.
 
-#### `bliss-rs`
-
-The companion [Bliss Analysis
-Evolution](../index.md)
-design is authoritative for extraction APIs and representation contracts.
-
-Responsibilities:
-
-- preserve the current Version 2 `Analysis` result and cost;
-- expose reusable spectral, loudness, onset, tempo, chroma, tonal, and bass
-  measurements without requiring consumers to duplicate decoding or DSP;
-- provide optional analysis products such as global descriptor sets, aligned
-  or typed frame series, structure, anchors, and model-identified embeddings;
-- attach cross-cutting schema, provenance, confidence, and invariance metadata
-  to those products;
-- make requested products and their configuration explicit;
-- version representation schemas and support deterministic serialization;
-- keep player-specific persistence, retrieval, diversity, and sequencing out
-  of the audio-analysis contract.
-
-General-purpose novelty or segmentation primitives may live in the base crate,
-behind a feature, or in a companion module. That ownership detail remains open;
-reusable extraction itself belongs in `bliss-rs`.
-
-#### Library analysis orchestration
-
-**Working proposal:** extend `bliss-analyser` or introduce a small offline
-companion, provisionally called `bliss-feature-analyser`, to request structured
-`bliss-rs` products and persist them. It must not duplicate shared audio
-extraction or decode audio inside `bliss-mixer`. The final binary and repository
-ownership remain open.
-
-Responsibilities:
-
-- find tracks that have Bliss data but no current enhanced analysis;
-- request configured, versioned analysis products from `bliss-rs`;
-- run application-level experimental derivations that are not yet suitable for
-  a stable library API;
-- persist global descriptors, frame series, structure, segments, anchors,
-  optional embeddings, and their cross-cutting metadata in application-owned
-  storage;
-- attach validity and confidence estimates where a measurement can be
-  ambiguous or unstable;
-- update metadata atomically and report failures without damaging existing
-  Bliss data.
-
-The production path should consume `bliss-rs` directly or through an explicitly
-versioned binding. A prototype may compare external algorithms, but any retained
-shared DSP should be upstreamed or isolated behind a compatible component rather
-than becoming a second independent audio-analysis definition.
-
-#### `chrober/bliss-mixer` fork
-
-In this document, subsequent shorthand references to `bliss-mixer` mean the
-[`chrober/bliss-mixer`](https://github.com/chrober/bliss-mixer) fork unless an
-upstream repository is named explicitly.
-
-Responsibilities:
-
-- load enhanced metadata without requiring audio-analysis dependencies;
-- support experimental similarity criteria alongside the existing algorithms;
-- load a compatible personal metric and normalize it before blending with
-  context-derived matrices;
-- apply an optional, explicit diversity policy after relevance retrieval;
-- expose comparable baseline and enhanced scores for evaluation;
-- retain a larger globally suitable candidate pool when task-specific reranking
-  requires it;
-- identify the actual current boundary track;
-- optionally calculate transition compatibility for candidates with anchor data;
-- normalize global and transition scores over the pool;
-- combine scores, apply existing filtering/fallback semantics, and return the
-  requested count;
-- expose useful diagnostics for tuning and evaluation.
-
-#### `lms-blissmixer`
-
-Responsibilities:
-
-- expose enhanced similarity and transition experiments as opt-in settings
-  during development;
-- retain the existing survey and learner integration while making
-  personalization useful at progressive evidence thresholds;
-- collect weak feedback only with clear semantics, privacy boundaries, and an
-  opt-out;
-- pass analysis/scoring configuration and metadata location to `bliss-mixer`;
-- package or locate the enhanced analyzer if this repository owns its
-  distribution;
-- surface analysis coverage/status where practical;
-- preserve existing behavior when the new binary or metadata is absent.
+If a candidate eventually demonstrates sufficient value, affected maintainers
+can decide whether and how it fits their projects. That later implementation
+discussion is intentionally outside this document.

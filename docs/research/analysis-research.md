@@ -2,15 +2,15 @@
 
 **Status:** Living research and design proposal  
 **Primary scope:** Audio representation, structure, similarity, and evaluation validity  
-**Last reviewed:** 2026-07-29
+**Last reviewed:** 2026-08-01
 
 ## Scope and research questions
 
 This section is a working literature review for an early research phase, not a
 claim that the proposed descriptor set has already been validated. It traces the
 scientific basis of the current Bliss representation, follows direct successor
-work, and relates newer music-information-retrieval research to the proposed
-`bliss-rs` analysis contract.
+work, and relates newer music-information-retrieval research to potential
+extensions of music-similarity analysis.
 
 The review is organized around five research questions:
 
@@ -26,10 +26,9 @@ The review is organized around five research questions:
 5. **RQ5 - evaluation:** What evidence would demonstrate that a new analysis
    product improves retrieval, playlist construction, or transitions?
 
-The resulting hypotheses are intentionally broader than a future Version 3
-vector. The purpose is to identify reusable evidence that `bliss-rs` could
-extract and to define experiments that determine which compact views are worth
-stabilizing.
+The resulting hypotheses are intentionally broader than any concrete
+implementation. The purpose is to identify potentially reusable evidence and
+define experiments that determine which compact views are worth further study.
 
 ## Evidence interpretation and limitations
 
@@ -83,7 +82,7 @@ differ from proxy triplet accuracy. As an MSc study with limited survey data,
 it should be treated as the implementation's rationale and an exploratory
 result, not a conclusive evaluation.
 
-**Implications for `bliss-rs`:** the current compact representation is a
+**Potential analysis implications:** the current compact representation is a
 pragmatic starting point rather than a claim of analytical completeness. The
 structured-analysis proposal directly addresses limitations already identified
 in the thesis, while the evaluation plan should retain both held-out comparison
@@ -115,18 +114,18 @@ voice-leading information are lost. The current aggregate interval/triad values
 are therefore useful transposition-invariant evidence, but they are not a
 complete mathematical description of harmony.
 
-**Implications for `bliss-rs`:**
+**Potential analysis implications:**
 
 - the scientific rationale supports a multi-scale temporal representation more
   strongly than it supports only a larger global vector;
-- retained chroma or a derived tonal sequence should be available to
-  experimental consumers without changing Version 2;
-- multi-scale pooling should be schema-declared rather than hidden inside one
-  value;
-- absolute key, bass-relative evidence, and voice-leading proxies should be
-  separate task-selectable products rather than silently changing the current
-  transposition invariance;
-- chroma extractor identity and configuration belong in representation schema
+- retained chroma and derived tonal sequences are useful comparison conditions
+  alongside Version 2;
+- multi-scale pooling needs to be declared as part of the experimental
+  condition rather than hidden inside one value;
+- absolute key, bass-relative evidence, and voice-leading proxies warrant
+  separate task-specific evaluation because they change the current
+  transposition-invariance assumptions; and
+- chroma extractor identity and configuration belong in the experimental
   identity.
 
 ## Direct harmonic-feature lineage
@@ -353,12 +352,12 @@ self-supervised model using acoustic and musically informed teachers and report
 evaluation across 14 music-understanding tasks. It is relevant as an offline
 benchmark or potential teacher representation. Its 95M- and 330M-parameter
 variants, opaque dimensions, model lifecycle, and deployment cost make it a
-poor mandatory dependency for the initial `bliss-rs` structured API.
+poor mandatory baseline for lightweight similarity analysis.
 
 **Potential implications:**
 
-- include optional segment and whole-track embeddings in the representation
-  taxonomy, but not in Version 2 or an automatic Version 3 proposal;
+- include segment and whole-track embeddings as identified research conditions,
+  not assumed replacements for Version 2;
 - define model provenance, input policy, pooling, augmentation-derived
   invariances, and licensing/deployment assumptions;
 - benchmark learned embeddings against interpretable descriptors rather than
@@ -425,8 +424,8 @@ self-hosted-system level. Its project describes local analysis, clustering,
 query-by-song playlists, paths between songs, listening-derived sonic
 fingerprints, add/subtract interaction, and integrations with LMS/Lyrion,
 Navidrome, Jellyfin, Emby, and other servers [[19]](#r19). It therefore provides
-a relevant operational baseline for the wider
-`bliss-rs + analyzer + mixer + player` ecosystem.
+a relevant operational baseline for the wider local-analysis and player
+ecosystem around Bliss.
 
 Lyrion is already listed as a supported server and an unofficial Lyrion plugin
 is available, so AudioMuse-AI is a present alternative for Lyrion users rather
@@ -439,7 +438,8 @@ servers. Analysis time, clustering time, sustained memory, storage I/O, idle
 footprint, and interference with playback remain empirical deployment
 questions, particularly for older, lower-memory, or microSD-based systems.
 
-It is not a substitute for the `bliss-rs` API contract. It is an AGPL-licensed,
+It is not a component-level substitute for the current Bliss representation. It
+is an AGPL-licensed,
 Dockerized application using a Python/ONNX/librosa-oriented analysis stack plus
 database and service infrastructure. Its configurable modes may also include
 CLAP, lyrics, learned tags, or other evidence beyond audio similarity
@@ -461,7 +461,7 @@ available through defined inference wrappers [[23]](#r23).
 The catalogue includes voice-versus-instrumental and binary vocal-presentation
 classifiers, demonstrating readily available prototype backends. Their category
 semantics, training-domain bias, and noncommercial model licensing still require
-review before they can define a Bliss feature.
+review before they can support a similarity experiment.
 
 That breadth makes Essentia valuable as an external prototype and reference
 implementation, not an automatic dependency or representation definition.
@@ -469,7 +469,7 @@ Selecting hundreds of outputs does not define a perceptually valid distance;
 feature redundancy, scale, confidence, versioning, licensing, and deployment
 cost still need explicit treatment. Any adopted algorithm should be specified
 and validated independently rather than importing an opaque extractor dump as a
-new canonical vector.
+new default representation.
 
 ### librosa and learned representations
 
@@ -492,7 +492,7 @@ listener comparisons against Version 2 and simpler interpretable additions.
 Plex Sonic Analysis demonstrates a polished current product experience based
 on local library analysis: sonically similar tracks, artists and albums, track
 and album radio, and generated mixes [[26]](#r26). Its closed representation
-cannot validate a `bliss-rs` descriptor or be used as a reproducible algorithmic
+cannot validate a candidate descriptor or be used as a reproducible algorithmic
 baseline. It is useful only as a behavioral and UX reference unless an
 evaluation can compare returned playlists without claiming to explain the
 underlying method.
@@ -515,8 +515,9 @@ underlying method.
   when its audio representation is not better;
 - include deployment cost, licensing, reproducibility, explainability, and
   schema stability alongside similarity quality;
-- retain Bliss's lightweight, versioned baseline unless another representation
-  demonstrates sufficient benefit to justify migration and reanalysis.
+- retain Bliss's lightweight, versioned baseline as the control unless another
+  representation demonstrates sufficient benefit to justify a more expensive
+  comparison condition.
 
 ## Research synthesis and working hypotheses
 
@@ -533,8 +534,8 @@ The literature motivates the following hypotheses for the prototype program:
   boundary confidence are more reusable than one supposedly definitive section
   labelling.
 - **H5 - task-conditioned similarity:** different tasks require different
-  sensitivities; no single unqualified music distance should define the
-  analysis API.
+  sensitivities; no single unqualified music distance should define every
+  analysis view.
 - **H6 - local transition context:** intro/outro or segment representations add
   directional information that a whole-track vector cannot provide.
 - **H7 - hybrid representation:** interpretable descriptors and optional
@@ -553,8 +554,8 @@ The literature motivates the following hypotheses for the prototype program:
   hard whole-track label.
 
 These are falsifiable design hypotheses. Negative results are useful: they can
-prevent unstable, redundant, or task-irrelevant descriptors from entering the
-public API or a future canonical vector.
+prevent unstable, redundant, or task-irrelevant descriptors from being retained
+as recommended experimental evidence.
 
 ## Working bibliography
 

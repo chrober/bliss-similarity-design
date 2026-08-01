@@ -1,172 +1,130 @@
-# Versioning, serialization, and resource cost
+# Evidence maturity, reproducibility, and resource cost
 
 **Status:** Living research and design proposal  
-**Primary scope:** Compatibility, persistence contracts, performance, and storage  
-**Last reviewed:** 2026-07-14
+**Primary scope:** Candidate maturity, experimental identity, performance, and storage cost
+**Last reviewed:** 2026-08-01
 
-## Future [`FeaturesVersion::Version3`](https://github.com/Polochon-street/bliss-rs/blob/master/src/lib.rs#L147)
+## Scope
 
-The diagram summarizes a possible promotion gate and its compatibility impact;
-it is not a commitment to create Version 3 or to promote any current candidate:
+This page defines when an analysis idea has enough evidence to remain in the
+research program and what must be recorded to reproduce it. It does not propose
+a new Bliss feature version, upstream serialization API, database schema,
+migration, or release plan.
+
+## Candidate maturity
 
 ```mermaid
 flowchart TB
-    C[Experimental scalar candidate] --> G{Promotion evidence<br/>sufficient?}
+    C[Descriptor or representation hypothesis] --> D[Precise definition,<br/>fixtures, and confidence semantics]
+    D --> A[Baseline comparison<br/>and family ablation]
+    A --> H[Held-out task and<br/>listener evaluation]
+    H --> R[Resource, licensing,<br/>and deployment review]
+    R --> G{Evidence sufficient<br/>for continued use?}
 
-    CRIT[Stable definition and normalization<br/>deterministic and reliable<br/>non-redundant information<br/>held-out task or listener benefit<br/>calibrated default contribution<br/>justified migration cost]
-    CRIT -. defines the gate .-> G
+    G -->|No| REJECT[Reject or redesign]
+    G -->|Promising but incomplete| EXP[Retain as identified<br/>research condition]
+    G -->|Yes for a named task| KEEP[Retain as a validated<br/>experimental option]
 
-    G -->|No or not yet| EXP[Remain optional and experimental<br/>revise, gather evidence, or reject]
-    G -->|Yes| V3[Candidate for<br/>Version 3 promotion]
-
-    V3 --> CORE[Core API, feature ordering,<br/>fixtures, and debug output]
-    V3 --> STORE[Application databases,<br/>migration, and reanalysis]
-    V3 --> SEARCH[Indices, isolation forest,<br/>and retrieval fixtures]
-    V3 --> METRIC[Default and learned matrices,<br/>learner schemas, and retraining]
-    V3 --> APPS[MPD, LMS, and other<br/>consumer compatibility]
-
-    V3 -. coexists with .-> V2[Version 2 remains addressable<br/>for compatibility and regression]
+    BASE[Current Version 2 baseline] -. remains the control .-> A
 ```
 
-### Promotion criteria
+The final state in this diagram means only that a candidate has earned continued
+evaluation or use in a named experiment. It does not authorize an upstream code
+change or imply inclusion in a canonical vector.
 
-A scalar should enter the canonical vector only when:
+### Retention criteria
 
-- its definition and normalization are stable;
-- it is deterministic across supported decoders within declared tolerance;
-- it has fixtures and invariance tests;
-- it is reliable on the supported track-duration range;
-- it adds information beyond existing features;
-- it improves a defined held-out aspect-specific retrieval, playlist, or
-  listener outcome;
-- its default distance contribution has been calibrated;
-- downstream migration cost is justified.
+A candidate should remain under consideration only when:
 
-### Versioning consequences
+- its definition and normalization are stable enough to reproduce;
+- it is deterministic within a declared tolerance;
+- it has fixtures, validity limits, and transformation tests;
+- confidence or missing-evidence behavior is defined;
+- it adds information beyond the current baseline or a simpler candidate;
+- it improves a held-out, aspect-specific retrieval, playlist, transition, or
+  listener outcome; and
+- its analysis, storage, licensing, and deployment cost is reported.
 
-A Version 3 release would require coordinated changes to:
+Candidates that fail these conditions are useful negative results. They should
+not be retained merely because they sound musically plausible or increase model
+capacity.
 
-- [`FeaturesVersion`](https://github.com/Polochon-street/bliss-rs/blob/master/src/lib.rs#L147),
-  [`AnalysisIndex`](https://github.com/Polochon-street/bliss-rs/blob/master/src/song/mod.rs#L103), feature counts, and debug output;
-- all golden analysis fixtures;
-- library schema and migrations;
-- `blissify-rs` persistence, configured metrics, reanalysis, and playlist
-  behavior;
-- `bliss-analyser` columns or vector serialization;
-- fixed-dimension isolation forest use;
-- default and learned distance matrices;
-- `bliss-mixer` loading and diagnostics;
-- `bliss-learner`, which currently assumes 23 named columns;
-- compatibility and partial-library behavior.
+## Experimental compatibility
 
-### Default metric
+Two results are comparable only when the representation identity matches. The
+recorded identity should cover:
 
-Adding a dimension must not automatically imply equal Euclidean importance.
-Version 3 needs a declared baseline normalization or weight matrix. Otherwise a
-feature can dominate simply because of scale, redundancy, or multiplicity.
+- representation kind, feature names, order, dimension, and units;
+- normalization, preprocessing, silence policy, and bounded-audio policy;
+- sample rate, channels, windows, hops, cadence, and pooling;
+- confidence layout and missing-value semantics;
+- extractor and dependency versions;
+- learned-model artifact and input policy where applicable; and
+- the baseline representation and distance used as the control.
 
-The Version 2 baseline must remain addressable for regression comparisons and
-old stored analyses.
+Changing one of these properties creates a different experimental condition.
+A learned matrix or classifier result tied to one condition cannot be assumed
+compatible with another merely because the dimensions happen to match.
 
-## Serialization contract
+## Reproducible research data
 
-`bliss-rs` should make structured representations serializable or expose enough
-metadata for deterministic consumer serialization. It should not require one
-database schema.
+Dense sequences, segments, anchors, and embeddings may need persistence during
+experiments. This site does not select an encoding or database layout. Whatever
+format a study uses should preserve:
 
-### Dense numeric encoding
+- the complete experimental identity above;
+- array shape, ordering, timing, and covered audio range;
+- confidence and validity information;
+- source-audio identity sufficient to detect replacement;
+- compression and numeric precision; and
+- enough provenance to rebuild or reject stale results.
 
-A simple interoperable encoding for a frame series is:
-
-```text
-encoding: f32le-row-major-v1
-shape: frame_count x feature_count
-values: contiguous little-endian IEEE-754 f32
-```
-
-Confidence may use a parallel array with the same shape or a representation-
-specific compact shape. The manifest must declare it.
-
-JSON is suitable for a small schema manifest, not for millions of floating-
-point frame values. Compression should be optional and added only after size
-and CPU measurements.
-
-### Required stored metadata
-
-A serialized representation needs:
-
-- representation kind and schema ID;
-- feature manifest or resolvable manifest ID;
-- dimension and shape;
-- encoding and compression;
-- sample rate assumptions;
-- window and hop policy;
-- time origin and covered sample/time range;
-- normalization and silence policy;
-- confidence layout;
-- analyzer implementation version;
-- learned-model provenance where applicable, including artifact identity,
-  input/pooling policy, objective, and declared augmentation-derived
-  invariances;
-- compatible baseline feature version.
-
-### Storage recommendation for applications
-
-A library analyzer can store structured output in a sidecar SQLite database:
-
-- stable scalar vectors and anchors as one compact row/BLOB per track and kind;
-- dense frames as one shaped BLOB per track and series;
-- segments as individual rows with start/end times and vectors;
-- optional learned embeddings as model-identified shaped BLOBs;
-- representation manifests in a schema table;
-- source size/mtime or content identity for invalidation.
-
-The sidecar keeps experimental lifecycle separate from a stable Bliss database.
-It may later be consolidated after ownership, migrations, and retention policy
-are proven.
-
-Do not store one SQL row per feature value. Do not persist a quadratic
-self-similarity matrix by default; retain its frame source and compact derived
-results so it can be regenerated offline.
+Human-readable manifests are useful for auditing, while bulk numeric evidence
+usually needs a compact representation. Quadratic intermediates such as full
+self-similarity matrices should be counted explicitly and need not be retained
+when compact derived evidence and reproducible inputs suffice. These are
+research-data considerations, not an upstream persistence recommendation.
 
 ## Performance and storage
 
 ### Illustrative frame cost
 
 For a five-minute track, a five-second hop gives about 60 frames. With 32
-[`f32`](https://doc.rust-lang.org/std/primitive.f32.html) features:
+single-precision values per frame:
 
 ```text
 60 * 32 * 4 bytes = 7,680 bytes per track
 ```
 
 At 100,000 tracks, raw values alone are about 0.77 GB. A one-second hop is about
-five times larger. Database, manifests, confidence, and indexing add overhead.
+five times larger. Confidence, manifests, indices, compression, and database
+overhead change the real total. The example illustrates why cadence and
+retention must be evaluated rather than prescribing a storage design.
 
-These estimates are manageable for optional dense sequences but justify an
-explicit retention policy.
+### Frequently used and research-only evidence
 
-### Hot and cold products
+Evaluation should distinguish evidence needed for runtime scoring from evidence
+retained only to derive or inspect an experiment:
 
-Applications should distinguish:
+- compact global summaries, anchors, or selected segment vectors may be cheap
+  enough for frequent scoring;
+- dense frame sequences, large embeddings, and research intermediates may be
+  needed only offline; and
+- a study should report whether a compact derived view reproduces the benefit
+  of the denser source.
 
-- **hot runtime data:** global summaries, structure summaries, anchors, and
-  selected segment vectors or validated track embeddings;
-- **cold rebuildable data:** dense frame sequences, experimental embeddings,
-  and research intermediates.
-
-A normal mix request should not load dense frame sequences when precomputed
-runtime representations suffice.
+This distinction is a resource measurement, not a proposed application cache or
+upstream storage architecture.
 
 ### Analysis cost
 
-Benchmarks should report incremental cost over Version 2 for each requested
-product:
+Benchmarks should report incremental cost over Version 2 for each experimental
+condition:
 
 - wall time and CPU time;
-- peak memory;
-- temporary allocation;
-- serialized size;
-- decoder parity;
-- effect of retaining versus streaming frames;
-- model loading, inference, and accelerator requirements for learned products.
+- peak memory and temporary allocation;
+- retained or serialized size;
+- decoder and platform variation;
+- effect of retaining versus aggregating frames; and
+- model loading, inference, artifact size, and accelerator requirements for
+  learned representations.

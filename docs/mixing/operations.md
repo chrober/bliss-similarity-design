@@ -2,7 +2,7 @@
 
 **Status:** Living research and design proposal  
 **Primary scope:** Research scope, UX, observability, and performance  
-**Last reviewed:** 2026-07-23
+**Last reviewed:** 2026-08-01
 
 ## Psychoacoustic scope
 
@@ -246,10 +246,11 @@ not merely in a performance benchmark.
   SQLite query per descriptor or candidate.
 - Normal mixing should load only hot summaries, anchors, and selected segments;
   dense frame sequences remain cold unless an explicit algorithm needs them.
-- `bliss-rs` analysis products should be opt-in so Version 2-only consumers do
-  not pay segmentation or frame-retention cost.
-- Shared transforms and intermediate measurements should be reused instead of
-  decoding or computing parallel independent definitions of the same evidence.
+- Experimental analysis conditions should report incremental cost so the
+  Version 2 baseline is not credited with segmentation or frame-retention work.
+- Research prototypes should report whether shared or independently computed
+  evidence changes quality, cost, or comparability; no upstream organization is
+  prescribed.
 - Enhanced similarity and task-specific reranking should add only a small
   fraction of the existing mix-request latency.
 - Memory use should be measured with a realistic library, especially if window,

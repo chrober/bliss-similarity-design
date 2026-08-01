@@ -56,15 +56,15 @@ nav:
       - Analysis research: research/analysis-research.md
       - Mixing and playlist research: research/mixing-research.md
       - MusicIP and current comparisons: research/comparison-systems.md
-  - Analysis evolution:
+  - Analysis research:
       - Current bliss-rs analysis: analysis/current-analysis.md
-      - Scope and principles: analysis/overview.md
-      - Products and descriptors: analysis/representations.md
-      - Temporal data and confidence: analysis/temporal-and-confidence.md
-      - API and extraction pipeline: analysis/api-and-pipeline.md
-      - Versioning and storage: analysis/versioning-and-storage.md
+      - Research scope and principles: analysis/overview.md
+      - Representation families: analysis/representations.md
+      - Temporal evidence and confidence: analysis/temporal-and-confidence.md
+      - Evidence and computation: analysis/api-and-pipeline.md
+      - Maturity and resource cost: analysis/versioning-and-storage.md
   - Mixing design:
-      - Scope and architecture: mixing/overview.md
+      - Scope and conceptual layers: mixing/overview.md
       - Enhanced analysis inputs: mixing/analysis-inputs.md
       - Similarity strategies: mixing/similarity-strategies.md
       - Context and diversity: mixing/context-and-diversity.md
@@ -79,7 +79,7 @@ nav:
       - Analysis evaluation: evaluation/analysis-evaluation.md
       - Mixing evaluation: evaluation/mixing-evaluation.md
       - Fixed-set case study: evaluation/fixed-set-case-study.md
-      - Analysis roadmap: evaluation/analysis-roadmap.md
+      - Analysis research roadmap: evaluation/analysis-roadmap.md
       - Mixing roadmap: evaluation/mixing-roadmap.md
   - References:
       - Implementation evidence: references/implementation-evidence.md

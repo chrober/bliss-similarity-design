@@ -1,8 +1,8 @@
 # Current bliss-rs analysis
 
-**Status:** Living research and design proposal  
+**Status:** Descriptive baseline and research context
 **Primary scope:** Stable Version 2 representation and existing experiments  
-**Last reviewed:** 2026-07-14
+**Last reviewed:** 2026-08-01
 
 ## Stable representation
 
@@ -36,9 +36,10 @@ The implementation already observes more information than
 - chroma builds a time-dependent chromagram before deriving aggregate interval
   features.
 
-That makes `bliss-rs` the natural location for reusable temporal extraction.
-An external analyzer should not need to duplicate decoding, resampling, FFTs,
-onset processing, or chroma calculation merely to preserve intermediate data.
+These facts show that the current compact output is derived from time-varying
+evidence before aggregation. That observation informs the feasibility and cost
+of temporal experiments; it does not imply that `bliss-rs` should expose its
+intermediates or adopt a particular structured-analysis design.
 
 ## Fixed-dimension dependencies
 
@@ -53,7 +54,8 @@ canonical vector therefore affects more than the extractor:
 - consumers with explicit columns require migrations;
 - fixed-size algorithms and fixtures must be rebuilt.
 
-This is why experimental descriptors should not immediately become Version 3.
+This coupling is an important constraint when interpreting extension ideas. The
+site does not propose a new feature version or changes to those dependencies.
 
 ## Existing application and personalization experiments
 
@@ -106,7 +108,8 @@ They also expose constraints that an analysis evolution must address:
 - application code is a compatibility and workflow precedent, not proof that a
   representation or learned metric improves perceived playlist quality.
 
-The appropriate `bliss-rs` responsibility is therefore to produce stable,
-identified, confidence-aware analysis evidence and composable distance hooks.
-Survey UX, personal data, model fitting, and playlist-specific policy should
-remain downstream.
+Together, these projects demonstrate that intrinsic analysis, persisted library
+state, metric learning, and playlist policy can be studied separately. They do
+not establish where future analysis work should live. Any change to upstream
+responsibilities or public interfaces remains a decision for the `bliss-rs`
+maintainer, outside this document's scope.

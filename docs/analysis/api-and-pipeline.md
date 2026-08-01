@@ -1,172 +1,130 @@
-# Analysis API and extraction pipeline
+# Analysis evidence and computational considerations
 
 **Status:** Living research and design proposal  
-**Primary scope:** Optional products, schemas, and shared computation  
-**Last reviewed:** 2026-07-23
+**Primary scope:** Experimental evidence identity, cost, and dependency relationships
+**Last reviewed:** 2026-08-01
 
-## Proposed API direction
+## Scope
 
-### Preserve [`Analysis`](https://github.com/Polochon-street/bliss-rs/blob/master/src/song/mod.rs#L240)
+This page describes information needed to compare analysis experiments. It does
+not propose a `bliss-rs` API, Rust types, modules, crate boundaries, feature
+gates, or an upstream extraction architecture. The filename is retained to
+preserve existing links; implementation ownership remains outside the scope of
+this site.
 
-Existing calls should continue to work:
+## Candidate evidence sets
 
-```rust
-let analysis: Analysis = Song::analyze(samples)?;
-```
+An experiment may compare one or more of the following views:
 
-No structured-analysis prototype should silently change this result or its
-cost.
+- the current Version 2 whole-track baseline;
+- additional global descriptor summaries;
+- time-ordered frame or window sequences;
+- structure, repetition, and segmentation evidence;
+- bounded intro, outro, or other local anchors; and
+- model-identified frame, segment, or whole-track embeddings.
 
-### Product selection
+No study needs to compute every view. It should declare exactly which evidence
+was enabled and which configuration produced it so quality and resource cost
+can be compared fairly. This experimental selection principle does not imply a
+particular request API or result bundle.
 
-A consumer should request analysis products explicitly. A possible shape is:
+## Experimental identity
 
-```rust
-pub struct AnalysisRequest {
-    pub baseline: bool,
-    pub global_descriptors: Option<GlobalDescriptorConfig>,
-    pub frames: Option<FrameConfig>,
-    pub structure: Option<StructureConfig>,
-    pub anchors: Option<AnchorConfig>,
-    pub embeddings: Option<EmbeddingConfig>,
-}
-```
+Every non-baseline representation needs more identity than a vector length. A
+human-readable experiment manifest should record at least:
 
-The exact builder or options style is open. The important contract is that
-expensive products are opt-in and configurations become part of representation
-identity.
+- stable representation name and kind;
+- descriptor names, ordering, units, and expected ranges;
+- normalization and silence policy;
+- sample-rate, channel, window, hop, cadence, and excerpt assumptions;
+- temporal coverage and pooling or aggregation policy;
+- minimum valid duration and missing-evidence semantics;
+- confidence definition and calibration method;
+- expected invariant, sensitive, and equivariant transformations; and
+- exact extractor or research implementation identity.
 
-### Result bundle
+For a learned representation, provenance additionally includes:
 
-One possible result model is:
-
-```rust
-pub struct AnalysisBundle {
-    pub baseline: Option<Analysis>,
-    pub global: Option<DescriptorVector>,
-    pub frames: Option<FrameSequence>,
-    pub structure: Option<StructureAnalysis>,
-    pub anchors: Vec<AnchorAnalysis>,
-    pub embeddings: Vec<EmbeddingAnalysis>,
-}
-```
-
-This sketch does not decide whether all types live in the base crate, an
-`enhanced-analysis` feature, or a companion crate.
-
-### Schema identity
-
-Every non-baseline representation needs more than a vector length:
-
-```rust
-pub struct RepresentationSchema {
-    pub schema_id: String,
-    pub kind: RepresentationKind,
-    pub features: Vec<DescriptorDefinition>,
-    pub normalization_id: String,
-    pub configuration_id: String,
-    pub model: Option<ModelProvenance>,
-}
-```
-
-`schema_id` should change whenever ordering, semantics, units, normalization,
-windowing, or preprocessing changes incompatibly. A human-readable manifest
-should make stored data auditable.
-
-### Descriptor definition and confidence
-
-A descriptor definition should capture at least:
-
-- stable name;
-- family;
-- units and expected range;
-- normalization semantics;
-- expected invariant, sensitive, and equivariant transformations;
-- minimum valid duration;
-- confidence semantics;
-- implementation/schema version.
-
-For a learned representation, model provenance additionally needs at least:
-
-- model name, immutable version or artifact digest, and embedding dimension;
-- model license and distribution/deployment assumptions;
-- expected sample rate, channel policy, input normalization, and excerpt size;
-- frame/segment sampling and track-level pooling policy;
+- model name, immutable version or artifact digest, and output dimension;
+- model license and deployment assumptions;
+- input normalization, excerpt selection, and pooling policy;
 - training objective and supervision source at a useful level of description;
-- augmentations that intentionally establish invariance;
+- augmentations that intentionally establish invariance; and
 - output normalization and distance assumptions.
 
 Confidence is not universally a probability. It may express detector strength,
-ambiguity, stability, sample support, or boundary certainty. Each descriptor
-must define what its confidence means and how it was calibrated.
+ambiguity, stability, sample support, or boundary certainty. Each experiment
+must state which meaning applies and how low-confidence or missing evidence
+affects comparison.
 
-## Extraction pipeline
+## Computational relationships
 
-### Shared intermediate computation
-
-The prototype should first map which expensive intermediates can be reused:
+The following diagram is a dependency map for candidate evidence, not a
+software architecture or upstream implementation proposal:
 
 ```mermaid
 flowchart LR
-    S[Decoded mono samples<br/>at 22,050 Hz] --> F[Shared framing and<br/>window functions]
+    S[Decoded audio] --> F[Framed or windowed evidence]
 
-    F --> SP[Spectral transforms]
-    F --> ON[Onset and tempo evidence]
-    S --> LO[Loudness measurements]
-    F --> CH[Chroma measurements]
+    F --> SP[Spectral and timbral evidence]
+    F --> ON[Onset, rhythm, and tempo evidence]
+    S --> LO[Loudness and dynamic evidence]
+    F --> CH[Chroma and tonal evidence]
 
-    SP --> M[Reusable typed<br/>measurements]
+    SP --> M[Candidate measurements]
     ON --> M
     LO --> M
     CH --> M
 
-    M --> BASE[Version 2 Analysis<br/>stable baseline]
-    M --> GLOBAL[Experimental global<br/>descriptors]
-    M --> FRAMES[Temporal frame<br/>sequences]
+    M --> BASE[Current whole-track baseline]
+    M --> GLOBAL[Experimental global summaries]
+    M --> FRAMES[Temporal sequences]
 
-    FRAMES --> STRUCT[Structure, repetition,<br/>and segmentation]
-    FRAMES --> ANCHOR[Intro and outro<br/>anchors]
+    FRAMES --> STRUCT[Structure, repetition,<br/>and segmentation evidence]
+    FRAMES --> ANCHOR[Intro, outro, and<br/>other local anchors]
 
-    S --> MODEL[Optional learned-model<br/>input pipeline]
-    MODEL --> EMBED[Model-identified<br/>embeddings]
+    S --> MODEL[Optional learned model]
+    MODEL --> EMBED[Model-identified embeddings]
 
-    S --> VDET[Optional vocal-activity<br/>evidence]
-    VDET --> VOCAL[Confidence-gated vocal<br/>summaries and temporal products]
+    S --> VDET[Optional vocal-activity evidence]
+    VDET --> VOCAL[Confidence-gated vocal<br/>summaries and temporal views]
     MODEL -. optional classifier or embedding .-> VOCAL
 ```
 
-The goal is not one monolithic analysis pass at any cost. It is to avoid
-unnecessary duplicate transforms while allowing independent algorithms and
-tests.
+Several candidates may depend on similar low-level calculations. A research
+prototype should measure the quality and cost effects of sharing or duplicating
+those calculations, but this document does not prescribe how an upstream
+project should organize them.
 
-Optional vocal analysis should be staged rather than always paying its maximum
-cost. A lightweight activity detector can establish supported frames and vocal
-coverage before pitch, delivery, technique, or embedding backends run. Vocal
-source separation is a possible higher-cost backend, not a baseline dependency;
-its exact model, preprocessing, aggregation, gating policy, and artifact identity
-belong in the representation schema and provenance.
+Optional vocal analysis illustrates staged cost. A lightweight activity
+detector can establish supported frames and vocal coverage before pitch,
+delivery, technique, or embedding experiments run. Vocal source separation is
+a possible higher-cost comparison condition whose artifacts and deployment
+cost must be measured, not a baseline dependency.
 
-### Streaming and retention
+## Retention tradeoffs
 
-Some consumers need only summaries and can stream frame measurements into
-aggregators. Other consumers need the full sequence for segmentation.
+Some questions need only summary statistics; segmentation and sequence
+comparison may need retained temporal evidence. Experiments should compare:
 
-The API should permit:
+- streaming or incremental summary calculation;
+- retained frame sequences for bounded corpora;
+- one aligned cadence versus separate family-specific cadences;
+- fixed windows versus content-dependent segments; and
+- deterministic reconstruction from recorded configuration.
 
-- streaming summary-only analysis;
-- caller-provided frame sinks or iterators where practical;
-- retained in-memory frames for bounded inputs;
-- deterministic reconstruction from configuration metadata.
+These are evaluation alternatives, not proposed iterator, sink, buffer, or
+serialization APIs. Chroma and other families may have different accuracy and
+retention characteristics, which should be measured rather than forced into one
+generic assumption.
 
-Chroma currently has different streaming accuracy characteristics and must not
-be forced into a generic streaming promise without measurement.
+## Bounded audio
 
-### Bounded audio
-
-Anchors and segment analysis require correct behavior on short excerpts.
-Descriptor validity must be tested as a function of duration. Whole-track tempo,
+Anchors and segment experiments require correct behavior on short excerpts.
+Descriptor validity must be tested as a function of duration: whole-track tempo,
 dispersion, and chroma semantics may not remain reliable on a 15-second anchor.
 
-An excerpt API needs explicit timing and boundary policy; passing an arbitrary
-slice to [`Song::analyze`](https://github.com/Polochon-street/bliss-rs/blob/master/src/song/mod.rs#L386) is technically possible but
-does not by itself define valid short-window semantics.
+Every bounded-audio study needs explicit timing, silence, fade, and boundary
+policy. The fact that an implementation can technically analyze an arbitrary
+slice does not establish that the resulting descriptor is meaningful or
+comparable with its whole-track counterpart.

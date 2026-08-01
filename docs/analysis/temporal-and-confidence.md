@@ -1,8 +1,8 @@
 # Temporal representation, invariance, and confidence
 
 **Status:** Living research and design proposal  
-**Primary scope:** Time-varying evidence and measurement contracts  
-**Last reviewed:** 2026-07-23
+**Primary scope:** Time-varying evidence, invariance, and confidence
+**Last reviewed:** 2026-08-01
 
 ## Temporal representation design
 
@@ -42,7 +42,7 @@ flowchart TB
     FIXED --> ANCHOR[Configured anchors]
     STRUCTANCHOR --> ANCHOR
 
-    META[Cross-cutting contract<br/>schema identity, timing,<br/>confidence, and provenance]
+    META[Cross-cutting identity<br/>timing, configuration,<br/>confidence, and provenance]
     META -. applies to .-> ALIGNED
     META -. applies to .-> TYPED
     META -. applies to .-> BOUND
@@ -74,15 +74,15 @@ Options include:
 
 1. resample all measurements onto a declared common timeline;
 2. retain separate typed series per descriptor family;
-3. expose low-level typed series and derive an aligned consumer representation.
+3. compare low-level family-specific series with a derived aligned view.
 
-The first storage prototype may use an aligned sequence, but the API should not
-foreclose typed cadences if alignment loses important information.
+An initial study may use an aligned sequence, but it should still compare
+family-specific cadences when alignment may lose important information.
 
 ### Segmentation
 
 Segmentation should not initially assume K-means or named verse/chorus labels.
-A general pipeline can expose:
+A general study can record:
 
 - feature source and scale;
 - self-similarity construction;
@@ -92,8 +92,8 @@ A general pipeline can expose:
 - optional segment vector aggregation;
 - optional alternative boundary levels or hypotheses.
 
-Consumers can compare fixed windows, change points, and explicit segments before
-one method becomes stable API. A boundary result should state whether it was
+Experiments can compare fixed windows, change points, and explicit segments
+before one method becomes a recommended view. A boundary result should state whether it was
 driven by harmony, timbre, rhythm, a fused representation, or a learned model.
 Two valid structural analyses of the same track may emphasize different
 properties or time scales.
@@ -101,7 +101,7 @@ properties or time scales.
 For the first prototype, fixed-window and conventional self-similarity/novelty
 baselines should precede a learned or context-sensitive segmenter. This provides
 an interpretable reference, keeps incremental analysis cost measurable, and
-avoids coupling the public representation to an early model.
+avoids treating an early model as the assumed representation.
 
 ### Anchors
 
@@ -115,9 +115,9 @@ Anchor extraction needs explicit policy:
 - descriptor validity on the selected duration.
 
 An intro/outro is a configured view of the audio, not an intrinsic universal
-boundary. Its policy belongs in schema identity.
+boundary. Its policy belongs in the experimental identity.
 
-## Invariance contracts
+## Invariance expectations
 
 Each descriptor or representation should document expected behavior under
 controlled transformations. "Invariant" alone is too narrow. At least three
@@ -147,13 +147,12 @@ Examples:
 | Equalization | Some learned/global views may suppress it | Timbre and bass-weight views remain sensitive |
 | Added boundary silence | Often ignored by global summaries | Preserved by intro/outro views under declared policy |
 
-There is no correct universal preprocessing chain. Task-specific consumers may
-derive different views from the same retained evidence. The schema must identify
-which view was produced.
+There is no correct universal preprocessing chain. Task-specific studies may
+derive different views from the same retained evidence. The experiment must
+identify which view was produced.
 
-For learned representations, the contract is partly established by training
-data, positive-pair construction, augmentations, and objective. These are not
-incidental implementation details. A model trained to ignore pitch shifts or
+For learned representations, expected behavior is partly established by training
+data, positive-pair construction, augmentations, and objective. A model trained to ignore pitch shifts or
 time stretching must not be advertised for key- or tempo-sensitive retrieval
 without separate evidence. Transformation tests should verify the claimed
 behavior directly on held-out audio.

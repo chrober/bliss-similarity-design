@@ -2,7 +2,7 @@
 
 **Status:** Living research and design proposal  
 **Primary scope:** Application-owned identity, schemas, and SQLite integration  
-**Last reviewed:** 2026-07-14
+**Last reviewed:** 2026-08-01
 
 Adding a table to the existing SQLite file is technically attractive because
 lookup and joins are simple, but the database is owned by `bliss-analyser` and
@@ -45,9 +45,9 @@ the same for either option.
 
 ## Logical model
 
-The schema below is conceptual, not migration-ready. It follows the companion
-storage contract while leaving exact column names and encoding implementation to
-the database-owning analyzer:
+The schema below is an illustrative model for the LMS-oriented experiments, not
+a migration plan or upstream analysis contract. Exact columns, encoding, and
+ownership remain implementation-specific:
 
 ```text
 representation_schema
@@ -224,9 +224,9 @@ Applications should distinguish:
 - **cold rebuildable data:** dense frame sequences and research intermediates
   used by offline analysis.
 
-The physical schema may refine these logical tables, but it should not introduce
-a competing representation contract. Manifests may use JSON; bulk numeric arrays
-should use the shaped binary encoding defined by the companion design.
+Any physical schema would need to preserve experiment identity, shape, ordering,
+timing, normalization, and confidence. This site does not select a bulk numeric
+encoding or propose one for `bliss-rs`.
 
 Before a physical schema is selected, the actual `bliss.db` schema, path
 normalization, vector serialization cost, migration strategy, and concurrent

@@ -2,23 +2,22 @@
 
 **Status:** Living research and design proposal  
 **Primary scope:** Phased downstream experimentation and rollout  
-**Last reviewed:** 2026-07-19
+**Last reviewed:** 2026-08-01
 
 ## Delivery phases
 
-These are downstream experimentation and integration phases, not lockstep
-milestones for the companion `bliss-rs` roadmap. An application-level analyzer
-may derive experimental summaries or anchors from a frame API before equivalent
-stable library products exist; reusable extraction and final representation
-contracts still follow the ownership boundary above.
+These are downstream experimentation and integration phases. They do not assume
+that `bliss-rs` will expose new evidence or prescribe any upstream code change.
+Research tools may derive experimental summaries or anchors independently, with
+their exact definitions and differences from the baseline documented.
 
 ### Phase 0: discovery
 
 - inspect the exact `bliss.db` schema and lifecycle;
 - document the current 23-feature extraction, ranges, normalization, and known
   behavior as the measurable baseline;
-- align with the companion `bliss-rs` baseline/API discovery and representation
-  schema work;
+- align with the analysis research questions, baseline definitions, and
+  experimental identity requirements;
 - verify short-excerpt validity for candidate features rather than assuming
   whole-track semantics transfer to bounded slices;
 - identify orchestration and persistence extension points in `bliss-analyser`
@@ -83,8 +82,8 @@ prototype reuses Adaptive scoring.
 
 ### Phase 2: analysis prototype
 
-- consume an experimental structured `bliss-rs` frame API for a controlled
-  library subset;
+- produce an identified temporal research condition for a controlled library
+  subset without assuming an upstream frame API;
 - store representation manifests, shaped frame series, hot summaries, and
   confidence in versioned sidecar metadata;
 - derive initial structural summaries and intro/outro anchors;
@@ -126,10 +125,8 @@ prototype reuses Adaptive scoring.
   against the retained Phase 3 baseline;
 - adopt only improvements that survive blinded comparison and deployment-cost
   review;
-- decide which proven scalar descriptors meet the companion document's
-  promotion criteria for a possible `FeaturesVersion::Version3`; frames,
-  structure, anchors, embeddings, and their cross-cutting metadata remain
-  parallel products.
+- synthesize which descriptor and representation families retain measurable
+  value, which remain task-specific, and which should be rejected.
 
 ## Risks and mitigations
 
@@ -152,9 +149,9 @@ prototype reuses Adaptive scoring.
 | A broad toolkit or learned model becomes an accidental production dependency | Keep comparison backends separable; review licensing, model provenance, packaging, compute, and reproducibility before adoption. |
 | Availability for Lyrion is mistaken for acceptable performance on every Raspberry Pi server | Benchmark representative Pi generations, RAM sizes, and storage classes during both analysis and playback. |
 | Experimental features silently change baseline semantics | Store them separately and version every representation. |
-| The enhanced analyzer duplicates or diverges from `bliss-rs` DSP | Consume structured `bliss-rs` products and isolate only explicitly experimental external algorithms. |
+| A research extractor differs from the current Bliss baseline | Identify it as a separate experimental condition and do not present it as an upstream implementation. |
 | Dense temporal data slows normal mixing | Separate hot runtime products from cold rebuildable frame sequences. |
-| A future Version 3 silently invalidates matrices and consumers | Promote only proven scalars through coordinated feature-version migration; keep Version 2 available. |
+| Candidate definitions change and invalidate matrices or comparisons | Record exact representation identity and reject incompatible artifacts. |
 | Segmentation adds complexity without useful signal | Compare with fixed-window and robust-statistics baselines first. |
 | Locally smooth but globally inappropriate tracks | Global candidate generation remains the first-stage gate. |
 | Raw scores from different algorithms are incomparable | Normalize within the candidate pool before fusion. |
@@ -183,9 +180,8 @@ prototype reuses Adaptive scoring.
 
 ## Open questions
 
-The following questions should drive the next design discussions. Detailed
-`bliss-rs` API questions remain in the companion document rather than being
-duplicated here.
+The following questions should drive the next design discussions. Upstream
+`bliss-rs` API and architecture questions are intentionally outside scope.
 
 1. What sidecar lifecycle, attachment, locking, cleanup, and retention policy
    works across supported LMS deployments?
@@ -225,8 +221,10 @@ duplicated here.
 19. Does key-sensitive tonal compatibility improve real LMS transitions, and
     how should ambiguous key estimates be handled?
 20. Which loudness and boundary-shape descriptors add value beyond anchor vectors?
-21. Which repository should own and release the enhanced analyzer binary?
-22. How should analysis be triggered after new tracks are added?
+21. Which reproducible offline setup can produce candidate evidence without
+    assuming an upstream integration?
+22. How should incremental-library scenarios be represented in cost and coverage
+    evaluation?
 23. What minimum listener-study result would justify enabling any enhancement by
     default?
 24. Which local-versus-global coherence measure predicts listener-rated flow

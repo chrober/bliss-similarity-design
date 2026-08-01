@@ -2,7 +2,7 @@
 
 **Status:** Living research and design proposal  
 **Primary scope:** Descriptor validity, representation tests, retrieval, and listener studies  
-**Last reviewed:** 2026-07-23
+**Last reviewed:** 2026-08-01
 
 ## Descriptor tests
 
@@ -23,8 +23,8 @@ Every proposed descriptor needs:
 - bounded-excerpt behavior;
 - segment coverage and non-overlap policy;
 - anchor boundaries and short tracks;
-- schema mismatch rejection;
-- serialization round trips;
+- experimental-identity mismatch detection;
+- research-data round trips where evidence is persisted;
 - reproducibility across thread counts;
 - multi-scale and structural-level identity;
 - learned-model artifact and pooling mismatch rejection;
@@ -70,7 +70,7 @@ flowchart TB
 
     DEC -->|No useful benefit| REJECT[Reject or redesign]
     DEC -->|Promising but insufficient| KEEP[Retain as experimental<br/>and gather more evidence]
-    DEC -->|Predeclared criteria met| ADVANCE[Advance to stable-API or<br/>canonical-feature review]
+    DEC -->|Predeclared criteria met| ADVANCE[Retain as a validated<br/>research condition]
 ```
 
 Each descriptor-family experiment should state in advance:
@@ -106,7 +106,7 @@ not be generalized to older or smaller Raspberry Pi systems without measuring
 analysis throughput, clustering time, peak and idle memory, storage traffic,
 thermal throttling where observable, and concurrent playback behavior.
 
-Descriptor discovery may use exploratory analysis, but promotion evidence
+Descriptor discovery may use exploratory analysis, but retention evidence
 should come from held-out tests. Multiple comparisons and repeated tuning on a
 small listening set must be reported rather than hidden behind the final
 configuration.
@@ -122,7 +122,7 @@ Evaluation should include:
   supported;
 - invariance under alternate masters and codecs;
 - sensitivity/equivariance tests for tempo, pitch, gain, trim, and boundary
-  transformations as declared by the schema;
+  transformations as declared by the experiment;
 - playlist relevance and diversity ratings;
 - directional transition judgments for anchors;
 - structurally simple and varied tracks;

@@ -1,48 +1,37 @@
 # Enhanced analysis inputs for mixing
 
 **Status:** Living research and design proposal  
-**Primary scope:** How optional analysis products can inform downstream selection  
-**Last reviewed:** 2026-07-29
+**Primary scope:** How optional analysis evidence can inform downstream selection
+**Last reviewed:** 2026-08-01
 
 ## Baseline and extension strategy
 
 The existing 23 Bliss features remain the reference representation. Enhanced
-analysis should initially store additional data separately rather than silently
-changing the meaning or order of those features. This allows the same tracks to
-be scored by both baseline and experimental criteria.
-
-Separate metadata is an experimentation and compatibility strategy, not a
-separate definition of shared audio extraction. Reusable descriptors, temporal
-measurements, and representation contracts belong in `bliss-rs`; application
-experiments can remain external until their algorithms and dependencies are
-ready for a library API. LMS-specific orchestration and mixing policy remain in
-the surrounding analyzer/mixer ecosystem.
+analysis experiments should record additional evidence alongside that baseline
+rather than reinterpret its meaning or order. This allows the same tracks to be
+scored by baseline and experimental criteria without proposing a change to
+`bliss-rs`.
 
 ## Flat and structured analysis boundary
 
-The current proposed representation model is:
+The representation families considered by the research are:
 
 ```text
-Version 2 Analysis
-  stable 23-feature flat baseline
+Current Version 2 evidence
+  23-feature flat comparison baseline
 
-Parallel bliss-rs analysis products
-  optional schema-defined global descriptors
-  optional aligned or typed frame series
-  optional structure analysis and segments
-  optional configured intro/outro anchors
-  optional model-identified learned embeddings
-  cross-cutting schema, provenance, confidence, and invariance metadata
-
-Possible Version 3 Analysis
-  only validated scalar summaries
-  coexists with Version 2
-  does not absorb variable-length structured products
+Experimental evidence
+  additional global descriptor summaries
+  aligned or family-specific temporal series
+  structure and segment hypotheses
+  configured intro/outro anchors
+  model-identified learned embeddings
+  confidence, provenance, normalization, and invariance metadata
 ```
 
-Optional products are requested explicitly so a consumer that needs only the
-baseline does not pay for dense temporal analysis. Detailed Rust API and schema
-identity design belongs to the companion document.
+Each study should select its evidence explicitly and report the incremental cost
+of dense or learned conditions. This taxonomy does not imply an upstream API,
+feature version, or storage architecture.
 
 Candidate feature families include:
 
@@ -71,16 +60,16 @@ Each feature family must also declare an invariance contract. For global
 similarity, a descriptor may ideally remain stable across codec changes, gain,
 small trims, and alternate masters. For boundary scoring, gain trajectory,
 fades, silence, and absolute tonal position may be exactly the information to
-preserve. Intermediate measurements should be stored where practical so that
-task-specific representations can apply different policies without decoding
-the audio again.
+preserve. Research may retain intermediate evidence long enough to compare
+task-specific views, but this does not prescribe how a production implementation
+should expose or store it.
 
 ## Temporal windows and segmentation
 
 Windowed temporal evidence is a common foundation for structural variance,
 segmentation, and transition anchors. Depending on the descriptor families, the
-analyzer may retain one aligned sequence or several typed series at their native
-cadences, then derive several representations:
+study may retain one aligned sequence or several family-specific series at their
+native cadences, then derive several representations:
 
 - robust whole-track statistics beyond a single mean;
 - a novelty curve or change-point candidates;
@@ -90,7 +79,7 @@ cadences, then derive several representations:
 
 Fixed windows are simpler and reproducible; content-aware segmentation may
 better represent musical sections but adds algorithmic and schema complexity.
-The first prototype should preserve the source series long enough to compare
+The first study should preserve the source series long enough to compare
 both approaches instead of committing immediately to K-means or a particular
 segmentation algorithm. Every series must declare its cadence and whether it is
 native or resampled; alignment and resampling policy are part of representation
@@ -106,7 +95,7 @@ assuming that musical sections form spherical clusters.
 A fixed first and last 20-30 seconds is an intuitive starting point, not a
 validated requirement.
 
-The analyzer should define windows in terms of audible content, with explicit
+The experiment should define windows in terms of audible content, with explicit
 handling for very short tracks and leading/trailing digital silence. Candidate
 policies include:
 
@@ -121,7 +110,7 @@ should behave.
 
 ## Anchor feature vectors
 
-**Working proposal:** begin with the same feature semantics used by Bliss where
+**Initial comparison:** begin with the same feature semantics used by Bliss where
 they can be meaningfully computed on a short window. This keeps transition
 distance interpretable relative to the existing system.
 
@@ -139,16 +128,11 @@ This is optional transition evidence, not a reason to make global similarity
 key-locked. See the Bliss [chroma
 implementation](https://docs.rs/bliss-audio/latest/src/bliss_audio/chroma.rs.html).
 
-The physical storage format is not yet chosen. A single scalar `intro_timbre`
-or `outro_timbre` is insufficient because Bliss timbre and chroma are
-multi-dimensional. The working storage direction is one
-compact numeric vector/BLOB per track, anchor kind, and representation schema,
-with start/end times and confidence stored alongside it. JSON is suitable for a
-small human-readable schema manifest, not for bulk floating-point values. Exact
-encoding remains authoritative in the companion `bliss-rs` design.
-
-The selected format must encode schema identity, dimension, ordering,
-normalization, and confidence layout, and must reject incompatible vectors.
+For evaluation, an anchor needs its exact time range, descriptor definition,
+dimension, ordering, normalization, and confidence. A single scalar such as
+`intro_timbre` or `outro_timbre` would not capture the multi-dimensional evidence
+under discussion. No physical storage format or upstream representation is
+proposed here.
 
 ## Loudness and boundary shape
 

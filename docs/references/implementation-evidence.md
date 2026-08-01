@@ -1,15 +1,16 @@
 # Implementation and comparison evidence
 
-**Status:** Living research and design proposal  
+**Status:** Descriptive evidence inventory
 **Primary scope:** Existing code, project documentation, and related implementations  
-**Last reviewed:** 2026-07-14
+**Last reviewed:** 2026-08-01
 
 ## Historical, implementation, and comparison evidence
 
 - Bliss [`Analysis`](https://docs.rs/bliss-audio/latest/bliss_audio/struct.Analysis.html)
   and [`AnalysisIndex`](https://docs.rs/bliss-audio/latest/bliss_audio/enum.AnalysisIndex.html)
-  document the versioned 23-feature representation. The companion document is
-  authoritative for its scientific rationale and proposed evolution.
+  document the versioned 23-feature representation. The analysis research pages
+  summarize its scientific rationale and candidate extensions without proposing
+  upstream code changes.
 - The Bliss [changelog](https://docs.rs/crate/bliss-audio/0.11.2/source/CHANGELOG.md)
   records the Version 2 chroma additions, and the [chroma
   source](https://docs.rs/bliss-audio/latest/src/bliss_audio/chroma.rs.html)
@@ -50,8 +51,8 @@
 ## Related documents
 
 - [Bliss Analysis Evolution](../index.md)
-  - companion `bliss-rs` design for descriptor extraction, structured temporal
-  representations, feature versioning, serialization, and analysis performance.
+  - research synthesis for descriptor hypotheses, temporal representations,
+  confidence, evaluation, and analysis cost; it is not an upstream code design.
 - [ALGORITHMS.md](https://github.com/chrober/lms-blissmixer/blob/master/ALGORITHMS.md) - current candidate-generation algorithms and
   shared filtering behavior.
 - [METRIC_LEARNING.md](https://github.com/chrober/lms-blissmixer/blob/master/METRIC_LEARNING.md) - learned Mahalanobis matrix and

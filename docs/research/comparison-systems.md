@@ -2,7 +2,7 @@
 
 **Status:** Living research and design proposal  
 **Primary scope:** Historical design evidence and contemporary baselines  
-**Last reviewed:** 2026-07-14
+**Last reviewed:** 2026-08-01
 
 ## What MusicIP actually did
 
@@ -71,7 +71,7 @@ learned-representation levels, but no clear drop-in replacement for the complete
 Bliss design point: a lightweight Rust analysis library, a compact canonical
 versioned vector, reusable distance and playlist utilities, and established MPD
 and LMS consumers. The detailed analysis-layer comparison and its implications
-for `bliss-rs` live in the companion [Bliss Analysis
+for future research live in the companion [Bliss Analysis
 Evolution](analysis-research.md#current-alternatives-and-comparison-systems)
 document.
 
@@ -145,5 +145,6 @@ The practical comparison policy is therefore:
 - keep multimodal and metadata-assisted systems in a separate hybrid baseline;
 - report quality together with compute, storage, licensing, reproducibility,
   explainability, and schema stability;
-- retain the existing Bliss path unless another approach demonstrates enough
-  benefit to justify its migration and reanalysis cost.
+- retain the existing Bliss path as the control unless another approach
+  demonstrates enough benefit to justify its additional analysis and deployment
+  cost.

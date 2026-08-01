@@ -1,30 +1,31 @@
-# Analysis products and descriptor families
+# Representation families and candidate descriptors
 
 **Status:** Living research and design proposal  
 **Primary scope:** Flat, temporal, structural, anchor, and learned representations  
-**Last reviewed:** 2026-07-23
+**Last reviewed:** 2026-08-01
 
 ## Representation taxonomy
 
-The taxonomy classifies output contracts rather than implementation techniques.
-A schema-defined descriptor or structure product may still use a learned
-backend, in which case exact model provenance remains part of its identity.
-Schema, provenance, confidence, and invariance are cross-cutting metadata. Solid
-arrows show classification; dotted arrows show metadata applicability or common
-derivation paths rather than required dependencies.
+The taxonomy classifies representation families for research comparison. It is
+not a set of proposed Rust types or upstream output contracts. An interpretable
+descriptor or structural view may still use a learned backend, in which case
+exact model provenance remains part of the experimental identity. Provenance,
+confidence, and invariance are cross-cutting concerns. Solid arrows show
+classification; dotted arrows show common derivation paths rather than required
+dependencies.
 
 ```mermaid
 flowchart TB
-    REP[Bliss analysis<br/>representations]
+    REP[Candidate analysis<br/>representations]
 
-    REP --> SCHEMA[Schema-defined<br/>analysis products]
+    REP --> IDENTIFIED[Interpretable or<br/>explicitly identified views]
     REP --> MODEL[Explicitly model-identified<br/>representations]
 
-    SCHEMA --> GLOBAL[Whole-track<br/>representations]
-    SCHEMA --> TEMPORAL[Temporal and local<br/>representations]
+    IDENTIFIED --> GLOBAL[Whole-track<br/>representations]
+    IDENTIFIED --> TEMPORAL[Temporal and local<br/>representations]
 
-    GLOBAL --> BASE[Canonical baseline vector<br/>Version 2 Analysis<br/>stable and fixed-dimensional]
-    GLOBAL --> EXP[Experimental global descriptors<br/>optional and schema-defined]
+    GLOBAL --> BASE[Current baseline vector<br/>Version 2 Analysis<br/>fixed-dimensional]
+    GLOBAL --> EXP[Experimental global summaries<br/>defined per study]
 
     TEMPORAL --> FRAMES[Frame sequence<br/>variable length at a declared cadence]
     TEMPORAL --> STRUCT[Structure analysis<br/>organization and repetition]
@@ -32,8 +33,8 @@ flowchart TB
 
     MODEL --> EMBED[Optional learned embedding<br/>frame, segment, or whole track]
 
-    META[Cross-cutting metadata<br/>schema, provenance,<br/>confidence, and invariance]
-    META -. applies to .-> SCHEMA
+    META[Cross-cutting identity<br/>definitions, provenance,<br/>confidence, and invariance]
+    META -. applies to .-> IDENTIFIED
     META -. applies to .-> MODEL
 
     FRAMES -. commonly supports .-> STRUCT
@@ -42,10 +43,11 @@ flowchart TB
     STRUCT -. may contribute summaries to .-> EXP
 ```
 
-### Canonical baseline vector
+### Current baseline vector
 
-The existing [`Analysis`](https://github.com/Polochon-street/bliss-rs/blob/master/src/song/mod.rs#L240) remains the small, versioned
-representation expected by current playlist consumers.
+The existing [`Analysis`](https://github.com/Polochon-street/bliss-rs/blob/master/src/song/mod.rs#L240) is the small, versioned
+representation expected by current playlist consumers and the reference for
+the proposed experiments.
 
 Properties:
 
@@ -56,16 +58,17 @@ Properties:
 
 ### Experimental global descriptors
 
-These are scalar track summaries under evaluation. They may be stored as a
-named descriptor set instead of changing [`Analysis`](https://github.com/Polochon-street/bliss-rs/blob/master/src/song/mod.rs#L240).
+These are scalar track summaries under evaluation. A study can record them as a
+named experimental set alongside the baseline without implying a change to
+[`Analysis`](https://github.com/Polochon-street/bliss-rs/blob/master/src/song/mod.rs#L240), a public API, or a storage design.
 
 Properties:
 
-- fixed dimension within a declared schema;
+- fixed dimension within a declared experiment definition;
 - explicit name, units, range, confidence, and invariance contract;
 - optional computation;
 - individually ablatable;
-- candidates for later promotion into a canonical feature version.
+- individually retained only when an ablation demonstrates value.
 
 ### Frame sequence
 
@@ -120,12 +123,10 @@ measurement with permanently stable semantics.
 Properties:
 
 - fixed dimension for one exact model and pooling configuration;
-- optional computation behind an explicit backend or feature;
+- optional computation in a research setup;
 - model, training-objective, input, augmentation, and pooling provenance;
 - separate identities for frame-, segment-, and track-level embeddings;
-- declared intended sensitivities and invariances;
-- no automatic inclusion in the canonical [`Analysis`](https://github.com/Polochon-street/bliss-rs/blob/master/src/song/mod.rs#L240)
-  vector.
+- declared intended sensitivities and invariances.
 
 Learned embeddings are research products until they outperform simpler
 representations on held-out target tasks and their deployment, licensing, and
@@ -133,7 +134,7 @@ versioning constraints are acceptable.
 
 ## Candidate global descriptor families
 
-This is a research backlog, not the proposed Version 3 vector.
+This is a research backlog, not a proposed upstream feature vector or API.
 
 ### Rhythm and tempo
 
@@ -192,7 +193,7 @@ and temporal development.
 | Tonal dispersion | Measure local deviation from a track-level tonal center | Interpretation varies for weakly tonal music |
 | TIV entropy | Represent organization/complexity of pitch-class content | Definition and time scale must be explicit |
 | Perceptual sonority qualities | Represent dissonance, chromaticity, diatonicity, and related qualities | Evidence comes mainly from Western tonal style tasks |
-| Short/long-term tonal relation | Distinguish local chord-scale organization from large-scale tonal movement | Belongs to a multi-scale product before scalar promotion |
+| Short/long-term tonal relation | Distinguish local chord-scale organization from large-scale tonal movement | Best evaluated first as a multi-scale view |
 | Soft chord-transition statistics | Capture ordered harmonic movement without a brittle decoded sequence | Requires calibrated posterior-like evidence |
 | Tonal-centroid trajectory | Compare local harmonic movement | Variable-length structured representation |
 
@@ -200,7 +201,7 @@ The current chroma-derived features are intentionally transposition-invariant.
 That is useful for global harmonic character. Absolute key should be a separate,
 task-selectable representation rather than silently changing that invariance.
 
-The first harmonic prototype should expose a simple fixed-window tonal series
+The first harmonic study should record a simple fixed-window tonal series
 and derive several scales from it. It should compare the existing chroma
 representation with a perceptually motivated TIV or equivalent representation.
 Context-sensitive harmonic segmentation should remain a later experiment until

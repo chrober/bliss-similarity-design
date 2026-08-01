@@ -1,8 +1,8 @@
 # Related bliss-rs resources
 
-**Status:** Living research and design proposal  
-**Primary scope:** Implementation sources and companion design material  
-**Last reviewed:** 2026-07-14
+**Status:** Descriptive evidence inventory
+**Primary scope:** Current implementation sources and related research context
+**Last reviewed:** 2026-08-01
 
 - `src/song/mod.rs` - current [`Analysis`](https://github.com/Polochon-street/bliss-rs/blob/master/src/song/mod.rs#L240),
   [`AnalysisIndex`](https://github.com/Polochon-street/bliss-rs/blob/master/src/song/mod.rs#L103), and extraction orchestration.

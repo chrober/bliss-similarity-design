@@ -2,24 +2,22 @@
 
 **Status:** Living research and design proposal  
 **Primary scope:** MPD, LMS, mixer, learner, and other library integrations  
-**Last reviewed:** 2026-07-14
+**Last reviewed:** 2026-08-01
 
 The contracts in this section are illustrative, not LMS-exclusive.
 `blissify-rs` represents the established MPD lineage; `bliss-analyser`, the
 `chrober/bliss-mixer` fork, `bliss-learner`, and the
 [`chrober/lms-blissmixer`](https://github.com/chrober/lms-blissmixer) fork
-represent the current LMS-oriented experiment. Other players should be able to
-consume the same versioned analysis without adopting either application's
-persistence or playlist policy.
+represent the current LMS-oriented experiment. They are evidence about existing
+consumer relationships, not a proposed architecture for `bliss-rs` or other
+players.
 
-The diagram below shows the ecosystem boundary. It is a representation and
-ownership view, not a requirement that one process centrally analyzes every
-consumer's audio:
+The diagram below summarizes current lineage and separates it from optional
+research comparisons. It does not assign future ownership:
 
 ```mermaid
 flowchart TB
-    AUDIO[Audio supplied by a<br/>requesting consumer] --> BRS[bliss-rs<br/>reusable extraction and analysis]
-    BRS --> CONTRACT[Versioned analysis products<br/>and generic distance utilities]
+    AUDIO[Audio library] --> BRS[Current bliss-rs<br/>Version 2 analysis]
 
     subgraph MPD[MPD ecosystem]
         BF[blissify-rs]
@@ -44,9 +42,11 @@ flowchart TB
         LM --> MX
     end
 
-    CONTRACT --> BF
-    CONTRACT --> BA
-    CONTRACT --> OTHER[Other players,<br/>library tools, or services]
+    BRS --> BF
+    BRS --> BA
+
+    AUDIO -. optional research extraction .-> EXP[Candidate global, temporal,<br/>structural, local, or learned evidence]
+    EXP --> STUDY[Offline comparison and<br/>listener evaluation]
 ```
 
 ## MPD: `blissify-rs`
@@ -57,28 +57,22 @@ selection and reanalysis, and exposes playlist generation through MPD. It also
 keeps distance selection at the application boundary, including consumption of
 a configured Mahalanobis matrix.
 
-Expected implications for an evolved analysis API:
+Relevant observations for future research:
 
-- Version 2-only operation must remain cheap and supported;
-- requested structured products must be optional so an MPD deployment does not
-  pay for LMS experiments it does not use;
-- representation identity must be sufficient for application-managed database
-  migration and selective reanalysis;
-- generic distance utilities may remain in Bliss, while MPD queue behavior and
-  playlist policy remain in `blissify-rs`;
-- new contracts should be usable by `blissify-rs` or another player without an
-  LMS database schema, service, or plugin.
+- Version 2 supplies a real cost and behavior baseline;
+- persistence and playlist policy can be evaluated separately from audio
+  representation quality;
+- learned matrices demonstrate why exact feature identity and normalization
+  matter; and
+- results observed in one player ecosystem must not be assumed to transfer to
+  another.
 
 ## LMS: `bliss-analyser`
 
-Expected responsibilities:
-
-- request configured structured products;
-- schedule incremental analysis;
-- own path identity and invalidation;
-- store manifests and encoded values transactionally;
-- expose coverage and failures;
-- preserve existing Version 2 operation.
+The current analyzer supplies the LMS-side baseline database and therefore
+provides factual evidence about feature columns, path identity, rebuilds, and
+analysis coverage. This document does not propose that it adopt structured
+products or a new persistence role.
 
 ## LMS: `chrober/bliss-mixer` fork
 
@@ -92,7 +86,7 @@ Blissify-compatible JSON artifact through `--matrix`, uses that matrix directly
 for a single seed, or blends it with a variance-derived matrix for multiple
 seeds.
 
-Expected responsibilities:
+Potential questions for downstream experiments:
 
 - load compatible hot representations without analysis dependencies;
 - choose task-specific views;
@@ -110,7 +104,7 @@ but adapts persistence, process integration, and artifact format for LMS.
 
 The current learner is bound to the 23-feature schema and named
 [`TracksV2`](https://github.com/CDrummond/bliss-analyser/blob/master/src/db.rs#L101)
-columns. Structured analysis creates later opportunities:
+columns. Additional representation evidence creates research opportunities:
 
 - train personal weights over a validated expanded scalar representation;
 - train separate task models over structure or anchors;
@@ -118,8 +112,8 @@ columns. Structured analysis creates later opportunities:
 - learn aspect-specific or transition-specific weights instead of one
   undifferentiated similarity matrix.
 
-It also creates compatibility requirements: learned artifacts need feature
-schema and normalization identity, not only matrix dimensions. Artifacts that
+It also creates experimental-identity requirements: learned artifacts need
+feature definitions and normalization identity, not only matrix dimensions. Artifacts that
 consume embeddings additionally need exact model and pooling identity.
 
 Metric learning cannot validate a descriptor solely by fitting training
@@ -133,7 +127,7 @@ other consented behavioral signals can bootstrap a metric. Explicit questions
 can then be selected for uncertain, conflicting, or high-information cases
 rather than presented as a fixed 100-plus-round prerequisite.
 
-This feedback remains model-relative and user-relative data. It belongs in the
-learner/application layer, with appropriate privacy and deletion policy, not in
-an intrinsic `bliss-rs` song analysis. `bliss-rs` is responsible for producing
-stable, identified evidence that such a learner can consume.
+This feedback remains model-relative and user-relative data and requires
+appropriate privacy and deletion policy. That analytical distinction does not
+assign future responsibilities to `bliss-rs` or prescribe where a production
+learner should live.

@@ -1,7 +1,7 @@
 # Bliss similarity and analysis design
 
 **Status:** Living research and design proposal  
-**Last reviewed:** 2026-07-14
+**Last reviewed:** 2026-08-01
 
 This site develops a research-backed path for improving how Bliss represents,
 compares, and selects music. Its primary goal is better mixing quality through
@@ -10,13 +10,14 @@ case, but the scope also includes psychoacoustics, temporal structure,
 segmentation, structural variance, contextual similarity, diversity, and
 personalization.
 
-The proposal is deliberately split into reusable analysis and downstream
-mixing responsibilities. It does not present experimental ideas as accepted
-`bliss-rs` direction or require one player ecosystem.
+The discussion is deliberately split between analysis questions and downstream
+mixing questions. It does not present experimental ideas as accepted
+`bliss-rs` direction, propose changes to that project's code or architecture,
+or require one player ecosystem.
 
 ```mermaid
 flowchart LR
-    R[Research evidence] --> A[Player-neutral analysis products]
+    R[Research evidence] --> A[Player-neutral analysis evidence]
     A --> G[Global similarity]
     A --> C[Context and diversity]
     A --> T[Transition compatibility]
@@ -33,21 +34,24 @@ flowchart LR
 |---|---|---|
 | Foundations | What exists today, and where are the system boundaries? | [Current system and ecosystem](foundations/current-system.md) |
 | Research | What evidence supports or challenges the proposal? | [Analysis research](research/analysis-research.md) and [mixing research](research/mixing-research.md) |
-| Analysis | What reusable evidence could `bliss-rs` expose? | [Analysis evolution](analysis/overview.md) |
+| Analysis | Which additional forms of musical evidence might improve similarity? | [Analysis evolution](analysis/overview.md) |
 | Mixing | How could consumers turn that evidence into better sequences? | [Mixing architecture](mixing/overview.md) |
-| Integration | Who stores and consumes each product? | [Downstream consumers](integration/downstream-consumers.md) |
+| Integration | How do current consumers and experiments relate? | [Downstream consumers](integration/downstream-consumers.md) |
 | Evaluation | How will the hypotheses be tested and delivered safely? | [Analysis evaluation](evaluation/analysis-evaluation.md) and [mixing evaluation](evaluation/mixing-evaluation.md) |
 
-## Responsibility boundary
+## Scope boundary
 
-The analysis section is the source of truth for proposed descriptor contracts,
-temporal representations, API products, feature versioning, serialization, and
-resource costs. The mixing section is the source of truth for cross-repository
-feature goals, candidate selection, context, diversity, personalization,
-transition scoring, UX, and downstream rollout.
+The analysis section is the source of truth for descriptor hypotheses, temporal
+representations, confidence and provenance needs, experimental cost, and
+evaluation. The mixing section covers candidate selection, context, diversity,
+personalization, transition scoring, and downstream experiments.
 
-Reusable measurement belongs in `bliss-rs`; persistence, library lifecycle,
-candidate retrieval, sequencing, and user feedback remain consumer concerns.
+The site describes the current `bliss-rs` implementation where that is useful
+evidence, but it deliberately does not assign future responsibilities, public
+types, modules, feature versions, or release work to the upstream project.
+Whether any promising idea belongs upstream, in a separate research tool, or
+only in an application is a decision for the relevant maintainers after the
+evidence exists.
 
 ## Evidence and proposal status
 

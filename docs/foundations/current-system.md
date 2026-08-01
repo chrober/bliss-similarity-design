@@ -1,8 +1,8 @@
 # Current system and ecosystem
 
-**Status:** Living research and design proposal  
+**Status:** Descriptive baseline and research context
 **Primary scope:** Existing analysis, mixer, and consumer architecture  
-**Last reviewed:** 2026-07-14
+**Last reviewed:** 2026-08-01
 
 The existing architecture is described in [ALGORITHMS.md](https://github.com/chrober/lms-blissmixer/blob/master/ALGORITHMS.md):
 
@@ -37,6 +37,6 @@ The existing architecture is described in [ALGORITHMS.md](https://github.com/chr
   for a single seed or blend it with seed-variance weighting for multiple
   seeds. See [METRIC_LEARNING.md](https://github.com/chrober/lms-blissmixer/blob/master/METRIC_LEARNING.md).
 
-This proposal must preserve those algorithms and their existing fallbacks.
-Enhanced analysis can augment their input or add optional post-processing, but
-must not make the current database or behavior unusable.
+These components and fallbacks define the baseline against which enhanced
+analysis and scoring ideas are evaluated. This site does not require them to
+change or prescribe how any successful experiment would be integrated.

@@ -1,8 +1,8 @@
-# Analysis evolution: scope and principles
+# Analysis evolution: research scope and principles
 
 **Status:** Living research and design proposal  
-**Primary scope:** Reusable, player-neutral bliss-rs analysis  
-**Last reviewed:** 2026-07-29
+**Primary scope:** Potential extensions to the current Bliss representation
+**Last reviewed:** 2026-08-01
 
 ## Problem statement
 
@@ -48,40 +48,40 @@ problem, but cannot in general reconstruct the discarded sequence.
 
 ## Goals
 
-- Preserve the existing Version 2 [`Analysis`](https://github.com/Polochon-street/bliss-rs/blob/master/src/song/mod.rs#L240) as a stable
-  baseline.
-- Expose reusable temporal measurements without forcing consumers to duplicate
-  the analysis pipeline.
-- Distinguish compact global descriptors from variable-length representations.
-- Make feature validity and confidence first-class data.
-- Define explicit schema identity, units, normalization, and invariance.
-- Permit consumers to request only the analysis products they need.
-- Keep decoding and shared DSP implementation independent of LMS or a specific
-  database.
-- Enable deterministic serialization by downstream analyzers.
-- Establish an evidence-based route for promoting proven scalars into a future
-  canonical feature version.
-- Keep runtime playlist scoring possible without audio-analysis dependencies.
+- Use the current Version 2 representation as a documented comparison baseline.
+- Analyze musical properties that the compact whole-track vector may miss.
+- Compare compact global descriptors with temporal, structural, local, and
+  learned representations.
+- Treat validity, confidence, provenance, normalization, and invariance as part
+  of every experimental result.
+- Quantify analysis, storage, and runtime costs alongside quality.
+- Define evidence that would support retaining, revising, or rejecting a
+  candidate representation.
+- Keep player-neutral findings distinct from application-specific retrieval,
+  diversity, personalization, and sequencing policy.
+- Leave implementation ownership and upstream integration decisions open.
 
 ## Non-goals
 
-- Selecting the final production descriptor set before evaluation.
-- Replacing Version 2 or silently changing its semantics.
-- Making every intermediate DSP value public API.
-- Making `bliss-rs` own an LMS-specific SQLite schema.
-- Defining relevance, diversity, transition fusion, or playlist sequencing
-  policy inside the audio analyzer.
+- Proposing changes to `bliss-rs` public APIs, internal modules, crate layout,
+  feature versions, or release plan.
+- Selecting a final production descriptor set before evaluation.
+- Replacing Version 2 or changing its documented semantics.
+- Prescribing an upstream extraction pipeline, serialization format, database
+  schema, or ownership boundary.
+- Assigning any future implementation to `bliss-rs`, a companion library, or a
+  particular application.
 - Reproducing undocumented MusicIP internals.
-- Requiring a neural model or network service for the initial design.
+- Requiring a neural model or network service for the research direction.
 - Treating instrument, genre, mood, or key predictions as certain labels.
 
 ## Design principles
 
-1. **Preserve the compatible baseline.** New analysis must be comparable with
-   and optional beside Version 2.
-2. **Measure once, derive several views.** Shared intermediate computation
-   should support global summaries, frames, structure, and anchors.
-3. **Do not flatten too early.** Preserve temporal evidence until the target
+1. **Preserve a known comparison.** Every experiment should remain measurable
+   against Version 2.
+2. **Compare several views.** Global summaries, frames, structure, anchors, and
+   embeddings answer different questions.
+3. **Do not flatten too early.** Retain temporal evidence in experiments until the target
    representation is known.
 4. **Keep intrinsic evidence separate from model-relative outputs.** Audio
    measurements belong in analysis; distances to a learned population or user
@@ -91,29 +91,28 @@ problem, but cannot in general reconstruct the discarded sequence.
    [`f32`](https://doc.rust-lang.org/std/primitive.f32.html).
 6. **Define invariance per descriptor and task.** Gain, trim, absolute key, and
    boundary silence can be nuisances in one use case and signals in another.
-7. **Version representations, not just binaries.** A consumer must detect
-   incompatible features even if analyzer versions happen to match.
-8. **Pay for requested products.** Consumers that need only Version 2 should
-   not automatically incur segmentation or dense-frame cost.
-9. **Promote only demonstrated value.** A plausible MIR descriptor is not a
-   canonical Bliss feature until it improves defined outcomes.
+7. **Identify every experiment.** Results are comparable only when feature
+   definitions, preprocessing, model artifacts, and pooling are recorded.
+8. **Report the cost of evidence.** Segmentation, dense frames, and learned
+   models must justify their compute and storage burden.
+9. **Retain only demonstrated value.** A plausible MIR descriptor remains a
+   hypothesis until it improves defined outcomes.
 
-## Responsibility boundary
+## Conceptual separation, not ownership
 
-| Concern | Preferred owner |
+The research separates concerns because they require different evidence, not to
+assign them to repositories or code modules:
+
+| Concern | Question considered here |
 |---|---|
-| Decode and resample audio | Decoder implementation used by `bliss-rs` |
-| Spectral, loudness, onset, beat, chroma, and bass measurements | `bliss-rs` |
-| Reusable frame and confidence representation | `bliss-rs` |
-| General-purpose novelty, repetition, and segmentation primitives | `bliss-rs` or an optional companion module |
-| Track identity, incremental scheduling, and persistence | Library application/analyzer, such as `blissify-rs` or `bliss-analyser` |
-| SQLite layout and migration policy | Database-owning analyzer/application |
-| Population and group profiles | Mixer/application analysis layer |
-| Learned personal metric | Downstream learner and metric consumer |
-| Candidate retrieval and relevance | Playlist consumer/mixer |
-| Diversity and exploration | Playlist consumer/application |
-| Transition and playlist sequencing policy | Playlist consumer/application |
-| User feedback and privacy policy | Player/application integration |
+| Audio evidence | Which measurements are reliable, perceptually meaningful, and reproducible? |
+| Representation | Which global, temporal, structural, or local view suits the task? |
+| Experimental identity | Which definitions, parameters, confidence semantics, and model provenance make results comparable? |
+| Persistence and lifecycle | What resource and reproducibility costs would a real experiment incur? |
+| Similarity and retrieval | Which distance or scoring view improves a named outcome? |
+| Diversity and sequencing | How should relevant tracks be selected and ordered for a specific task? |
+| Personalization | Which consented evidence improves an individual listener's results? |
 
-`bliss-rs` may provide generic distance and playlist utilities, as it does now,
-without making player-specific policy part of the analysis contract.
+The current ecosystem demonstrates several possible separations of these
+concerns. The documentation does not prescribe where a future implementation
+should place them.
