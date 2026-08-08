@@ -1,4 +1,4 @@
-# Mixing delivery, risks, and open questions
+﻿# Mixing delivery, risks, and open questions
 
 **Status:** Living research and design proposal  
 **Primary scope:** Phased downstream experimentation and rollout  
@@ -35,6 +35,9 @@ contracts still follow the ownership boundary above.
 - version and scale-normalize the existing learned-matrix artifact;
 - establish learning curves for the current random survey and full matrix;
 - prototype active triplet selection and progressive family/diagonal models;
+- prototype playlist-derived observation capture from curated playlists and
+  Better Call Bliss preview/accept/edit events without training on raw
+  generated playlists;
 - prototype MMR, cluster coverage, and relevance-aware submodular selection;
 - establish separate relevance, diversity, and local-versus-global coherence
   measures;
@@ -144,6 +147,7 @@ prototype reuses Adaptive scoring.
 | Personalization requires an exhausting survey | Use active queries, short resumable sessions, progressive model capacity, and a useful default prior. |
 | A full learned matrix overfits sparse personal judgments | Compare family, diagonal, and low-rank models; increase capacity only with held-out evidence. |
 | Random triplets are obvious but uninformative | Query plausible neighbors, model disagreements, and uncertain cases. |
+| Better Call Bliss outputs reinforce the current metric | Treat raw generated playlists as exposure records; learn only from user acceptance, rejection, editing, retention, and playback behavior. |
 | Weak playback feedback is mistaken for preference | Store provenance and context; evaluate signal types separately; use lower confidence, decay, and repeated evidence. |
 | A skip caused by a section boundary is learned as dislike | Retain within-track time and queue context; do not convert isolated skips directly into preference triplets. |
 | Learned and seed-derived matrices have incompatible scale | Normalize both against a declared convention before blending. |
@@ -209,45 +213,48 @@ duplicated here.
     low-rank, and full personal models to beat the default reliably?
 11. Which LMS behaviors are sufficiently interpretable to use as weak feedback,
     and what privacy/retention policy should govern them?
-12. How should personal-metric confidence control its effective blend without
+12. Which playlist-derived signals should first be used only for active query
+    selection, and which repeated signals are strong enough to become weak
+    training evidence?
+13. How should personal-metric confidence control its effective blend without
     exposing unnecessary configuration?
-13. Should experimental global similarity use vector expansion, a separate
+14. Should experimental global similarity use vector expansion, a separate
    distance, late fusion, or learned weights?
-14. What is the exact boundary track for every LMS request flow?
-15. At what point in each current algorithm should the pre-rerank pool be
+15. What is the exact boundary track for every LMS request flow?
+16. At what point in each current algorithm should the pre-rerank pool be
    captured, relative to hard and fallback filters?
-16. Is percentile rank fusion sufficient, or does calibrated score normalization
+17. Is percentile rank fusion sufficient, or does calibrated score normalization
    produce better results?
-17. How should candidates without enhanced analysis be treated during partial
+18. How should candidates without enhanced analysis be treated during partial
    rollout?
-18. Do fixed or structure-aligned anchors work better, and which duration and
+19. Do fixed or structure-aligned anchors work better, and which duration and
     silence policy produces the best listener ratings?
-19. Does key-sensitive tonal compatibility improve real LMS transitions, and
+20. Does key-sensitive tonal compatibility improve real LMS transitions, and
     how should ambiguous key estimates be handled?
-20. Which loudness and boundary-shape descriptors add value beyond anchor vectors?
-21. Which repository should own and release the enhanced analyzer binary?
-22. How should analysis be triggered after new tracks are added?
-23. What minimum listener-study result would justify enabling any enhancement by
+21. Which loudness and boundary-shape descriptors add value beyond anchor vectors?
+22. Which repository should own and release the enhanced analyzer binary?
+23. How should analysis be triggered after new tracks are added?
+24. What minimum listener-study result would justify enabling any enhancement by
     default?
-24. Which local-versus-global coherence measure predicts listener-rated flow
+25. Which local-versus-global coherence measure predicts listener-rated flow
     without rewarding homogeneous or boring playlists?
-25. Which reproducible audio-only AudioMuse-AI configuration should serve as an
+26. Which reproducible audio-only AudioMuse-AI configuration should serve as an
     end-to-end baseline, and how should its retrieval and playlist policy be
     separated from representation quality?
-26. Which Raspberry Pi configurations can run AudioMuse-AI analysis and
+27. Which Raspberry Pi configurations can run AudioMuse-AI analysis and
     clustering alongside Lyrion without unacceptable memory, storage, thermal,
     or playback impact, and how does that compare with the Bliss pipeline?
-27. Does contextual fixed-set ordering improve listener-rated flow over the
+28. Does contextual fixed-set ordering improve listener-rated flow over the
     original, random, and reversed controls without reducing perceived variety?
-28. Which route-search method and restart budget provide a useful quality/cost
+29. Which route-search method and restart budget provide a useful quality/cost
     tradeoff, and when is a stronger solver warranted?
-29. Should a future ordering surface live in `bliss-mixer`, LMS BlissMixer, or a
+30. Should a future ordering surface live in `bliss-mixer`, LMS BlissMixer, or a
     separate offline tool, and how should preview and transactional acceptance
     work?
-30. Which bridge thresholds and acoustic or semantic evidence tiers generalize
+31. Which bridge thresholds and acoustic or semantic evidence tiers generalize
     beyond the two exploratory playlists, and should explicit-count mode remain
     an expert-only operation?
-31. When does an immutable-anchor gap benefit from several inserted tracks
+32. When does an immutable-anchor gap benefit from several inserted tracks
     rather than one bridge, and how should route length be penalized?
-32. Which identity and confidence policy safely maps external recording or
+33. Which identity and confidence policy safely maps external recording or
     artist evidence to one analyzed local track?
