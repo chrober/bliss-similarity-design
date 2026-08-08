@@ -1,4 +1,4 @@
-# Better Call Bliss productization and implementation plan
+﻿# Better Call Bliss productization and implementation plan
 
 **Status:** In progress - full ARM64 UX shell deployed and private-beta release
 packaging established. Optimized source order supports no additions, automatic
@@ -7,7 +7,7 @@ order supports automatic and exact-count internal-gap additions. Completed
 previews are read-only until the user accepts them as a verified copy, confirmed
 source overwrite, or player-queue output. Static scoring, matrix-free Adaptive
 fallback, per-job variation, and optional Last.fm similar-track/artist guidance
-are connected; incomplete endpoint controls, provider-owned durable caches,
+are connected; incomplete explicit endpoint controls, duration targets, provider-owned durable caches,
 history, localization, cancellation, player-queue input, and destination-routing
 capabilities remain visibly marked.  
 **Date:** 2026-08-08  
@@ -16,8 +16,8 @@ bridge-insertion workflow, add order-preserving gap filling and destination
 routes for the live queue, add saved-playlist generation from a short immutable
 seed set, and deliver it as a separately maintained Lyrion plugin without
 requiring Python on the server or modifying `lms-blissmixer`.  
-**Latest implementation checkpoint:** [Accept-time output targets and release packaging](IMPLEMENTATION_CHECKPOINT_29.md)  
-**Previous checkpoints:** [Per-job variation and optional Last.fm track/artist evidence](IMPLEMENTATION_CHECKPOINT_28.md), [Finalized Grow from these seeds](IMPLEMENTATION_CHECKPOINT_27.md), [Draft retention, audit clarity, and second-server deployment](IMPLEMENTATION_CHECKPOINT_26.md), [LMS-local bridge inventory and persistent audit](IMPLEMENTATION_CHECKPOINT_25.md), [Preserve source order and fill gaps](IMPLEMENTATION_CHECKPOINT_24.md), [Strict-rank bridge shortlist and live scaling](IMPLEMENTATION_CHECKPOINT_23.md), [Prepared-library cache and measured Pi performance](IMPLEMENTATION_CHECKPOINT_22.md), [Live exact-count extension](IMPLEMENTATION_CHECKPOINT_21.md), [Accessible outcomes and monochrome Extras icon](IMPLEMENTATION_CHECKPOINT_20.md), [Clarified job controls and extension icon](IMPLEMENTATION_CHECKPOINT_19.md), [Visible outcomes and safe copy naming](IMPLEMENTATION_CHECKPOINT_18.md), [Live automatic extension](IMPLEMENTATION_CHECKPOINT_17.md), [Verified optimized-copy persistence](IMPLEMENTATION_CHECKPOINT_16.md), [Complete UX shell](IMPLEMENTATION_CHECKPOINT_15.md), [First live Lyrion preview](IMPLEMENTATION_CHECKPOINT_14.md), [Explicit endpoint insertion](IMPLEMENTATION_CHECKPOINT_13.md), [Multi-track preserved-gap routing](IMPLEMENTATION_CHECKPOINT_12.md), [Preserve-order gap-filling preview](IMPLEMENTATION_CHECKPOINT_11.md), [Exact-count bridge-selection preview](IMPLEMENTATION_CHECKPOINT_10.md), [Automatic bridge-selection preview](IMPLEMENTATION_CHECKPOINT_9.md), [Provider-neutral semantic bridge ranking](IMPLEMENTATION_CHECKPOINT_8.md), [Native bridge-analysis CLI](IMPLEMENTATION_CHECKPOINT_7.md), [Contextual bridge-scoring kernel](IMPLEMENTATION_CHECKPOINT_6.md), [Deterministic native route search](IMPLEMENTATION_CHECKPOINT_5.md), [Parallel contextual scoring](IMPLEMENTATION_CHECKPOINT_4.md), [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md), [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)  
+**Latest implementation checkpoint:** [Target and double track-count presets](IMPLEMENTATION_CHECKPOINT_30.md)  
+**Previous checkpoints:** [Accept-time output targets and release packaging](IMPLEMENTATION_CHECKPOINT_29.md), [Per-job variation and optional Last.fm track/artist evidence](IMPLEMENTATION_CHECKPOINT_28.md), [Finalized Grow from these seeds](IMPLEMENTATION_CHECKPOINT_27.md), [Draft retention, audit clarity, and second-server deployment](IMPLEMENTATION_CHECKPOINT_26.md), [LMS-local bridge inventory and persistent audit](IMPLEMENTATION_CHECKPOINT_25.md), [Preserve source order and fill gaps](IMPLEMENTATION_CHECKPOINT_24.md), [Strict-rank bridge shortlist and live scaling](IMPLEMENTATION_CHECKPOINT_23.md), [Prepared-library cache and measured Pi performance](IMPLEMENTATION_CHECKPOINT_22.md), [Live exact-count extension](IMPLEMENTATION_CHECKPOINT_21.md), [Accessible outcomes and monochrome Extras icon](IMPLEMENTATION_CHECKPOINT_20.md), [Clarified job controls and extension icon](IMPLEMENTATION_CHECKPOINT_19.md), [Visible outcomes and safe copy naming](IMPLEMENTATION_CHECKPOINT_18.md), [Live automatic extension](IMPLEMENTATION_CHECKPOINT_17.md), [Verified optimized-copy persistence](IMPLEMENTATION_CHECKPOINT_16.md), [Complete UX shell](IMPLEMENTATION_CHECKPOINT_15.md), [First live Lyrion preview](IMPLEMENTATION_CHECKPOINT_14.md), [Explicit endpoint insertion](IMPLEMENTATION_CHECKPOINT_13.md), [Multi-track preserved-gap routing](IMPLEMENTATION_CHECKPOINT_12.md), [Preserve-order gap-filling preview](IMPLEMENTATION_CHECKPOINT_11.md), [Exact-count bridge-selection preview](IMPLEMENTATION_CHECKPOINT_10.md), [Automatic bridge-selection preview](IMPLEMENTATION_CHECKPOINT_9.md), [Provider-neutral semantic bridge ranking](IMPLEMENTATION_CHECKPOINT_8.md), [Native bridge-analysis CLI](IMPLEMENTATION_CHECKPOINT_7.md), [Contextual bridge-scoring kernel](IMPLEMENTATION_CHECKPOINT_6.md), [Deterministic native route search](IMPLEMENTATION_CHECKPOINT_5.md), [Parallel contextual scoring](IMPLEMENTATION_CHECKPOINT_4.md), [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md), [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)  
 **Reference implementation:** The tracked Python tools and sanitized 2025/2026
 execution reports in this repository remain a migration and parity oracle until
 the Rust implementation reaches declared parity. They are not the normative
@@ -38,7 +38,7 @@ inventory follows this table.
 | Add bridge tracks automatically where transitions are difficult | ✅ Available | Bliss-only automatic insertion is connected; it may correctly decide that zero additions are needed. |
 | Add exactly N tracks | ✅ Available | Enter a strict count per job, Preview exactly that many unique internal additions or a clear failure, and accept the reviewed result as a verified copy, confirmed source overwrite, or player-queue output. The current connected limit is one addition per internal optimized transition (`N <= S - 1`); non-LMS Bliss rows are removed before search and every selected bridge is still revalidated before persistence. |
 | Add one bridge between every pair of original tracks | ⬜ Planned | The strict one-per-transition preset is visible but disabled. |
-| Reach a chosen target length or double the playlist | ⬜ Planned | These strict presets will wrap exact-count insertion and explain the original/additional/total calculation. |
+| Reach a chosen target track count or double the playlist by count | ✅ Available | These strict presets wrap exact-count insertion, derive the required additions from the original/additional/total calculation, and use opening/closing slots only when needed. Duration-based targets remain future work. |
 | Grow a short seed playlist into a full similar playlist | ✅ Available | The plugin grows an immutable source set to an exact target, selects only current LMS-local analyzed additions, routes the complete membership, and reports fixed-seed relevance separately from final-route flow. Per-job Variation changes membership reproducibly, and optional Last.fm similar-track/artist evidence can guide selection without becoming an online requirement. |
 | Preserve the existing song order and fill its gaps | ✅ Available | Choose preserved source order with automatic or exact-count additions. Every original remains in exact relative order; this first UI slice permits one addition per internal gap and no endpoints. |
 | Allow explicit opening or closing additions | 🟡 Engine only | Native capacity-one endpoint slots exist; user controls and result presentation are missing. |
@@ -72,7 +72,7 @@ workflow is connected; those are listed separately.
 | 🟡 Partial | Some layers or UX scaffolding exist, but the capability is not complete end to end. |
 | ⬜ Not implemented | Roadmap contract exists, but no usable implementation is connected. |
 
-Current inventory: **46 implemented**, **17 partial**, and **10 not implemented
+Current inventory: **50 implemented**, **17 partial**, and **6 not implemented
 or later-roadmap** rows. These are feature rows, not a percentage-complete
 release estimate; foundational and user-facing capabilities intentionally have
 the same row weight.
@@ -113,8 +113,8 @@ the same row weight.
 | Playlist workflow | Add automatically: Preview and create copy | ✅ Implemented | Bliss-only automatic insertion is connected end to end and may correctly add zero tracks. |
 | Playlist workflow | Add exactly N tracks | ✅ Implemented | Per-job N, `S - 1` validation, native invocation, all-or-nothing normalization, result diagnostics, verified copy persistence, and live ARM64 exercise are connected. |
 | Playlist workflow | One bridge per source-track transition | ⬜ Not implemented | The strict `S - 1` preset is visible but disabled and has no plugin orchestration. |
-| Playlist workflow | Reach target length | ⬜ Not implemented | The `T - S` exact-count wrapper and calculation UI are not connected. |
-| Playlist workflow | Double playlist length | ⬜ Not implemented | The strict `N = S` preset and endpoint policy are not connected. |
+| Playlist workflow | Reach target track count | ✅ Implemented | The plugin validates the final track count, calculates `N = T - S`, sends a schema-compatible exact-count request, and enables opening/closing slots only when internal gaps alone cannot reach the target. Duration targeting remains future work. |
+| Playlist workflow | Double playlist by track count | ✅ Implemented | The preset calculates `T = 2S` and `N = S`, reuses exact-count insertion, and uses at most one endpoint slot when `S - 1` internal gaps are insufficient. Duration-based doubling remains future work. |
 | Playlist workflow | Grow a short seed playlist to an exact target | ✅ Implemented | The plugin connects exact target, immutable seeds, strict proofs, per-job Variation, optional Last.fm similar-track/artist guidance, result diagnostics, form restoration, and accept-time output actions. Multiple live seeds selected different memberships, and corrected seed-growth requests completed with every acceptance proof passing. |
 | Playlist workflow | Preserve source order and fill gaps | ✅ Implemented | Automatic and exact-count internal-gap Previews are connected, visibly prove immutable source order, and feed the existing verified-copy path. The current UI permits one addition per gap and no endpoints. |
 | Playlist workflow | Opening/closing-track controls | 🟡 Partial | Native flags exist; job fields, validation text, and Lyrion result rendering are missing. |
@@ -598,8 +598,8 @@ Configuration has three distinct sources:
    budget, report retention, and output-name suffixes. Every preference needs a
    safe default, validation, and migration behavior.
 3. **Per-job choices:** ordering policy, automatic or exact-count extension,
-   target length, endpoint additions, output name, destination, and any explicit
-   source-replacement confirmation belong to Preview/Create workflows. They are
+   target track count or future duration target, endpoint additions, output name,
+   destination, and any explicit source-replacement confirmation belong to Preview/Create workflows. They are
    not silently promoted to global defaults.
 
 The plugin must remain useful without mandatory manual configuration: supported
@@ -745,7 +745,7 @@ the same invariants:
 
 - let `S` be the number of unique original tracks;
 - preserve all `S` original tracks exactly once and never remove one to satisfy
-  a target length;
+  a target track count or future duration target;
 - either optimize their directional order or retain their exact source order,
   according to the selected workflow;
 - apply the captured artist, album, and track look-back windows to the complete
@@ -828,27 +828,27 @@ less direct. If any transition has no eligible bridge, the strict preset fails
 and the preview identifies the blocked transitions; the UI may then offer to
 switch to Extend automatically rather than silently producing a partial result.
 
-#### Target length and Double length
+#### Target track count and Double track count
 
-Target length is a convenience wrapper around Add exactly N tracks. For a
-requested total `T`, require `T >= S` and calculate `N = T - S`. A smaller
-target is invalid because this product does not discard curated originals.
+Target track count is a convenience wrapper around Add exactly N tracks. For a
+requested final track count `T`, require `T > S` and calculate `N = T - S`. A
+smaller or equal target is invalid because this product does not discard
+curated originals and this mode exists specifically to add tracks.
 
-Double length sets `T = 2S`, and therefore requests `N = S` additions. This is
-not the same as One bridge per transition: that preset adds only `S - 1` and
-produces `2S - 1`. With optimized ordering, Double length normally fills
-viable internal transitions and uses an endpoint slot where necessary. With
-preserved ordering, it may place multiple additions inside fixed anchor gaps
-and uses endpoints only when explicitly enabled. It retains the same strict
-failure rule as Add exactly N tracks if the target cannot be reached safely.
+Double track count sets `T = 2S`, and therefore requests `N = S` additions. This
+is not the same as One bridge per transition: that preset adds only `S - 1` and
+produces `2S - 1`. The connected count-preset slice permits at most one bridge
+per internal gap for either optimized or preserved ordering, and enables an
+opening or closing slot only when internal gaps alone cannot reach the requested
+count. It retains the same strict failure rule as Add exactly N tracks if the
+target cannot be reached safely.
 
 The UI should always show the calculation before Preview:
-
 ```text
 Source:       20 tracks
 Target:       40 tracks
 To be added:  20 tracks
-Mode:         Double length (strict)
+Mode:         Double track count (strict)
 ```
 
 #### Grow from these seeds
@@ -1004,7 +1004,7 @@ or failing only after the user has configured a job.
 2. **Choose ordering policy:** Optimize order or Preserve order and fill gaps.
    Explain in one sentence whether original order may change.
 3. **Choose extension policy:** none where meaningful, Auto, exactly `N`, one
-   per original transition, target length, or double length. Show the resulting
+   per original transition, target track count, double track count, or future duration target. Show the resulting
    count calculation before continuing.
 4. **Review job options:** output name/disposition, endpoint-addition policy
    where relevant, mixing strategy and its parameters, track/artist/album
