@@ -1,23 +1,27 @@
 ﻿# Better Call Bliss productization and implementation plan
 
 **Status:** In progress - full ARM64 UX shell deployed and private-beta release
-packaging established. Optimized source order supports no additions, automatic
-additions, exact-count additions, and seed-growth playlists; preserved source
-order supports automatic and exact-count internal-gap additions. Completed
-previews are read-only until the user accepts them as a verified copy, confirmed
-source overwrite, or player-queue output. Static scoring, matrix-free Adaptive
-fallback, per-job variation, and optional Last.fm similar-track/artist guidance
-are connected; incomplete explicit endpoint controls, duration targets, provider-owned durable caches,
-history, localization, cancellation, player-queue input, and destination-routing
-capabilities remain visibly marked.  
-**Date:** 2026-08-08  
+packaging established. Version `0.14.4` is published and listed through the
+private Lyrion extension repository. Optimized source order supports no
+additions, automatic additions, exact-count additions, target/double track-count
+presets, and seed-growth playlists; preserved source order supports automatic,
+exact-count, target-count, and double-count gap additions. Completed previews
+are read-only until the user accepts them as a verified copy, confirmed source
+overwrite, or player-queue output. Static scoring, matrix-free Adaptive
+fallback, per-job variation, optional Last.fm similar-track/artist guidance,
+saved-playlist context preselection, and the first **Bliss me there…** anchored
+bridge slice are connected. Incomplete explicit endpoint controls, duration
+targets, provider-owned durable caches, history, localization, cancellation,
+player-queue input, and native multi-hop destination-routing capabilities remain
+visibly marked.  
+**Date:** 2026-08-09  
 **Primary objective:** Productize the experimentally exercised playlist sequencing and
 bridge-insertion workflow, add order-preserving gap filling and destination
 routes for the live queue, add saved-playlist generation from a short immutable
 seed set, and deliver it as a separately maintained Lyrion plugin without
 requiring Python on the server or modifying `lms-blissmixer`.  
-**Latest implementation checkpoint:** [Target and double track-count presets](IMPLEMENTATION_CHECKPOINT_30.md)  
-**Previous checkpoints:** [Accept-time output targets and release packaging](IMPLEMENTATION_CHECKPOINT_29.md), [Per-job variation and optional Last.fm track/artist evidence](IMPLEMENTATION_CHECKPOINT_28.md), [Finalized Grow from these seeds](IMPLEMENTATION_CHECKPOINT_27.md), [Draft retention, audit clarity, and second-server deployment](IMPLEMENTATION_CHECKPOINT_26.md), [LMS-local bridge inventory and persistent audit](IMPLEMENTATION_CHECKPOINT_25.md), [Preserve source order and fill gaps](IMPLEMENTATION_CHECKPOINT_24.md), [Strict-rank bridge shortlist and live scaling](IMPLEMENTATION_CHECKPOINT_23.md), [Prepared-library cache and measured Pi performance](IMPLEMENTATION_CHECKPOINT_22.md), [Live exact-count extension](IMPLEMENTATION_CHECKPOINT_21.md), [Accessible outcomes and monochrome Extras icon](IMPLEMENTATION_CHECKPOINT_20.md), [Clarified job controls and extension icon](IMPLEMENTATION_CHECKPOINT_19.md), [Visible outcomes and safe copy naming](IMPLEMENTATION_CHECKPOINT_18.md), [Live automatic extension](IMPLEMENTATION_CHECKPOINT_17.md), [Verified optimized-copy persistence](IMPLEMENTATION_CHECKPOINT_16.md), [Complete UX shell](IMPLEMENTATION_CHECKPOINT_15.md), [First live Lyrion preview](IMPLEMENTATION_CHECKPOINT_14.md), [Explicit endpoint insertion](IMPLEMENTATION_CHECKPOINT_13.md), [Multi-track preserved-gap routing](IMPLEMENTATION_CHECKPOINT_12.md), [Preserve-order gap-filling preview](IMPLEMENTATION_CHECKPOINT_11.md), [Exact-count bridge-selection preview](IMPLEMENTATION_CHECKPOINT_10.md), [Automatic bridge-selection preview](IMPLEMENTATION_CHECKPOINT_9.md), [Provider-neutral semantic bridge ranking](IMPLEMENTATION_CHECKPOINT_8.md), [Native bridge-analysis CLI](IMPLEMENTATION_CHECKPOINT_7.md), [Contextual bridge-scoring kernel](IMPLEMENTATION_CHECKPOINT_6.md), [Deterministic native route search](IMPLEMENTATION_CHECKPOINT_5.md), [Parallel contextual scoring](IMPLEMENTATION_CHECKPOINT_4.md), [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md), [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)  
+**Latest implementation checkpoint:** [Context entry points and 0.14.4 release](IMPLEMENTATION_CHECKPOINT_31.md)  
+**Previous checkpoints:** [Target and double track-count presets](IMPLEMENTATION_CHECKPOINT_30.md), [Accept-time output targets and release packaging](IMPLEMENTATION_CHECKPOINT_29.md), [Per-job variation and optional Last.fm track/artist evidence](IMPLEMENTATION_CHECKPOINT_28.md), [Finalized Grow from these seeds](IMPLEMENTATION_CHECKPOINT_27.md), [Draft retention, audit clarity, and second-server deployment](IMPLEMENTATION_CHECKPOINT_26.md), [LMS-local bridge inventory and persistent audit](IMPLEMENTATION_CHECKPOINT_25.md), [Preserve source order and fill gaps](IMPLEMENTATION_CHECKPOINT_24.md), [Strict-rank bridge shortlist and live scaling](IMPLEMENTATION_CHECKPOINT_23.md), [Prepared-library cache and measured Pi performance](IMPLEMENTATION_CHECKPOINT_22.md), [Live exact-count extension](IMPLEMENTATION_CHECKPOINT_21.md), [Accessible outcomes and monochrome Extras icon](IMPLEMENTATION_CHECKPOINT_20.md), [Clarified job controls and extension icon](IMPLEMENTATION_CHECKPOINT_19.md), [Visible outcomes and safe copy naming](IMPLEMENTATION_CHECKPOINT_18.md), [Live automatic extension](IMPLEMENTATION_CHECKPOINT_17.md), [Verified optimized-copy persistence](IMPLEMENTATION_CHECKPOINT_16.md), [Complete UX shell](IMPLEMENTATION_CHECKPOINT_15.md), [First live Lyrion preview](IMPLEMENTATION_CHECKPOINT_14.md), [Explicit endpoint insertion](IMPLEMENTATION_CHECKPOINT_13.md), [Multi-track preserved-gap routing](IMPLEMENTATION_CHECKPOINT_12.md), [Preserve-order gap-filling preview](IMPLEMENTATION_CHECKPOINT_11.md), [Exact-count bridge-selection preview](IMPLEMENTATION_CHECKPOINT_10.md), [Automatic bridge-selection preview](IMPLEMENTATION_CHECKPOINT_9.md), [Provider-neutral semantic bridge ranking](IMPLEMENTATION_CHECKPOINT_8.md), [Native bridge-analysis CLI](IMPLEMENTATION_CHECKPOINT_7.md), [Contextual bridge-scoring kernel](IMPLEMENTATION_CHECKPOINT_6.md), [Deterministic native route search](IMPLEMENTATION_CHECKPOINT_5.md), [Parallel contextual scoring](IMPLEMENTATION_CHECKPOINT_4.md), [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md), [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)  
 **Reference implementation:** The tracked Python tools and sanitized 2025/2026
 execution reports in this repository remain a migration and parity oracle until
 the Rust implementation reaches declared parity. They are not the normative
@@ -54,12 +58,12 @@ inventory follows this table.
 | Explicitly overwrite the source playlist | ✅ Available | Completed previews can be accepted as a confirmed source overwrite with generated-M3U verification, LMS catalog replacement, and recovery attempt on publication failure. |
 | Send the accepted preview to a player queue | ✅ Available | Completed previews can replace, append to, or play next on a selected player queue, with optional playback start. |
 | Start from the Extras job editor | ✅ Available | The rich per-job editor is the working primary interface. |
-| Start from a saved-playlist context action | 🟡 Shortcut only | The item exists but currently directs the user to Extras instead of preselecting and carrying the playlist into the workflow. |
-| Use **Bliss me there…** to append a fluent route to a selected track | 🟡 Placeholder only | The context action exists, but destination routing, Preview, and append-to-queue are not implemented. |
+| Start from a saved-playlist context action | ✅ Available | The context item opens the Better Call Bliss Extras job editor with the selected saved playlist preselected. In Material this appears through the item menu / More affordance rather than as a permanent inline row button. |
+| Use **Bliss me there…** to append a fluent route to a selected track | 🟡 First slice available | The track context item opens the job editor with the selected player and destination prefilled. The connected slice preserves the current queue tail and selected track as anchors, inserts one bridge with the existing exact-count bridge engine, and appends only the generated suffix after Preview acceptance. Native multi-hop fixed-destination routing remains open. |
 | See running, success, failure, and accept-action outcomes in the UI | ✅ Available | The page polls current jobs and presents accessible, actionable status banners for previews, copy creation, source overwrite, and player-queue output without requiring log inspection. |
 | Cancel jobs, resume after restart, and browse/export past results | 🟡 Limited | Current in-memory jobs can be polled by ID; cancellation, restart recovery, durable history, and report export are missing. |
 | Configure durable defaults and inspect system readiness | 🟡 Partial | The settings page and core readiness checks exist; complete provider, active-job, and persistence-health status is unfinished. |
-| Install and update from a Lyrion extension repository | 🟡 Private beta | The plugin release workflow builds ZIP/checksum artifacts, bundles optimizer binaries, publishes GitHub releases, and updates `chrober/lms-plugins`. Clean install/upgrade/failure testing and public compatibility documentation remain. |
+| Install and update from a Lyrion extension repository | 🟡 Private beta | The plugin release workflow builds ZIP/checksum artifacts, bundles optimizer binaries, publishes GitHub releases, and updates `chrober/lms-plugins`; `0.14.4` was published successfully through this path. Clean install/upgrade/failure testing and public compatibility documentation remain. |
 
 ## Detailed roadmap status
 
@@ -74,7 +78,7 @@ workflow is connected; those are listed separately.
 | 🟡 Partial | Some layers or UX scaffolding exist, but the capability is not complete end to end. |
 | ⬜ Not implemented | Roadmap contract exists, but no usable implementation is connected. |
 
-Current inventory: **50 implemented**, **17 partial**, and **8 not implemented
+Current inventory: **51 implemented**, **16 partial**, and **8 not implemented
 or later-roadmap** rows. These are feature rows, not a percentage-complete
 release estimate; foundational and user-facing capabilities intentionally have
 the same row weight.
@@ -103,7 +107,7 @@ the same row weight.
 | Native routing | Multiple inserted tracks inside one preserved gap | ✅ Implemented | Bounded one-through-eight-track internal gap routes are supported. |
 | Native routing | Explicit opening and closing insertion slots | ✅ Implemented | Capacity-one endpoint slots are independent opt-ins in exact-count native requests. |
 | Native routing | Seed-set relevance selection and diversity-aware growth | ✅ Implemented | The `seed_growth` request ranks the LMS-local analyzed library in parallel against one Adaptive context built from the complete immutable source set, applies repeat-window capacity during exact membership selection, and routes the complete fixed membership with deterministic Rayon search. Seeded weighted sampling varies membership inside a bounded high-quality pool; Last.fm-endorsed similar-track and similar-artist targets are applied when usable evidence exists. |
-| Native routing | Fixed-destination route generation | ⬜ Not implemented | Required by **Bliss me there…**; native destination requests remain open. |
+| Native routing | Fixed-destination route generation | ⬜ Not implemented | Native destination-locked route requests remain open. The current **Bliss me there…** UX uses a plugin-composed two-anchor exact-count bridge request as a first slice, not a native multi-hop destination route. |
 | Lyrion integration | BlissMixer compatibility and inherited defaults | ✅ Implemented | Database, matrix, strategy parameters, and repeat windows are captured read-only. |
 | Lyrion integration | Per-job scoring, repeat, search, variation, provider, and extension controls | ✅ Implemented | Working modes receive validated job-local overrides without changing BlissMixer preferences. Blank generation seeds are regenerated per job and explicit seeds are retained for reproducibility. |
 | Lyrion integration | Extras rich-job editor | ✅ Implemented | The live ARM64 server exposes the form, relevance rules, Advanced controls, result area, and working/not-connected labels. |
@@ -125,8 +129,8 @@ the same row weight.
 | Playlist workflow | Explicit source-playlist overwrite | ✅ Implemented | Completed previews can be accepted as source overwrite only after explicit confirmation; generated output is verified and the writer attempts to restore the original file if publication fails. |
 | Playlist workflow | Player-queue output target | ✅ Implemented | Completed previews can be sent to a selected player as Replace queue, Append to queue, or Play next, with optional playback start. |
 | Playlist workflow | Playlist-embedded provenance comments | ⬜ Not implemented | Generated M3Us should include safe Better Call Bliss comment blocks with plugin/native versions, request schema, selected parameters, source playlist identity, original source positions, generated-track roles, report ID, and hashes sufficient for later audit without leaking more than the playlist already contains. |
-| Entry points | Saved-playlist context action | 🟡 Partial | The shortcut is registered but informational; it directs the user to Extras instead of carrying workflow state. |
-| Entry points | Track action **Bliss me there…** | 🟡 Partial | The context item is informational; destination routing, Preview, and append-to-queue are missing. |
+| Entry points | Saved-playlist context action | ✅ Implemented | The shortcut opens the Extras editor with the selected saved playlist preselected. Material exposes it through the item menu / More affordance rather than as a permanent inline button. |
+| Entry points | Track action **Bliss me there…** | 🟡 Partial | The first working slice opens the Extras editor with the selected player and destination track prefilled, previews current queue tail → one bridge → destination using the exact-count bridge engine, and appends only the generated suffix after acceptance. Native multi-hop destination routing, Auto/no-bridge cases, and exact multi-intermediate choices remain. |
 | Jobs and UX | Running, success, failure, and accept-action feedback | ✅ Implemented | Automatic polling and prominent actionable outcome banners are live for previews, copy creation, source overwrite, and player-queue output. |
 | Jobs and UX | Restore submitted job values after an outcome | ✅ Implemented | Polling, failure, successful Preview, and accept actions repopulate the rich editor from the job request so iterative tuning does not lose per-job values. Output choices are made after preview and changing them does not rerun the optimizer. |
 | Jobs and UX | Load previous parameters from playlist provenance | ⬜ Not implemented | If the selected input playlist contains trusted Better Call Bliss provenance comments, the Extras editor should offer to prefill the ordering, extension, scoring, repeat, variation, semantic, and search parameters used to create it. |
@@ -1296,8 +1300,8 @@ Release order:
 3. build native optimizer artifacts for the declared targets;
 4. publish optimizer artifacts plus SHA-256 checksums and provenance;
 5. update the LMS plugin's pinned artifact manifest;
-6. package separate Linux, macOS, and Windows plugin ZIPs containing only the
-   applicable native binaries;
+6. package the LMS plugin ZIP with the declared Linux, macOS, and Windows
+   optimizer binaries copied from the pinned optimizer release;
 7. verify ZIP root layout, permissions, `install.xml`, and executable smoke
    tests;
 8. publish the plugin GitHub release;
@@ -1896,3 +1900,5 @@ Adaptive scoring is contextual: its weight matrix depends on the preceding seed
 window. Do not cache or publish it as a single static pairwise matrix. Fixed
 Euclidean, statically weighted, and learned-matrix modes may use parallel
 pairwise matrices when implemented.
+
+
