@@ -1,4 +1,4 @@
-# Personalization and feedback
+﻿# Personalization and feedback
 
 **Status:** Living research and design proposal  
 **Primary scope:** Learned metrics, bliss-learner, and lower-effort adaptation  
@@ -193,6 +193,14 @@ listener's intrinsic similarity judgment. Skip timing is also correlated with
 musical section boundaries [[13]](../research/mixing-research.md#m13), so a skip can encode structure,
 position, or interruption rather than dislike. Weak signals must be evaluated
 by type and context instead of being pooled into one implicit preference label.
+The most promising local source of such weak evidence is a combination of
+human-curated playlists and reactions to Better Call Bliss previews. Curated
+membership, curated adjacency, accepted or rejected generated routes, bridge
+retention, post-save edits, and queue playback can all help select better
+questions for `bliss-learner`. Raw generated playlists should not be used as
+training truth by themselves, because that would mostly teach the learner to
+reproduce the metric that generated them. The detailed signal taxonomy is kept
+in [Playlist-derived learning signals](playlist-derived-learning.md).
 
 ### Matrix compatibility and blending
 

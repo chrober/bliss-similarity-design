@@ -1,4 +1,4 @@
-# Downstream consumers
+﻿# Downstream consumers
 
 **Status:** Living research and design proposal  
 **Primary scope:** MPD, LMS, mixer, learner, and other library integrations  
@@ -33,10 +33,14 @@ flowchart TB
         BA --> LDB[(bliss.db and optional<br/>enhanced sidecar)]
         LDB --> MX[chrober/bliss-mixer fork]
         MX --> PLUGIN[lms-blissmixer]
+        MX --> BCB[Better Call Bliss<br/>playlist optimizer]
         PLUGIN --> PLAYER[Lyrion/LMS players]
+        BCB --> PLAYER
 
         PLUGIN --> TRIP[(Personal survey<br/>triplets)]
+        BCB --> PE[(Playlist-derived<br/>typed observations)]
         TRIP --> LEARN[bliss-learner<br/>experiment]
+        PE -. active query and<br/>weak evidence .-> LEARN
         LDB --> LEARN
         LEARN --> LM[(Learned matrix)]
         LM --> MX
@@ -126,6 +130,15 @@ rejected continuations, skips with suitable context, repeated listening, and
 other consented behavioral signals can bootstrap a metric. Explicit questions
 can then be selected for uncertain, conflicting, or high-information cases
 rather than presented as a fixed 100-plus-round prerequisite.
+Better Call Bliss makes these signals more structured than ordinary playback
+history. It records whether a playlist was merely previewed, accepted as a
+copy, written over the source, sent to a player queue, grown from seeds, or
+changed by bridge insertion. Those events should be exposed to the learner as
+typed observations only after consent and retention policy are defined. Raw
+Better Call Bliss outputs should be treated as exposure records, not preference
+labels, until the user reacts to them. See
+[Playlist-derived learning signals](../mixing/playlist-derived-learning.md)
+for the proposed evidence taxonomy.
 
 This feedback remains model-relative and user-relative data and requires
 appropriate privacy and deletion policy. That analytical distinction does not
