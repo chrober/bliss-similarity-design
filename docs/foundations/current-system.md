@@ -23,7 +23,11 @@ The existing architecture is described in [ALGORITHMS.md](https://github.com/chr
   retains that upstream behavior and adds variance-based weighting plus
   learned-matrix loading, direct use, and blending support.
 - `lms-blissmixer` selects seeds, starts and calls the mixer fork, applies LMS
-  integration behavior, and adds returned tracks to the queue.
+  integration behavior, and adds returned tracks to the queue. It already
+  exposes the user-facing **Create bliss mix** / **Bliss Mix erstellen** action
+  for immediate Bliss-based mix generation; newer playlist-optimizer work should
+  credit that feature and define itself as a companion preview/persistence
+  workflow rather than a replacement.
 - Static Weights and Extended Isolation Forest are inherited mixer strategies.
   The fork's variance-based Adaptive Weighting is a third strategy, with the
   learned matrix available as an optional metric extension rather than a fourth

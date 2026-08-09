@@ -1,17 +1,18 @@
 # Better Call Bliss productization and implementation plan
 
 **Status:** In progress - full ARM64 UX shell deployed and private-beta release
-packaging established. Version `0.14.4` is published and listed through the
+packaging established. Version `0.15.0` is published and listed through the
 private Lyrion extension repository. Optimized source order supports no
-additions, automatic additions, exact-count additions, target/double track-count
-presets, and seed-growth playlists; preserved source order supports automatic,
-exact-count, target-count, and double-count gap additions. Completed previews
+additions, difficult-transition improvements, Extend playlist additions
+(exact count, target count, and double count), and seed-growth playlists;
+preserved source order supports difficult-transition improvements, exact-count,
+target-count, double-count, and seed-growth placement around ordered anchors. Completed previews
 are read-only until the user accepts them as a verified copy, confirmed source
 overwrite, or player-queue output. Static scoring, matrix-free Adaptive
 fallback, per-job variation, optional Last.fm similar-track/artist guidance,
 saved-playlist context preselection, and the first **Bliss me there…** anchored
 bridge slice are connected. Incomplete explicit endpoint controls, duration
-targets, provider-owned durable caches, history, localization, cancellation,
+targets, provider-owned durable caches, durable history, localization, persistence-phase cancellation,
 player-queue input, and native multi-hop destination-routing capabilities remain
 visibly marked.  
 **Date:** 2026-08-09  
@@ -39,13 +40,14 @@ inventory follows this table.
 | Re-run playlist optimization without re-preparing an unchanged Bliss library | ✅ Available | Warm jobs reuse a checksum-protected decoded library. Addition jobs also bound repeated evolving-route work to a deterministic 256-candidate shortlist per internal gap; the formerly four-minute native exact-eight request now completes in about 21 seconds. |
 | Exclude and review Bliss rows that are not current local LMS tracks | ✅ Available | Every addition job uses a frozen LMS-local allowlist before candidate search. A private persistent ledger records current and historically resolved unmatched rows with reason and first/last-seen observations; Extras and `bettercallbliss status` show its count and location. |
 | Reorder a curated saved playlist for better flow | ✅ Available | Select a playlist, optimize every original track exactly once, Preview the route, then accept it as a copy, confirmed source overwrite, or player-queue output. |
-| Use a current player queue as input | 🟡 Implemented locally | The Extras editor can select a saved playlist or current player queue. Queue input is captured as a frozen source snapshot with full queue, now-playing plus upcoming, or upcoming-only scopes. Queue output also has a replace-upcoming action for seamless active-player updates. LMS-side smoke testing and release packaging remain. |
+| Use a current player queue as input | 🟡 Implemented locally | The Extras editor can select a saved playlist or current player queue. Queue input is captured as a frozen source snapshot with full queue, now-playing plus upcoming, or upcoming-only scopes. Queue output also has a replace-upcoming action for seamless active-player updates, including accept-time snapshot reconciliation for same-player output. LMS-side smoke testing and release packaging remain. |
+| Choose addition purpose before amount details | ✅ Available | The Extras editor exposes a listener-facing **Additional tracks** purpose first: no additions, improve difficult transitions, Extend playlist, or grow from seeds. Only **Extend playlist** opens the second amount selector for exact additions, target count, or double count; it submits a native seed-growth request after calculating the requested final size. Internal strict gap-bridge modes remain specialized/advanced paths. |
 | Add bridge tracks automatically where transitions are difficult | ✅ Available | Bliss-only automatic insertion is connected; it may correctly decide that zero additions are needed. |
-| Add exactly N tracks | ✅ Available | Enter a strict count per job, Preview exactly that many unique internal additions or a clear failure, and accept the reviewed result as a verified copy, confirmed source overwrite, or player-queue output. The current connected limit is one addition per internal optimized transition (`N <= S - 1`); non-LMS Bliss rows are removed before search and every selected bridge is still revalidated before persistence. |
+| Extend playlist | ✅ Available | Enter exact additions, a final target count, or double-count per job. The plugin calculates the final size and uses grow-style membership selection, so the requested amount is not capped by internal source gaps. Non-LMS Bliss rows are removed before search and every selected addition is still revalidated before persistence. |
 | Fill every gap with N bridge tracks | ⬜ Planned | A strict per-gap preset will insert the same configured number of bridges between every adjacent pair of original tracks. `N = 1` replaces the old one-bridge-per-transition preset. |
-| Reach a chosen target track count or double the playlist by count | ✅ Available | These strict presets wrap exact-count insertion, derive the required additions from the original/additional/total calculation, and use opening/closing slots only when needed. Duration-based targets remain future work. |
-| Grow a short seed playlist into a full similar playlist | ✅ Available | The plugin grows an immutable source set to an exact target, selects only current LMS-local analyzed additions, routes the complete membership, and reports fixed-seed relevance separately from final-route flow. Per-job Variation changes membership reproducibly, and optional Last.fm similar-track/artist evidence can guide selection without becoming an online requirement. |
-| Preserve the existing song order and fill its gaps | ✅ Available | Choose preserved source order with automatic or exact-count additions. Every original remains in exact relative order; this first UI slice permits one addition per internal gap and no endpoints. |
+| Reach a chosen target track count or double the playlist by count | ✅ Available | These are amount choices under **Extend playlist**. They derive the required additions from the original/additional/total calculation and use grow-style membership selection. Duration-based targets remain future work. |
+| Grow a short seed playlist into a full similar playlist | ✅ Available | The plugin grows an immutable source set to an exact target, selects only current LMS-local analyzed additions, and either routes the complete membership freely or preserves the source-track order while placing additions around those anchors. It reports fixed-seed relevance separately from final-route flow. Per-job Variation changes membership reproducibly, and optional Last.fm similar-track/artist evidence can guide selection without becoming an online requirement. |
+| Preserve the existing song order and fill its gaps | ✅ Available | Choose preserved source order with difficult-transition improvements, Extend playlist, or seed growth. Every original remains in exact relative order; Extend playlist places selected additions around the ordered anchors instead of being capped by source-gap count. |
 | Allow explicit opening or closing additions | 🟡 Engine only | Native capacity-one endpoint slots exist; user controls and result presentation are missing. |
 | Choose scoring, context, repeat windows, variation, semantic guidance, and search effort per job | ✅ Available | Working modes accept job-local overrides initialized from BlissMixer without changing its global preferences. A blank generation seed varies a run; reusing the reported seed reproduces it. |
 | Use optional similar-track/artist evidence | 🟡 Partial | Last.fm similar-track and similar-artist evidence are connected through optional LastMix, use endpoint-local precedence with complete-source fallback, and degrade to Bliss on failures. ListenBrainz, a formal adapter boundary, and plugin-owned durable semantic caching remain. |
@@ -57,12 +59,12 @@ inventory follows this table.
 | Restore job options from Better Call Bliss playlist metadata | ⬜ Planned | When a generated playlist is selected as input, the plugin should detect embedded provenance and offer to prefill the previous job parameters instead of forcing manual reconstruction. |
 | Adjust a finished or failed job and run it again | ✅ Available | The Extras editor restores submitted ordering, extension, scoring, repeat, search, and semantic values after polling, failure, success, or accept actions instead of silently returning to global defaults. |
 | Explicitly overwrite the source playlist | ✅ Available | Completed previews can be accepted as a confirmed source overwrite with generated-M3U verification, LMS catalog replacement, and recovery attempt on publication failure. |
-| Send the accepted preview to a player queue | ✅ Available | Completed previews can replace, append to, or play next on a selected player queue, with optional playback start. |
+| Send the accepted preview to a player queue | ✅ Available | Completed previews can replace, replace only upcoming tracks, append to, or play next on a selected player queue, with optional playback start. Same-player replace-upcoming rechecks the live queue and trims already-played preview items when the snapshot is still recognizable. |
 | Start from the Extras job editor | ✅ Available | The rich per-job editor is the working primary interface. |
 | Start from a saved-playlist context action | ✅ Available | The context item opens the Better Call Bliss Extras job editor with the selected saved playlist preselected. In Material this appears through the item menu / More affordance rather than as a permanent inline row button. |
 | Use **Bliss me there…** to append a fluent route to a selected track | 🟡 First slice available | The track context item opens the job editor with the selected player and destination prefilled. The connected slice preserves the current queue tail and selected track as anchors, inserts one bridge with the existing exact-count bridge engine, and appends only the generated suffix after Preview acceptance. Native multi-hop fixed-destination routing remains open. |
 | See running, success, failure, and accept-action outcomes in the UI | ✅ Available | The page polls current jobs and presents accessible, actionable status banners for previews, copy creation, source overwrite, and player-queue output without requiring log inspection. |
-| Cancel jobs, resume after restart, and browse/export past results | 🟡 Limited | Current in-memory jobs can be polled by ID; cancellation, restart recovery, durable history, and report export are missing. |
+| Cancel jobs, resume after restart, and browse/export past results | 🟡 Limited | Current in-memory jobs can be polled by ID, listed in the Extras page, and cancelled while the native optimizer process is running. Restart recovery, durable history, persistence-phase cancellation, search, and report export are missing. |
 | Configure durable defaults and inspect system readiness | 🟡 Partial | The settings page and core readiness checks exist; complete provider, active-job, and persistence-health status is unfinished. |
 | Install and update from a Lyrion extension repository | 🟡 Private beta | The plugin release workflow builds ZIP/checksum artifacts, bundles optimizer binaries, publishes GitHub releases, and updates `chrober/lms-plugins`; `0.14.4` was published successfully through this path. Clean install/upgrade/failure testing and public compatibility documentation remain. |
 
@@ -79,7 +81,7 @@ workflow is connected; those are listed separately.
 | 🟡 Partial | Some layers or UX scaffolding exist, but the capability is not complete end to end. |
 | ⬜ Not implemented | Roadmap contract exists, but no usable implementation is connected. |
 
-Current inventory: **51 implemented**, **17 partial**, and **8 not implemented
+Current inventory: **51 implemented**, **18 partial**, and **7 not implemented
 or later-roadmap** rows. These are feature rows, not a percentage-complete
 release estimate; foundational and user-facing capabilities intentionally have
 the same row weight.
@@ -107,7 +109,7 @@ the same row weight.
 | Native routing | Immutable-anchor preserved-order routing | ✅ Implemented | Original tracks remain an identical ordered subsequence. |
 | Native routing | Multiple inserted tracks inside one preserved gap | ✅ Implemented | Bounded one-through-eight-track internal gap routes are supported. |
 | Native routing | Explicit opening and closing insertion slots | ✅ Implemented | Capacity-one endpoint slots are independent opt-ins in exact-count native requests. |
-| Native routing | Seed-set relevance selection and diversity-aware growth | ✅ Implemented | The `seed_growth` request ranks the LMS-local analyzed library in parallel against one Adaptive context built from the complete immutable source set, applies repeat-window capacity during exact membership selection, and routes the complete fixed membership with deterministic Rayon search. Seeded weighted sampling varies membership inside a bounded high-quality pool; Last.fm-endorsed similar-track and similar-artist targets are applied when usable evidence exists. |
+| Native routing | Seed-set relevance selection and diversity-aware growth | ✅ Implemented | The `seed_growth` request ranks the LMS-local analyzed library in parallel against one Adaptive context built from the complete immutable source set, applies repeat-window capacity during exact membership selection, and either routes the complete fixed membership with deterministic Rayon search or preserves the source-track order with a deterministic insertion pass for additions. Seeded weighted sampling varies membership inside a bounded high-quality pool; Last.fm-endorsed similar-track and similar-artist targets are applied when usable evidence exists. |
 | Native routing | Fixed-destination route generation | ⬜ Not implemented | Native destination-locked route requests remain open. The current **Bliss me there…** UX uses a plugin-composed two-anchor exact-count bridge request as a first slice, not a native multi-hop destination route. |
 | Lyrion integration | BlissMixer compatibility and inherited defaults | ✅ Implemented | Database, matrix, strategy parameters, and repeat windows are captured read-only. |
 | Lyrion integration | Per-job scoring, repeat, search, variation, provider, and extension controls | ✅ Implemented | Working modes receive validated job-local overrides without changing BlissMixer preferences. Blank generation seeds are regenerated per job and explicit seeds are retained for reproducibility. |
@@ -115,16 +117,17 @@ the same row weight.
 | Lyrion integration | Durable plugin settings surface | ✅ Implemented | `Settings.pm` persists suffixes, resource defaults, provider flags, cache policy, and retention defaults; unused future settings remain labelled. |
 | Lyrion integration | Complete capability/system-status dashboard | 🟡 Partial | Core readiness and problems are visible; provider, active-job, and persistence-health rows are incomplete. |
 | Lyrion integration | Namespaced command API | 🟡 Partial | `bettercallbliss status` exists; optimize, cancel, result, history, and `route_to` commands are not all exposed. |
-| Source input | Current player queue snapshot | 🟡 Local implementation | The plugin-side source adapter resolves a selected player queue into the canonical ordered source-track snapshot, supports full/current-plus-upcoming/upcoming-only scopes, restores the submitted source fields, and adds a replace-upcoming queue output action. It still needs LMS-side smoke testing, deployment, and release packaging before being marked generally available. |
+| Source input | Current player queue snapshot | 🟡 Local implementation | The plugin-side source adapter resolves a selected player queue into the canonical ordered source-track snapshot, supports full/current-plus-upcoming/upcoming-only scopes, restores the submitted source fields, stores a lightweight queue fingerprint, and adds a replace-upcoming queue output action with accept-time same-player reconciliation. It still needs LMS-side smoke testing, deployment, and release packaging before being marked generally available. |
 | Playlist workflow | Reorder existing tracks: Preview | ✅ Implemented | Live, asynchronous, read-only Preview with per-job constraints and actionable infeasibility is working. |
 | Playlist workflow | Reorder existing tracks: create optimized copy | ✅ Implemented | Reviewed output can be written as a verified new LMS playlist without changing the source. |
 | Playlist workflow | Add automatically: Preview and create copy | ✅ Implemented | Bliss-only automatic insertion is connected end to end and may correctly add zero tracks. |
-| Playlist workflow | Add exactly N tracks | ✅ Implemented | Per-job N, `S - 1` validation, native invocation, all-or-nothing normalization, result diagnostics, verified copy persistence, and live ARM64 exercise are connected. |
+| Playlist workflow | Repeat-window spacer repair for difficult-transition improvements | ⬜ Planned | True constraint repair needs a native selection/artifact expansion that can insert multiple spacer tracks solely to separate repeated artists or albums before acoustic transition improvement. Current automatic mode still requires a valid source route first; Grow with a large enough target can repair repeated-seed sets today. |
+| Playlist workflow | Extend playlist | ✅ Implemented | Per-job exact additions, target count, and double-count are mapped to native seed-growth membership selection, all-or-nothing normalization, result diagnostics, verified copy persistence, and live ARM64-compatible requests. |
 | Playlist workflow | Fill every gap with N bridge tracks | ⬜ Not implemented | The strict per-gap preset is not connected. For `S` originals and `B` bridges per gap, it must add exactly `B * (S - 1)` tracks and fail visibly if any original gap cannot be filled. |
-| Playlist workflow | Reach target track count | ✅ Implemented | The plugin validates the final track count, calculates `N = T - S`, sends a schema-compatible exact-count request, and enables opening/closing slots only when internal gaps alone cannot reach the target. Duration targeting remains future work. |
-| Playlist workflow | Double playlist by track count | ✅ Implemented | The preset calculates `T = 2S` and `N = S`, reuses exact-count insertion, and uses at most one endpoint slot when `S - 1` internal gaps are insufficient. Duration-based doubling remains future work. |
+| Playlist workflow | Reach target track count | ✅ Implemented | The plugin validates the final track count, calculates `N = T - S`, and uses native seed-growth membership selection. Duration targeting remains future work. |
+| Playlist workflow | Double playlist by track count | ✅ Implemented | The preset calculates `T = 2S` and `N = S`, then uses native seed-growth membership selection. Duration-based doubling remains future work. |
 | Playlist workflow | Grow a short seed playlist to an exact target | ✅ Implemented | The plugin connects exact target, immutable seeds, strict proofs, per-job Variation, optional Last.fm similar-track/artist guidance, result diagnostics, form restoration, and accept-time output actions. Multiple live seeds selected different memberships, and corrected seed-growth requests completed with every acceptance proof passing. |
-| Playlist workflow | Preserve source order and fill gaps | ✅ Implemented | Automatic and exact-count internal-gap Previews are connected, visibly prove immutable source order, and feed the existing verified-copy path. The current UI permits one addition per gap and no endpoints. |
+| Playlist workflow | Preserve source order and fill gaps | ✅ Implemented | Difficult-transition gap previews are connected, and Extend playlist / seed growth can preserve originals as ordered anchors while placing additions around them. Result proofs verify immutable source order before persistence. |
 | Playlist workflow | Opening/closing-track controls | 🟡 Partial | Native flags exist; job fields, validation text, and Lyrion result rendering are missing. |
 | Playlist workflow | Safe optimized-copy publication | ✅ Implemented | LMS-native M3U formatting, verification, exclusive creation, catalog creation, and order checks are working. |
 | Playlist workflow | Unicode-safe automatic names and collision numbering | ✅ Implemented | Blank names preserve the decoded source filename and choose the next free suffix; explicit collisions fail visibly. |
@@ -138,8 +141,8 @@ the same row weight.
 | Jobs and UX | Load previous parameters from playlist provenance | ⬜ Not implemented | If the selected input playlist contains trusted Better Call Bliss provenance comments, the Extras editor should offer to prefill the ordering, extension, scoring, repeat, variation, semantic, and search parameters used to create it. |
 | Jobs and UX | Accessible theme-independent status colors | ✅ Implemented | Warning/error/success/info contrast, nested warning content, and theme-aware secondary text are deployed. |
 | Jobs and UX | Monochrome Extras icon | ✅ Implemented | Material resolves the supported `timeline` marker; other consumers receive the packaged monochrome route PNG. |
-| Jobs and UX | Active-job navigation/resume and honest progress | 🟡 Partial | Current in-memory jobs can be polled by ID and show stages; durable navigation recovery and bounded progress are incomplete. |
-| Jobs and UX | Job cancellation and cleanup | ⬜ Not implemented | No cancellable process handle or persistence-phase cancellation confirmation is exposed. |
+| Jobs and UX | Active-job navigation/resume and honest progress | 🟡 Partial | Current in-memory jobs can be polled by ID, listed in the Extras page, opened from the list, and show stages; durable navigation recovery and bounded progress are incomplete. |
+| Jobs and UX | Job cancellation and cleanup | 🟡 Partial | Running Preview jobs expose Cancel in the current-job result and running/recent previews panel, terminating the native optimizer process and leaving playlists/queues unchanged. Persistence-phase cancellation, restart recovery, and cleanup tests remain. |
 | Jobs and UX | Durable recent-result history and report export | ⬜ Not implemented | Results and detailed artifacts are not retained as a user-facing durable history. |
 | Jobs and UX | Complete localization and no-JavaScript accessibility | 🟡 Partial | Settings have EN/DE strings and the form submits normally; the main workflow is English-first and full fallback/client testing remains. |
 | Semantic providers | Bliss-only offline operation | ✅ Implemented | Every connected workflow remains usable without a network provider; missing, disabled, partial, or failed Last.fm evidence falls back to local Bliss. |
@@ -151,7 +154,7 @@ the same row weight.
 | Observability | Lyrion log category and job correlation | 🟡 Partial | `plugin.bettercallbliss`, lifecycle records, parameters, and stable errors exist; full structured helper relay, rate limiting, and redaction tests remain. |
 | Observability | Native per-stage timings and repeatable Pi benchmark | ✅ Implemented | Optional result diagnostics report total/stage milliseconds and cache state; INFO/DEBUG plugin logs relay sanitized summaries, and a portable Perl cold/warm benchmark harness is published. |
 | Observability | Reproducible JSON and human-readable reports | 🟡 Partial | Native request/result artifacts and diagnostics exist; durable sanitized report retention/export is missing. |
-| Observability | Persistent non-LMS Bliss-row audit | ✅ Implemented | A private JSON ledger retains current and resolved unmatched identities, exact filename-case variants, reasons, metadata, row IDs, and first/last-seen observations across LMS restarts. INFO logs and `bettercallbliss status` expose only its count and location. In the current UX, Extras renders the box only after an addition Preview has prepared or loaded the inventory in the current LMS process; loading the persisted summary at page initialization remains a clarity improvement. |
+| Observability | Persistent non-LMS Bliss-row audit | ✅ Implemented | A private JSON ledger retains current and resolved unmatched identities, exact filename-case variants, reasons, metadata, row IDs, and first/last-seen observations across LMS restarts. INFO logs and `bettercallbliss status` expose only its count and location. In the current UX, Extras renders the diagnostic box only when the current inventory has excluded rows; loading the persisted summary at page initialization remains a clarity improvement. |
 | Performance | High-recall bridge-candidate shortlist before strict contextual reranking | ✅ Implemented | The plugin bounds evolving search to 256 candidates per internal gap after the full strict initial-gap Adaptive rank and semantic reserve. The exhaustive one-gap winner was preserved, and the formerly four-minute native exact-eight request completed in 21.1 seconds. |
 | Reliability | Analysis-running and database-consistency coordination | 🟡 Partial | Read-only access, artifact identity, and unchanged-database checks exist; complete scan scheduling, snapshot, and restart cases remain. |
 | Reliability | Server-restart recovery | ⬜ Not implemented | In-memory jobs/results do not survive LMS restart. |
@@ -657,6 +660,16 @@ upcoming tail. A disruptive full queue replace remains useful, but it should be
 an explicit choice because it may restart playback or change the currently
 playing track.
 
+Implemented local follow-up: same-player **replace upcoming tracks** now stores
+a lightweight queue fingerprint with the Preview and rechecks the live queue at
+accept time. If the current live item is still recognizable in the captured
+snapshot and accepted result, Better Call Bliss trims already-played preview
+items and replaces only the remaining tail. If the queue changed in a
+non-obvious way, it fails safely with a clear rerun/replace/append choice instead
+of silently applying a stale Preview. A later hardening pass can persist richer
+fingerprints, include timestamps in the UI, and add automated LMS integration
+tests around queue drift.
+
 ### LMS command surface
 
 Register a namespaced command family such as:
@@ -861,26 +874,13 @@ user cares about flow but does not care about reaching a particular length.
 Every non-insertion should be explainable as below threshold, no eligible local
 candidate after fallback, repeat conflict, or acoustic rejection.
 
-#### Add exactly N tracks
+#### Extend playlist by a chosen amount
 
-Create an output containing exactly `S + N` tracks. This is a strict request,
-not a target or best-effort hint. The optimizer ranks the most useful viable
-insertion positions, normally starting with the hardest internal transitions,
-while jointly preserving contextual quality and repeat windows.
+Create an output with a requested final size without exposing bridge-gap mechanics to the user. This is the listener-facing "make this playlist bigger" workflow. The user can ask to add exactly `N` tracks, reach a target count `T`, or double the source size; the plugin converts that choice into a native seed-growth request with `target_track_count`.
 
-With **Optimize order**, version 1 permits at most one added track in each
-original internal transition. Start and end slots may be used when the requested
-count cannot be met from eligible internal slots—for example when doubling a
-20-track playlist requires 20 additions but it has only 19 internal
-transitions, or when one internal gap has no acceptable bridge. With
-**Preserve order**, multiple additions may instead form a route inside one
-fixed anchor gap; opening and closing additions remain explicit opt-ins. If
-exactly `N` acceptable unique tracks cannot be placed under the selected
-rules, Preview fails visibly and creates no playlist. It must never quietly
-return fewer additions.
+The optimizer keeps every source track exactly once and ranks current LMS-local Bliss candidates against the complete source set as the fixed relevance reference. After membership selection, Optimize source order routes the complete extended set freely. Preserve source order keeps the originals as ordered anchors and places the selected additions around them when repeat windows can be satisfied.
 
-`N = 0` is equivalent to Reorder only. The UI should state the resulting total
-before execution, for example, "20 original + 8 additional = 28 tracks."
+This mode should fail only for real target or library constraints, such as target size above the supported limit, insufficient repeat-safe local candidates, or missing Bliss analysis. It must not fail merely because the source playlist has fewer internal gaps than the requested addition count. Strict gap bridge insertion remains a separate advanced/planned capability.
 
 #### Fill every gap with N bridge tracks
 
@@ -905,7 +905,7 @@ the blocked gaps; the UI may then offer to switch to Extend automatically rather
 than silently producing a partial result.
 #### Target track count and Double track count
 
-Target track count is a convenience wrapper around Add exactly N tracks. For a
+Target track count is a convenience wrapper around Extend playlist. For a
 requested final track count `T`, require `T > S` and calculate `N = T - S`. A
 smaller or equal target is invalid because this product does not discard
 curated originals and this mode exists specifically to add tracks.
@@ -915,7 +915,7 @@ is not the same as Fill every gap with one bridge: that preset adds only `S - 1`
 produces `2S - 1`. The connected count-preset slice permits at most one bridge
 per internal gap for either optimized or preserved ordering, and enables an
 opening or closing slot only when internal gaps alone cannot reach the requested
-count. It retains the same strict failure rule as Add exactly N tracks if the
+count. It retains the same strict failure rule as Extend playlist if the
 target cannot be reached safely.
 
 The UI should always show the calculation before Preview:
@@ -1213,7 +1213,7 @@ under [Configuration ownership](#configuration-ownership). The **Settings**
 application item shows a read-only summary and, where the client supports it, a
 link to the standard server settings page; otherwise it tells the administrator
 where to open it. It must not duplicate playlist selection, active jobs,
-reports, or history.
+reports, durable history, or restart recovery.
 
 #### Context actions and consistency
 
@@ -1557,10 +1557,9 @@ strategy controls, repeat windows, output disposition, result state, and
 explicit Working/Not connected yet labels. Adaptive parameters, repeat windows,
 search effort, and output disposition are captured per job. **Optimize source
 order** is executable with **None - reorder existing tracks only**, **Add
-automatically**, or **Add exactly N tracks**. Automatic mode owns a per-job
+automatically**, or **Extend playlist**. Automatic mode owns a per-job
 bridge budget and contextual trigger percentile; exact-count owns a validated
-count, displays the selected playlist's `S - 1` limit and final-size
-calculation, and fails instead of accepting a partial result. Both addition
+count and final-size calculation, and fails instead of accepting a partial result. Both addition
 modes render additions plus one decision per original gap. **Musical context
 window (previous tracks)** now states the
 directional rolling-history semantics, and **Additional route-search attempts**

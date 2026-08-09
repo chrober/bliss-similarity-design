@@ -303,6 +303,8 @@ Responsibilities:
 
 Responsibilities:
 
+- preserve and credit the existing **Create bliss mix** / **Bliss Mix
+  erstellen** action as the immediate mix-generation workflow;
 - expose enhanced similarity and transition experiments as opt-in settings
   during development;
 - retain the existing survey and learner integration while making
