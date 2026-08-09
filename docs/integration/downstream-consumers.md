@@ -1,4 +1,4 @@
-﻿# Downstream consumers
+# Downstream consumers
 
 **Status:** Living research and design proposal  
 **Primary scope:** MPD, LMS, mixer, learner, and other library integrations  

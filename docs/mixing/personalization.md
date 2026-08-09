@@ -1,4 +1,4 @@
-﻿# Personalization and feedback
+# Personalization and feedback
 
 **Status:** Living research and design proposal  
 **Primary scope:** Learned metrics, bliss-learner, and lower-effort adaptation  

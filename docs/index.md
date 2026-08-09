@@ -97,7 +97,7 @@ elsewhere in the site.
 | [`CDrummond/bliss-mixer`](https://github.com/CDrummond/bliss-mixer) | Original HTTP mixing service and source of the Static Weights and Extended Isolation Forest strategies. |
 | [`CDrummond/lms-blissmixer`](https://github.com/CDrummond/lms-blissmixer) | Original Lyrion Music Server plugin and upstream of the current `chrober/lms-blissmixer` fork. |
 | [`chrober/bliss-mixer`](https://github.com/chrober/bliss-mixer) | Mixer fork adding variance-based Adaptive Weighting and learned-matrix loading, use, and blending. |
-| [`chrober/lms-blissmixer`](https://github.com/chrober/lms-blissmixer) | LMS integration fork hosting the current similarity survey and user-facing experiments. |
+| [`chrober/lms-blissmixer`](https://github.com/chrober/lms-blissmixer) | LMS integration fork hosting the current similarity survey, learner integration, and the existing **Create bliss mix** / **Bliss Mix erstellen** action for immediate Bliss-based mix generation. |
 | [`chrober/bliss-learner`](https://github.com/chrober/bliss-learner) | Experimental Rust port of the `bliss-metric-learning` training workflow, adapted to the LMS survey and consumed by the mixer fork. |
 
 ### Platform and historical evidence

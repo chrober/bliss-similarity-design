@@ -230,3 +230,95 @@ production architecture.
 If a candidate eventually demonstrates sufficient value, affected maintainers
 can decide whether and how it fits their projects. That later implementation
 discussion is intentionally outside this document.
+
+#### `bliss-rs`
+
+The companion [Bliss Analysis
+Evolution](../index.md)
+design is authoritative for extraction APIs and representation contracts.
+
+Responsibilities:
+
+- preserve the current Version 2 `Analysis` result and cost;
+- expose reusable spectral, loudness, onset, tempo, chroma, tonal, and bass
+  measurements without requiring consumers to duplicate decoding or DSP;
+- provide optional analysis products such as global descriptor sets, aligned
+  or typed frame series, structure, anchors, and model-identified embeddings;
+- attach cross-cutting schema, provenance, confidence, and invariance metadata
+  to those products;
+- make requested products and their configuration explicit;
+- version representation schemas and support deterministic serialization;
+- keep player-specific persistence, retrieval, diversity, and sequencing out
+  of the audio-analysis contract.
+
+General-purpose novelty or segmentation primitives may live in the base crate,
+behind a feature, or in a companion module. That ownership detail remains open;
+reusable extraction itself belongs in `bliss-rs`.
+
+#### Library analysis orchestration
+
+**Working proposal:** extend `bliss-analyser` or introduce a small offline
+companion, provisionally called `bliss-feature-analyser`, to request structured
+`bliss-rs` products and persist them. It must not duplicate shared audio
+extraction or decode audio inside `bliss-mixer`. The final binary and repository
+ownership remain open.
+
+Responsibilities:
+
+- find tracks that have Bliss data but no current enhanced analysis;
+- request configured, versioned analysis products from `bliss-rs`;
+- run application-level experimental derivations that are not yet suitable for
+  a stable library API;
+- persist global descriptors, frame series, structure, segments, anchors,
+  optional embeddings, and their cross-cutting metadata in application-owned
+  storage;
+- attach validity and confidence estimates where a measurement can be
+  ambiguous or unstable;
+- update metadata atomically and report failures without damaging existing
+  Bliss data.
+
+The production path should consume `bliss-rs` directly or through an explicitly
+versioned binding. A prototype may compare external algorithms, but any retained
+shared DSP should be upstreamed or isolated behind a compatible component rather
+than becoming a second independent audio-analysis definition.
+
+#### `chrober/bliss-mixer` fork
+
+In this document, subsequent shorthand references to `bliss-mixer` mean the
+[`chrober/bliss-mixer`](https://github.com/chrober/bliss-mixer) fork unless an
+upstream repository is named explicitly.
+
+Responsibilities:
+
+- load enhanced metadata without requiring audio-analysis dependencies;
+- support experimental similarity criteria alongside the existing algorithms;
+- load a compatible personal metric and normalize it before blending with
+  context-derived matrices;
+- apply an optional, explicit diversity policy after relevance retrieval;
+- expose comparable baseline and enhanced scores for evaluation;
+- retain a larger globally suitable candidate pool when task-specific reranking
+  requires it;
+- identify the actual current boundary track;
+- optionally calculate transition compatibility for candidates with anchor data;
+- normalize global and transition scores over the pool;
+- combine scores, apply existing filtering/fallback semantics, and return the
+  requested count;
+- expose useful diagnostics for tuning and evaluation.
+
+#### `lms-blissmixer`
+
+Responsibilities:
+
+- preserve and credit the existing **Create bliss mix** / **Bliss Mix
+  erstellen** action as the immediate mix-generation workflow;
+- expose enhanced similarity and transition experiments as opt-in settings
+  during development;
+- retain the existing survey and learner integration while making
+  personalization useful at progressive evidence thresholds;
+- collect weak feedback only with clear semantics, privacy boundaries, and an
+  opt-out;
+- pass analysis/scoring configuration and metadata location to `bliss-mixer`;
+- package or locate the enhanced analyzer if this repository owns its
+  distribution;
+- surface analysis coverage/status where practical;
+- preserve existing behavior when the new binary or metadata is absent.

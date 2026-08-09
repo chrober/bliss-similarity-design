@@ -1,4 +1,4 @@
-﻿# Playlist-derived learning signals
+# Playlist-derived learning signals
 
 **Status:** Living research and design proposal  
 **Primary scope:** User-curated playlists, Better Call Bliss outputs, and lower-effort bliss-learner evidence  
