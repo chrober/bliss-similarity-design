@@ -1,4 +1,4 @@
-﻿# Better Call Bliss productization and implementation plan
+# Better Call Bliss productization and implementation plan
 
 **Status:** In progress - full ARM64 UX shell deployed and private-beta release
 packaging established. Version `0.14.4` is published and listed through the
@@ -39,6 +39,7 @@ inventory follows this table.
 | Re-run playlist optimization without re-preparing an unchanged Bliss library | ✅ Available | Warm jobs reuse a checksum-protected decoded library. Addition jobs also bound repeated evolving-route work to a deterministic 256-candidate shortlist per internal gap; the formerly four-minute native exact-eight request now completes in about 21 seconds. |
 | Exclude and review Bliss rows that are not current local LMS tracks | ✅ Available | Every addition job uses a frozen LMS-local allowlist before candidate search. A private persistent ledger records current and historically resolved unmatched rows with reason and first/last-seen observations; Extras and `bettercallbliss status` show its count and location. |
 | Reorder a curated saved playlist for better flow | ✅ Available | Select a playlist, optimize every original track exactly once, Preview the route, then accept it as a copy, confirmed source overwrite, or player-queue output. |
+| Use a current player queue as input | 🟡 Implemented locally | The Extras editor can select a saved playlist or current player queue. Queue input is captured as a frozen source snapshot with full queue, now-playing plus upcoming, or upcoming-only scopes. Queue output also has a replace-upcoming action for seamless active-player updates. LMS-side smoke testing and release packaging remain. |
 | Add bridge tracks automatically where transitions are difficult | ✅ Available | Bliss-only automatic insertion is connected; it may correctly decide that zero additions are needed. |
 | Add exactly N tracks | ✅ Available | Enter a strict count per job, Preview exactly that many unique internal additions or a clear failure, and accept the reviewed result as a verified copy, confirmed source overwrite, or player-queue output. The current connected limit is one addition per internal optimized transition (`N <= S - 1`); non-LMS Bliss rows are removed before search and every selected bridge is still revalidated before persistence. |
 | Fill every gap with N bridge tracks | ⬜ Planned | A strict per-gap preset will insert the same configured number of bridges between every adjacent pair of original tracks. `N = 1` replaces the old one-bridge-per-transition preset. |
@@ -78,7 +79,7 @@ workflow is connected; those are listed separately.
 | 🟡 Partial | Some layers or UX scaffolding exist, but the capability is not complete end to end. |
 | ⬜ Not implemented | Roadmap contract exists, but no usable implementation is connected. |
 
-Current inventory: **51 implemented**, **16 partial**, and **8 not implemented
+Current inventory: **51 implemented**, **17 partial**, and **8 not implemented
 or later-roadmap** rows. These are feature rows, not a percentage-complete
 release estimate; foundational and user-facing capabilities intentionally have
 the same row weight.
@@ -114,6 +115,7 @@ the same row weight.
 | Lyrion integration | Durable plugin settings surface | ✅ Implemented | `Settings.pm` persists suffixes, resource defaults, provider flags, cache policy, and retention defaults; unused future settings remain labelled. |
 | Lyrion integration | Complete capability/system-status dashboard | 🟡 Partial | Core readiness and problems are visible; provider, active-job, and persistence-health rows are incomplete. |
 | Lyrion integration | Namespaced command API | 🟡 Partial | `bettercallbliss status` exists; optimize, cancel, result, history, and `route_to` commands are not all exposed. |
+| Source input | Current player queue snapshot | 🟡 Local implementation | The plugin-side source adapter resolves a selected player queue into the canonical ordered source-track snapshot, supports full/current-plus-upcoming/upcoming-only scopes, restores the submitted source fields, and adds a replace-upcoming queue output action. It still needs LMS-side smoke testing, deployment, and release packaging before being marked generally available. |
 | Playlist workflow | Reorder existing tracks: Preview | ✅ Implemented | Live, asynchronous, read-only Preview with per-job constraints and actionable infeasibility is working. |
 | Playlist workflow | Reorder existing tracks: create optimized copy | ✅ Implemented | Reviewed output can be written as a verified new LMS playlist without changing the source. |
 | Playlist workflow | Add automatically: Preview and create copy | ✅ Implemented | Bliss-only automatic insertion is connected end to end and may correctly add zero tracks. |
@@ -615,6 +617,46 @@ BlissMixer settings are inherited, semantic providers may be disabled, and
 conservative operational defaults apply. Logging level remains owned by
 Lyrion's standard logging UI rather than `Settings.pm`.
 
+### Source snapshots
+
+Saved playlists and player queues should be treated as source adapters, not as
+different optimizer concepts. Both resolve to the same canonical input: a frozen,
+ordered snapshot of local LMS track identities plus source metadata, source
+scope, captured positions, and validation notes. The native optimizer should not
+need to know whether the sequence came from an M3U-backed playlist or from a
+player's transient queue.
+
+Queue input therefore belongs beside saved-playlist input in the Extras editor.
+When **Current player queue** is selected, the user chooses a player and one of
+these snapshot scopes:
+
+- **Use the full queue:** capture every playable local track currently in the
+  player queue.
+- **Use now-playing and upcoming tracks:** keep the current track as the first
+  captured source item, then include the remaining upcoming queue.
+- **Use only upcoming tracks:** ignore already-played and currently playing
+  items, and optimize only what is still ahead. This is the natural input for
+  seamless active-player updates, because the current song can keep playing while
+  Better Call Bliss prepares a better upcoming tail.
+
+The snapshot boundary also applies to saved playlists. A saved playlist may be
+modified by another client while Better Call Bliss is preparing or optimizing,
+and both playlists and queues may contain streams or other non-library entries.
+The source resolver must therefore make these cases explicit for every source
+type: either reject unsupported entries with an actionable message, or apply a
+visible documented skip policy before Preview. After the snapshot is captured,
+later source changes do not alter the running job; acceptance operates on the
+reviewed result, not on the live mutable source state.
+
+Queue output needs one extra active-playback contract. If the target player is
+currently playing and the user wants to keep listening, Better Call Bliss should
+support a **replace upcoming tracks** operation: leave the current playback item
+and playback state untouched, remove only the queue entries after the current
+position, then append or insert the accepted optimized result as the new
+upcoming tail. A disruptive full queue replace remains useful, but it should be
+an explicit choice because it may restart playback or change the currently
+playing track.
+
 ### LMS command surface
 
 Register a namespaced command family such as:
@@ -629,9 +671,15 @@ bettercallbliss result
 bettercallbliss history
 ```
 
-Commands should accept a playlist ID for the immediate request but resolve and
-record its URL/path because a playlist database ID is not stable across scanner
-recreation. Only one write phase may run for a target output name at a time.
+Commands should accept a source descriptor rather than only a playlist ID.
+Saved-playlist requests may pass a playlist ID for convenience, but the plugin
+must resolve and record the playlist URL/path because a playlist database ID is
+not stable across scanner recreation. Queue requests pass a player ID plus the
+selected snapshot scope, then capture the queue into the same ordered
+source-track snapshot before invoking the optimizer. Queue output commands
+should distinguish disruptive replace from seamless upcoming-tail replacement.
+Only one write phase may run for a target output name or player queue at a
+time.
 
 ### Optional semantic evidence adapters
 
@@ -762,10 +810,11 @@ destination comes from the canonical
 The labels and presets below are product choices; they must expose rather than
 blur those underlying contracts.
 
-It opens a workflow rather than changing the playlist immediately. The user
-first chooses whether Better Call Bliss may optimize the order or must preserve the
-source order as immutable anchors. Every saved-playlist mode then starts with
-the same invariants:
+It opens a workflow rather than changing the source immediately. The user
+first chooses the source adapter, such as a saved playlist or a current
+player-queue snapshot, and then chooses whether Better Call Bliss may
+optimize the order or must preserve the source order as immutable anchors.
+Every source-snapshot mode then starts with the same invariants:
 
 - let `S` be the number of unique original tracks;
 - preserve all `S` original tracks exactly once and never remove one to satisfy
@@ -1900,5 +1949,3 @@ Adaptive scoring is contextual: its weight matrix depends on the preceding seed
 window. Do not cache or publish it as a single static pairwise matrix. Fixed
 Euclidean, statically weighted, and learned-matrix modes may use parallel
 pairwise matrices when implemented.
-
-
