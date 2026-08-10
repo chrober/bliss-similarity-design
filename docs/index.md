@@ -3,12 +3,47 @@
 **Status:** Living research and design proposal  
 **Last reviewed:** 2026-08-01
 
+## Abstract
+
+Bliss already provides a valuable foundation for local, privacy-friendly music
+analysis: compact whole-track acoustic features, deterministic processing, and
+fast library-scale comparison. This document explores how that foundation could
+evolve toward richer, task-aware musical understanding while preserving the
+audio-first and local-first strengths that make Bliss attractive.
+
+The proposed direction is not to replace the existing 23-feature representation,
+but to surround it with optional, versioned analysis products that downstream
+tools can evaluate independently. Candidate directions include temporal frame
+series, structure and repetition summaries, intro/outro anchors for transition
+scoring, confidence and validity metadata, richer rhythm and onset evidence,
+energy and loudness-shape descriptors, bass-specific behavior, tonal and
+harmonic stability, and carefully scoped embeddings or source-character
+evidence. These products should declare their schema, timing, provenance,
+confidence, invariance assumptions, and fallback behavior so they can be tested
+without breaking current Bliss consumers.
+
+The broader question is how music similarity should be judged in practice.
+Bliss currently exposes compact analysis features that downstream tools can
+compare, combine, and adapt in different ways. This document asks how that
+foundation could be evaluated through real musical tasks: sequencing,
+continuation, grouping, transition judgment, personalization, library
+exploration, and listener-facing workflows. Explicit user judgments, curated
+collections, playback behavior, downstream application outcomes, and controlled
+evaluation sets can all provide different kinds of evidence. None of these
+signals is perfect ground truth by itself, but together they can reveal where
+the current representation is already useful, where it struggles, and which
+future analysis dimensions are worth promoting.
+
+For `bliss-rs` and the wider Bliss ecosystem, the opportunity is not to turn
+Bliss into a recommendation service or make it dependent on external metadata
+providers. It is to make local acoustic evidence richer, more modular, and more
+measurable against real musical tasks. A stronger feedback loop between
+analysis, similarity behavior, and task-level evaluation can help future
+Bliss-based tools become more musically useful without giving up determinism,
+privacy, or local control.
 This site develops a research-backed path for improving how Bliss represents,
-compares, and selects music. Its primary goal is better mixing quality through
-better similarity criteria. Transition-aware selection is one important use
-case, but the scope also includes psychoacoustics, temporal structure,
-segmentation, structural variance, contextual similarity, diversity, and
-personalization.
+compares, and selects music across reusable analysis products and downstream
+consumers.
 
 The discussion is deliberately split between analysis questions and downstream
 mixing questions. It does not present experimental ideas as accepted
