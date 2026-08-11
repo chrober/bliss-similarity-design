@@ -1,8 +1,10 @@
 # Mixing design: scope and conceptual layers
 
-**Status:** Living research and design proposal  
-**Primary scope:** Cross-repository similarity and mixing policy  
-**Last reviewed:** 2026-08-01
+**Status:** Living research and design proposal
+
+**Primary scope:** Similarity and mixing concepts motivated by downstream tasks
+
+**Last reviewed:** 2026-08-11
 
 ## Problem statement
 
@@ -37,15 +39,15 @@ them for a particular task without discarding the strong existing baseline.
   23 Bliss features.
 - Preserve useful temporal information through windows, segments, anchors, or
   structural summaries where whole-track aggregation is insufficient.
-- Allow different mixing tasks to use appropriate similarity criteria over a
-  shared, versioned analysis foundation.
+- Compare task-appropriate similarity criteria over explicitly identified
+  evidence.
 - Enable smoother consecutive-track transitions as one task-specific outcome.
 - Preserve the current Bliss representation and algorithms as the baseline and
   compatibility fallback.
 - Perform expensive audio analysis offline, not during an LMS mix request.
 - Remain useful during partial rollout: missing enhanced data must degrade to
   current behavior rather than exclude tracks or fail a request.
-- Keep metadata versioned and rebuildable.
+- Keep experimental evidence identifiable and reproducible.
 - Make each proposed feature and scoring change measurable through retrieval
   evaluation and listener feedback.
 - Reuse the existing learner and survey data while reducing the interaction
@@ -125,8 +127,8 @@ them for a particular task without discarding the strong existing baseline.
 2. **Match the representation to the question.** Whole-track similarity,
    structural similarity, session coherence, and transition compatibility may
    use different views of shared analysis data.
-3. **Add evidence, not dimensions.** A descriptor belongs in production only if
-   it improves a defined retrieval or listener outcome.
+3. **Add evidence, not dimensions.** A descriptor warrants continued
+   consideration only if it improves a defined retrieval or listener outcome.
 4. **Keep analysis offline and scoring cheap.** Audio decoding and temporal
    analysis do not belong in a live mix request.
 5. **Global context constrains local criteria.** For transition-aware selection,
@@ -137,8 +139,8 @@ them for a particular task without discarding the strong existing baseline.
    scales. Raw values cannot be mixed with an anchor distance using fixed
    coefficients.
 7. **Graceful partial coverage.** A library can be analyzed incrementally.
-8. **Version all derived data.** Changes to windowing or feature extraction must
-   be detectable and rebuildable.
+8. **Identify all derived evidence.** Changes to windowing or feature extraction
+   must be detectable in experimental results.
 9. **Prefer evidence over plausible-sounding DSP.** Each added descriptor needs
    a definition, units, test data, and an evaluation purpose.
 10. **Separate relevance, diversity, and sequencing.** A nearest-neighbor
@@ -156,7 +158,7 @@ them for a particular task without discarding the strong existing baseline.
 
 ### Logical layers
 
-The design separates five layers even when an implementation combines them:
+The design separates five layers even when a study or system combines them:
 
 1. **Descriptors:** measured audio properties and their confidence.
 2. **Representations:** track, window, segment, anchor, and group views derived
@@ -167,9 +169,9 @@ The design separates five layers even when an implementation combines them:
 5. **Sequencing:** an ordering that serves smoothness, transition quality, a
    destination, or another requested trajectory.
 
-The same versioned analysis can support several task-conditioned views without
-pretending that they share one universally correct distance. Confidence,
-invariance, schema, and provenance constrain every view:
+The same explicitly identified evidence can support several task-conditioned
+views without pretending that they share one universally correct distance.
+Confidence, invariance, schema, and provenance constrain every view:
 
 ```mermaid
 flowchart LR
@@ -196,7 +198,7 @@ flowchart LR
     T --> O
 ```
 
-## System context, not proposed architecture
+## Research context and open ownership
 
 The site distinguishes analysis evidence from downstream use so that experiments
 can be evaluated clearly. It does not prescribe which repository, crate, module,
@@ -230,95 +232,3 @@ production architecture.
 If a candidate eventually demonstrates sufficient value, affected maintainers
 can decide whether and how it fits their projects. That later implementation
 discussion is intentionally outside this document.
-
-#### `bliss-rs`
-
-The companion [Bliss Analysis
-Evolution](../index.md)
-design is authoritative for extraction APIs and representation contracts.
-
-Responsibilities:
-
-- preserve the current Version 2 `Analysis` result and cost;
-- expose reusable spectral, loudness, onset, tempo, chroma, tonal, and bass
-  measurements without requiring consumers to duplicate decoding or DSP;
-- provide optional analysis products such as global descriptor sets, aligned
-  or typed frame series, structure, anchors, and model-identified embeddings;
-- attach cross-cutting schema, provenance, confidence, and invariance metadata
-  to those products;
-- make requested products and their configuration explicit;
-- version representation schemas and support deterministic serialization;
-- keep player-specific persistence, retrieval, diversity, and sequencing out
-  of the audio-analysis contract.
-
-General-purpose novelty or segmentation primitives may live in the base crate,
-behind a feature, or in a companion module. That ownership detail remains open;
-reusable extraction itself belongs in `bliss-rs`.
-
-#### Library analysis orchestration
-
-**Working proposal:** extend `bliss-analyser` or introduce a small offline
-companion, provisionally called `bliss-feature-analyser`, to request structured
-`bliss-rs` products and persist them. It must not duplicate shared audio
-extraction or decode audio inside `bliss-mixer`. The final binary and repository
-ownership remain open.
-
-Responsibilities:
-
-- find tracks that have Bliss data but no current enhanced analysis;
-- request configured, versioned analysis products from `bliss-rs`;
-- run application-level experimental derivations that are not yet suitable for
-  a stable library API;
-- persist global descriptors, frame series, structure, segments, anchors,
-  optional embeddings, and their cross-cutting metadata in application-owned
-  storage;
-- attach validity and confidence estimates where a measurement can be
-  ambiguous or unstable;
-- update metadata atomically and report failures without damaging existing
-  Bliss data.
-
-The production path should consume `bliss-rs` directly or through an explicitly
-versioned binding. A prototype may compare external algorithms, but any retained
-shared DSP should be upstreamed or isolated behind a compatible component rather
-than becoming a second independent audio-analysis definition.
-
-#### `chrober/bliss-mixer` fork
-
-In this document, subsequent shorthand references to `bliss-mixer` mean the
-[`chrober/bliss-mixer`](https://github.com/chrober/bliss-mixer) fork unless an
-upstream repository is named explicitly.
-
-Responsibilities:
-
-- load enhanced metadata without requiring audio-analysis dependencies;
-- support experimental similarity criteria alongside the existing algorithms;
-- load a compatible personal metric and normalize it before blending with
-  context-derived matrices;
-- apply an optional, explicit diversity policy after relevance retrieval;
-- expose comparable baseline and enhanced scores for evaluation;
-- retain a larger globally suitable candidate pool when task-specific reranking
-  requires it;
-- identify the actual current boundary track;
-- optionally calculate transition compatibility for candidates with anchor data;
-- normalize global and transition scores over the pool;
-- combine scores, apply existing filtering/fallback semantics, and return the
-  requested count;
-- expose useful diagnostics for tuning and evaluation.
-
-#### `lms-blissmixer`
-
-Responsibilities:
-
-- preserve and credit the existing **Create bliss mix** / **Bliss Mix
-  erstellen** action as the immediate mix-generation workflow;
-- expose enhanced similarity and transition experiments as opt-in settings
-  during development;
-- retain the existing survey and learner integration while making
-  personalization useful at progressive evidence thresholds;
-- collect weak feedback only with clear semantics, privacy boundaries, and an
-  opt-out;
-- pass analysis/scoring configuration and metadata location to `bliss-mixer`;
-- package or locate the enhanced analyzer if this repository owns its
-  distribution;
-- surface analysis coverage/status where practical;
-- preserve existing behavior when the new binary or metadata is absent.

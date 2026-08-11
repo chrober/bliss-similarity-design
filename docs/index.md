@@ -1,7 +1,8 @@
 # Bliss similarity and analysis design
 
-**Status:** Living research and design proposal  
-**Last reviewed:** 2026-08-01
+**Status:** Living research synthesis and design exploration
+
+**Last reviewed:** 2026-08-11
 
 ## Abstract
 
@@ -11,16 +12,19 @@ fast library-scale comparison. This document explores how that foundation could
 evolve toward richer, task-aware musical understanding while preserving the
 audio-first and local-first strengths that make Bliss attractive.
 
-The proposed direction is not to replace the existing 23-feature representation,
-but to surround it with optional, versioned analysis products that downstream
-tools can evaluate independently. Candidate directions include temporal frame
-series, structure and repetition summaries, intro/outro anchors for transition
-scoring, confidence and validity metadata, richer rhythm and onset evidence,
-energy and loudness-shape descriptors, bass-specific behavior, tonal and
-harmonic stability, and carefully scoped embeddings or source-character
-evidence. These products should declare their schema, timing, provenance,
-confidence, invariance assumptions, and fallback behavior so they can be tested
-without breaking current Bliss consumers.
+The site does not assume a particular extension model for `bliss-rs`. It asks
+which forms of evidence are lost when music is reduced to one compact
+whole-track vector and which of them might improve a defined task. Candidate
+research conditions include temporal frame series, structure and repetition
+summaries, intro/outro anchors, richer rhythm and onset evidence, energy and
+loudness shape, bass behavior, tonal and harmonic stability, vocal or source
+character, and carefully scoped embeddings.
+
+These candidates are hypotheses, not proposed library outputs. Meaningful
+experiments still need precise definitions, timing, provenance, confidence,
+validity, invariance assumptions, computational cost, and fallback behavior.
+Recording those properties makes comparisons reproducible; it does not imply a
+public API, storage format, crate boundary, or implementation owner.
 
 The broader question is how music similarity should be judged in practice.
 Bliss currently exposes compact analysis features that downstream tools can
@@ -32,18 +36,13 @@ collections, playback behavior, downstream application outcomes, and controlled
 evaluation sets can all provide different kinds of evidence. None of these
 signals is perfect ground truth by itself, but together they can reveal where
 the current representation is already useful, where it struggles, and which
-future analysis dimensions are worth promoting.
+candidate dimensions are worth continued study.
 
-For `bliss-rs` and the wider Bliss ecosystem, the opportunity is not to turn
-Bliss into a recommendation service or make it dependent on external metadata
-providers. It is to make local acoustic evidence richer, more modular, and more
-measurable against real musical tasks. A stronger feedback loop between
-analysis, similarity behavior, and task-level evaluation can help future
-Bliss-based tools become more musically useful without giving up determinism,
-privacy, or local control.
-This site develops a research-backed path for improving how Bliss represents,
-compares, and selects music across reusable analysis products and downstream
-consumers.
+For the wider Bliss ecosystem, the research opportunity is to test whether
+richer local acoustic evidence can improve musical tasks without giving up
+determinism, privacy, or local control. The site therefore connects analysis
+hypotheses with similarity behavior and task-level evaluation while leaving
+implementation and ownership decisions open.
 
 The discussion is deliberately split between analysis questions and downstream
 mixing questions. It does not present experimental ideas as accepted
@@ -60,7 +59,7 @@ flowchart LR
     C --> S
     T --> S
     P[Optional personalization] --> S
-    S --> E[Evaluation and rollout]
+    S --> E[Evaluation and interpretation]
 ```
 
 ## How to read this site
@@ -68,11 +67,11 @@ flowchart LR
 | Area | Question answered | Start here |
 |---|---|---|
 | Foundations | What exists today, and where are the system boundaries? | [Current system and ecosystem](foundations/current-system.md) |
-| Research | What evidence supports or challenges the proposal? | [Analysis research](research/analysis-research.md) and [mixing research](research/mixing-research.md) |
-| Analysis | Which additional forms of musical evidence might improve similarity? | [Analysis evolution](analysis/overview.md) |
-| Mixing | How could consumers turn that evidence into better sequences? | [Mixing architecture](mixing/overview.md) |
+| Research | What evidence supports or challenges the candidate hypotheses? | [Analysis research](research/analysis-research.md) and [mixing research](research/mixing-research.md) |
+| Analysis | Which additional forms of musical evidence might improve similarity? | [Analysis research scope](analysis/overview.md) |
+| Mixing | How could consumers use that evidence in better sequences? | [Mixing scope and conceptual layers](mixing/overview.md) |
 | Integration | How do current consumers and experiments relate? | [Downstream consumers](integration/downstream-consumers.md) |
-| Evaluation | How will the hypotheses be tested and delivered safely? | [Analysis evaluation](evaluation/analysis-evaluation.md) and [mixing evaluation](evaluation/mixing-evaluation.md) |
+| Evaluation | How will the hypotheses be tested and interpreted responsibly? | [Analysis evaluation](evaluation/analysis-evaluation.md) and [mixing evaluation](evaluation/mixing-evaluation.md) |
 
 ## Scope boundary
 
@@ -88,27 +87,27 @@ Whether any promising idea belongs upstream, in a separate research tool, or
 only in an application is a decision for the relevant maintainers after the
 evidence exists.
 
-## Evidence and proposal status
+## Evidence and hypothesis status
 
 The pages distinguish among:
 
 - the **stable baseline**, describing behavior that exists today;
 - **experimental evidence**, describing prototypes or comparison systems;
-- a **working proposal**, which still requires design review and validation;
-- an **open question**, for which the evidence or ownership is unresolved.
+- a **research or design hypothesis**, which still requires review and
+  validation;
+- an **open question**, for which the evidence remains unresolved.
 
 No candidate descriptor or metric is assumed to improve perceived similarity.
-Promotion into a stable representation requires reproducible extraction,
-measurable downstream benefit, acceptable resource cost, and listener-facing
-evaluation.
+Further consideration requires reproducible extraction, measurable downstream
+benefit, acceptable resource cost, and listener-facing evaluation.
 
 ## Project context
 
-The repositories directly involved in the design's lineage and implementation
-are listed first. Repositories used only as platform evidence or external
-comparison baselines follow, so their inclusion does not imply that they are
-proposed dependencies. This inventory includes every GitHub repository linked
-elsewhere in the site.
+The repositories directly involved in the design's lineage and current
+experiments are listed first. Repositories used only as platform evidence or
+external comparison baselines follow, so their inclusion does not imply that
+they are proposed dependencies. This inventory includes every GitHub repository
+linked elsewhere in the site.
 
 ### Documentation
 
