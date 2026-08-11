@@ -1,3 +1,9 @@
 .venv/
 site/
 __pycache__/
+.work/
+runs/
+.artifacts/
+tmp/
+tests/
+tools/
