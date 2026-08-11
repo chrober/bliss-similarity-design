@@ -1065,6 +1065,8 @@ percentile.
 
 #### Destination-route quality follow-up
 
+The complete evidence, controlled replays, root-cause analysis, and regression-first repair sequence are recorded in [Destination-route quality investigation](DESTINATION_ROUTE_QUALITY_INVESTIGATION.md).  
+
 Live job `preview-1786461653-0001` exposed a quality problem that must be resolved before **Bliss me there...** is considered musically mature. The requested Nina Simone to Immortal transition met the configured 70th-percentile target with one intermediate, Stevie Ray Vaughan and Double Trouble - *Hug You, Squeeze You*. The selected bridge had no Last.fm evidence. The optimizer reported both legs near the 38th percentile because Adaptive evaluated the destination against the rolling `[Nina Simone, Stevie Ray Vaughan]` context rather than measuring the audible adjacent Stevie Ray Vaughan to Immortal edge directly.  
 
 A diagnostic replay with `seed_limit = 1` removed that context leakage but still accepted Nina Simone to Mithotyn to Immortal, with both pairwise legs near the 58th percentile. This shows a second problem: the present 23-feature space and learned distance can contain a mathematical midpoint that is not a convincing perceptual transition across genre, timbre, intensity, or performance style. Lowering the trigger percentile or merely allowing more intermediate tracks does not solve either issue.  

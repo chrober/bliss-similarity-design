@@ -1,0 +1,171 @@
+# Destination-route quality investigation
+
+**Date:** 2026-08-11  
+**System:** Lyrion at `192.168.1.111`, Better Call Bliss `0.15.4`, bliss-playlist-optimizer `0.1.4`  
+**Status:** Reproducible defect analysis; no corrective implementation has been made yet.  
+
+## Executive finding
+
+The four inspected **Bliss me there...** previews are valid according to the current optimizer contract, but that contract is not yet a reliable model of a fluent audible journey from Nina Simone to Immortal. The weakness is not explained by one bad default. Several effects reinforce each other:  
+
+1. Adaptive bridge diagnostics describe a candidate or destination relative to a rolling mean of preceding tracks, not necessarily the adjacent transition a listener hears.  
+2. Automatic mode stops at the shortest route meeting the configured percentile target. A false feature-space midpoint can therefore make one bridge appear sufficient even for an extreme transition.  
+3. Exact multi-hop search freezes one 256-track shortlist for the original endpoint gap. It does not discover a new local neighborhood at each step.  
+4. A left-reachable expansion is still ranked primarily by its two-sided midpoint score, so the first bridge tends to be a compromise between both endpoints instead of a gentle first step away from the source.  
+5. Last.fm evidence is collected only for the fixed source and destination. It can recognize Nina-like and Immortal-like candidates, but it supplies no semantic evidence for the links between intermediate tracks.  
+6. Variation is applied while expanding candidates. At 25%, it shuffles the best 14 accepted candidates and retains only eight for a state, so it can remove better branches before complete routes are compared.  
+7. The current 23 whole-track features, whether scored through the learned matrix or Static weights, can contain mathematical midpoints that are not convincing perceptual transitions.  
+8. The destination's artist and album repeat keys are cleared to honor explicit user intent. This also prevents generated candidates from being checked against the destination and can violate the configured repeat windows.  
+
+The repair should therefore be a dedicated fixed-destination path search with explicit adjacent-edge evidence, not another threshold adjustment around the current generic gap-insertion search.  
+
+## Live previews inspected
+
+All four requests used Adaptive scoring, a three-track context, learned blend 20%, Variation 25%, Last.fm track and artist guidance 25%, artist/album/track windows 5/10/100, a 256-track shortlist, and 50 route-search restarts. The direct Nina Simone to Immortal transitions were all around the 99.9th percentile.  
+
+| Job | Policy | Destination | Generated route |
+| --- | --- | --- | --- |
+| `preview-1786461653-0001` | Automatic, maximum 4, target 70% | Immortal - *Grim and Frostbitten Kingdoms* | Nina Simone - *My Baby Just Cares for Me* -> Stevie Ray Vaughan and Double Trouble - *Hug You, Squeeze You* -> Immortal |
+| `preview-1786461772-0002` | Exactly 4 | Immortal - *Battles in the North* | Nina Simone -> Aretha Franklin - *Dr. Feelgood* -> Tarot - *Guardian Angel* -> Janis Joplin - *Half Moon* -> Jim Morrison / The Doors - *Roadhouse Blues* -> Immortal |
+| `preview-1786461862-0003` | Exactly 4 | Immortal - *Grim and Frostbitten Kingdoms* | Nina Simone -> Aretha Franklin - *Dr. Feelgood* -> Janis Joplin - *Half Moon* -> Tarot - *Guardian Angel* -> Jim Morrison / The Doors - *Roadhouse Blues* -> Immortal |
+| `preview-1786461884-0004` | Exactly 4 | Immortal - *Through the Halls of Eternity* | Nina Simone -> Aretha Franklin - *You're a Sweet Sweet Man* -> Dizzy Gillespie - *The Bluest Blues* -> `[dialogue] / Chuck Berry` - *Jack Rabbit Slims Twist Contest / You Never Can Tell* -> Hawkwind - *Sonic Attack* -> Immortal |
+
+The automatic job reported a successful 37.8% worst leg and selected a Bliss-only bridge with no Last.fm evidence. That figure is misleading as an adjacent-transition claim: the Immortal destination was evaluated against the mean context `[Nina Simone, Stevie Ray Vaughan]`, not against Stevie Ray Vaughan alone.  
+
+The exact-four artifacts do not publish `quality_target_met`, `achieved_max_leg_percentile`, or a final adjacent-route objective. Their per-candidate values are contextual removal/reinsertion evaluations. Later values collapse as low as 0.006%, which is not credible evidence that the neighboring songs are virtually identical.  
+
+## Controlled replays
+
+The original requests and results remain below `/usr/local/slimserver/Cache/bettercallbliss/jobs/<job-id>/` on the Pi. Diagnostic requests and results were written only to `/tmp/bcb-*` and may disappear on reboot. No playlist, queue, or LMS service was changed by these replays.  
+
+### One-track context, original Variation
+
+Setting `seed_limit = 1` makes every reported leg pairwise under the learned matrix. It removes rolling-mean leakage but does not by itself make the routes good:  
+
+- Automatic selected Mithotyn - *Stories Carved in Stone* as the sole bridge. Both legs were reported near 58%, yet Nina Simone -> Mithotyn is not a gentle transition.  
+- Exact four to *Battles in the North* produced Nina Simone -> Lenny Kravitz -> Aretha Franklin -> Emperor -> Darkthrone -> Immortal.  
+- Exact four to *Grim and Frostbitten Kingdoms* produced Nina Simone -> Mithotyn -> Dio -> Tom Petty -> Darkthrone -> Immortal, moving into metal, back toward rock, then into black metal again.  
+- Exact four to *Through the Halls of Eternity* included a 36-second Ten Years After radio advert and a track whose Bliss metadata is completely blank.  
+
+This proves that rolling context is one defect, but not the only defect.  
+
+### One-track context, Variation zero
+
+Removing Variation made the routes more deterministic and usually more semantically coherent:  
+
+- to *Battles in the North*: Nina Simone -> Siena Root -> Emperor -> Gorgoroth -> Enslaved -> Immortal;  
+- to *Grim and Frostbitten Kingdoms*: Nina Simone -> Santana -> Aretha Franklin -> Emperor -> Enslaved -> Immortal; and  
+- to *Through the Halls of Eternity*: Nina Simone -> Aretha Franklin -> Satyricon -> Darkthrone -> Immortal - *At the Stormy Gates of Mist* -> Immortal.  
+
+The last route violates the artist look-back window: the generated Immortal track is only two positions before the explicit Immortal destination while the artist window is five. Both database artist strings are exactly `Immortal`.  
+
+The reason is visible in `main.rs`: destination routes clear the destination's artist and album keys. This is intended to allow the user's explicit destination even if the same artist occurs in recent queue history, but it also exempts generated candidates from comparison with the destination. The exemption must become role-aware: an explicit destination may conflict with pre-existing queue history, while a generated bridge must still be checked against the destination and other generated tracks.  
+
+### Static weights, one-track context, Variation zero
+
+Static controls used the captured BlissMixer weights rather than the learned matrix. Percentiles cannot be numerically compared across the two matrices because each run rebuilds its reference distribution, but track choices can be inspected:  
+
+- Automatic still stopped after one bridge, Bélmez - *Und süß setzt ein das Leiden...*, which is an immediate move from Nina Simone into metal rather than a gradual path.  
+- Exact four to *Battles in the North* produced Nina Simone -> Aretha Franklin -> Soundgarden -> Blackberry Smoke -> Dropkick Murphys -> Immortal.  
+- Exact four to *Grim and Frostbitten Kingdoms* produced Nina Simone -> Janis Joplin -> Dropkick Murphys -> The Sweet -> Satyricon -> Immortal.  
+- Exact four to *Through the Halls of Eternity* produced Nina Simone -> The White Stripes -> Satyricon -> Immortal -> Enslaved -> Immortal and repeated the same destination-identity constraint violation.  
+
+Static weights sometimes gave a more intuitive broad genre progression, but they did not solve shortest-route stopping, non-monotonic detours, feature-space false midpoints, or repeat enforcement. Switching the default strategy is therefore not a sufficient repair.  
+
+## Root causes in the current implementation
+
+### Contextual scores are presented as route legs
+
+`bridge::contextual_distance` scores the next track against the mean of up to `seed_limit` preceding tracks. `evaluate_candidate` therefore computes the right side after adding the candidate to the context. This matches next-song Adaptive mixing behavior, but it is not equivalent to the audible adjacent edge required by a progressive destination route.  
+
+Destination artifacts need to expose at least two explicitly named views:  
+
+- **adjacent transition evidence**, computed from the actual neighboring pair under a declared pairwise metric; and  
+- **rolling-context evidence**, retained as secondary information when Adaptive is selected.  
+
+Neither value should be labelled generically as a leg without identifying its context.  
+
+### The multi-hop search begins with a midpoint
+
+The current exact search inserts every new candidate immediately before the original right endpoint. `ReachableFromLeft` checks only the left percentile for acceptance, but `rank_for_evolving_route` still sorts accepted candidates by adjusted `max_percentile` and detour, both of which include the right endpoint. The first retained candidates are therefore endpoint compromises. Subsequent tracks refine only the remaining right side; the search cannot reconsider the initial large step.  
+
+### One frozen shortlist represents every depth
+
+The optimizer reserves at most 32 endpoint-semantic candidates and fills the remainder of a 256-track shortlist with candidates ranked against the original two-sided gap. The exact beam width is 64 and each expansion retains at most eight candidates, but all depths draw from the same frozen 256 tracks. A useful song close to the current frontier but not close to the original endpoint midpoint is invisible.  
+
+### Last.fm has no intermediate graph
+
+Each job made four LastMix calls: similar tracks for both endpoints and similar artists for both endpoint artists. The evidence artifact contained 25 recording edges for each endpoint and 50 artist edges for each endpoint artist. No calls or edges were created for selected or prospective intermediate tracks.  
+
+Consequently, endpoint-local evidence can favor Aretha Franklin near Nina Simone and Emperor, Enslaved, Darkthrone, or Satyricon near Immortal. It cannot say whether Aretha -> Santana, Santana -> Emperor, Emperor -> Enslaved, or another middle edge is semantically plausible. Increasing the current Last.fm percentages cannot create evidence that was never collected.  
+
+### Variation removes branches too early
+
+For exact selection, the minimum variation pool is `candidate_limit + 1`, currently nine. With 25% Variation and up to 32 accepted candidates, the best 14 are shuffled before only eight are expanded. Variation therefore changes reachability and can discard higher-quality paths. It should operate over complete routes inside a bounded quality band, not alter the candidate graph before route quality is known.  
+
+### Whole-track features permit false midpoints
+
+The current 23 normalized whole-track features capture tempo, zero-crossing rate, spectral summaries, loudness, and chroma. They do not directly encode genre, instrumentation, vocal style, distortion, rhythmic density, arrangement, or the ending and opening segments that form the audible transition. A linear Mahalanobis midpoint can therefore be close to both endpoints without sounding like a bridge. This is expected evidence for the broader richer-acoustic-evidence roadmap, but Better Call Bliss still needs robust routing behavior with the present representation.  
+
+## Recommended repair sequence
+
+### Gate 1: Regression and truthful artifacts
+
+1. Add a sanitized fixture derived from these feature vectors and identities without publishing private paths or the full library database.  
+2. Add per-adjacent-edge distance, percentile, strategy/matrix identity, and semantic evidence to destination results.  
+3. Add separate rolling-context metrics when Adaptive is active.  
+4. Publish final-route bottleneck, sum, route length, target outcome, and best-effort state for both Automatic and Exact modes.  
+5. Add a test proving that generated tracks remain subject to artist/album windows against the explicit destination.  
+6. Add tests proving that Variation cannot move a result outside the accepted complete-route quality band.  
+
+Suggested regression names:  
+
+- `destination_route_reports_adjacent_and_contextual_metrics_separately`;  
+- `destination_candidate_cannot_use_explicit_destination_repeat_exemption`;  
+- `multi_hop_search_can_improve_the_first_leg_after_depth_one`;  
+- `destination_variation_is_applied_only_after_complete_route_ranking`; and  
+- `exact_destination_result_reports_final_quality`.  
+
+### Gate 2: Dedicated layered destination search
+
+Create a destination-specific search rather than routing through the generic preserved-gap insertion path. For an exact `N`, model `N + 1` adjacent edges between immutable endpoints. For Automatic, evaluate every permitted depth rather than stopping at the first broadly acceptable false midpoint.  
+
+The primary objective should be the worst adjacent-edge percentile, followed by adjacent-edge sum and then a contextual/semantic secondary score. Automatic should choose a knee point: the shortest complete route whose worst edge is close to the best achievable result within the budget, or keep adding tracks while the bottleneck improves materially. The configured maximum remains a budget, not a promise to consume every slot.  
+
+Candidate layers should be rebuilt per depth or frontier. A practical bounded first implementation can union:  
+
+- nearest candidates to the current left frontier;  
+- nearest candidates to the right endpoint;  
+- candidates near the expected feature-space position for that depth;  
+- endpoint-semantic matches; and  
+- candidates retained by the opposite-direction frontier.  
+
+A bidirectional beam or layered beam/A* search can then meet in the middle. This avoids scoring all 64k tracks for every beam state while no longer forcing every step through one initial midpoint shortlist.  
+
+### Gate 3: Strategy composition
+
+Do not silently replace the user-selected BlissMixer strategy. Instead, define the destination contract explicitly:  
+
+- Static requests use pairwise Static acoustic edges.  
+- Adaptive requests use pairwise learned/static-fallback evidence for the adjacent bottleneck and may use rolling Adaptive context only as a secondary route score.  
+- Compare whether a conservative composite such as the maximum of normalized Static and learned percentiles rejects false midpoints better than either metric alone.  
+- Keep all component scores visible in diagnostics so a new bliss-rs representation can be added later without changing route semantics silently.  
+
+### Gate 4: Semantic path evidence
+
+First make endpoint evidence depth-aware: left evidence should matter most near the source, right evidence most near the destination. Then explore a bounded, optional LastMix expansion that resolves top local matches and fetches similarity for selected frontier artists/tracks. This should use durable caching, strict request budgets, cancellation, failure tolerance, and Bliss-only fallback. The native optimizer should remain network-free and consume a provider-neutral semantic graph supplied by the plugin.  
+
+### Gate 5: Candidate quality controls
+
+Add auditable optional penalties or exclusions for missing artist/title metadata, known dialogue/spoken-word markers, adverts, very short non-musical items, ignored tracks, and other library-quality signals. Do not hard-code a universal genre policy: interludes and soundtrack material can be legitimate when explicitly allowed.  
+
+## Continuation checklist
+
+- Preserve the four original Pi job directories until the fixture is captured.  
+- Begin with the repeat-exemption regression because it is a hard correctness defect.  
+- Add adjacent-edge artifacts before changing the search so old and new results can be compared honestly.  
+- Implement the layered search with Variation zero first.  
+- Reintroduce route-level Variation only after deterministic quality is established.  
+- Compare learned, Static, and composite adjacent metrics on all four targets.  
+- Listen to the resulting routes; percentiles are evaluation aids, not ground truth.  
+- Update `BLISS_PLAYLIST_OPTIMIZER_IMPLEMENTATION_PLAN.md`, optimizer README/schema documentation, `ALGORITHMS.md`, and the Better Call Bliss result explanations when the contract changes.  
