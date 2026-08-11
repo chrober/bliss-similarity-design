@@ -81,7 +81,7 @@ workflow is connected; those are listed separately.
 | 🟡 Partial | Some layers or UX scaffolding exist, but the capability is not complete end to end. |
 | ⬜ Not implemented | Roadmap contract exists, but no usable implementation is connected. |
 
-Current inventory: **51 implemented**, **18 partial**, and **7 not implemented
+Current inventory: **51 implemented**, **18 partial**, and **8 not implemented
 or later-roadmap** rows. These are feature rows, not a percentage-complete
 release estimate; foundational and user-facing capabilities intentionally have
 the same row weight.
@@ -114,6 +114,7 @@ the same row weight.
 | Lyrion integration | BlissMixer compatibility and inherited defaults | ✅ Implemented | Database, matrix, strategy parameters, and repeat windows are captured read-only. |
 | Lyrion integration | Per-job scoring, repeat, search, variation, provider, and extension controls | ✅ Implemented | Working modes receive validated job-local overrides without changing BlissMixer preferences. Blank generation seeds are regenerated per job and explicit seeds are retained for reproducibility. |
 | Lyrion integration | Extras rich-job editor | ✅ Implemented | The live ARM64 server exposes the form, relevance rules, Advanced controls, result area, and working/not-connected labels. |
+| Lyrion integration | Alternative result-list / library-view UX | ⬜ Planned | `lms-blissmixer`'s **Create bliss mix** can return an LMS menu-mode result list (`item_loop`) with a "Play this mix" item plus individual tracks and play/add/insert actions. Better Call Bliss should explore whether some previews or quick actions should offer a similar navigable result surface in addition to the rich Extras job editor. |
 | Lyrion integration | Durable plugin settings surface | ✅ Implemented | `Settings.pm` persists suffixes, resource defaults, provider flags, cache policy, and retention defaults; unused future settings remain labelled. |
 | Lyrion integration | Complete capability/system-status dashboard | 🟡 Partial | Core readiness and problems are visible; provider, active-job, and persistence-health rows are incomplete. |
 | Lyrion integration | Namespaced command API | 🟡 Partial | `bettercallbliss status` exists; optimize, cancel, result, history, and `route_to` commands are not all exposed. |
@@ -827,6 +828,17 @@ It opens a workflow rather than changing the source immediately. The user
 first chooses the source adapter, such as a saved playlist or a current
 player-queue snapshot, and then chooses whether Better Call Bliss may
 optimize the order or must preserve the source order as immutable anchors.
+
+UX alternative to explore: `lms-blissmixer`'s **Create bliss mix** uses a
+menu-mode result-list pattern for interactive requests. Its response can expose
+an LMS/Jive-style `item_loop` window with a top-level "Play this mix" action,
+individual track rows, and built-in play/add/insert commands. Better Call Bliss
+currently uses a richer Extras editor because previews have many parameters,
+validation states, and accept-time output choices. A future quick-preview or
+post-preview surface could nevertheless reuse the BlissMixer-style result list
+for lightweight review and immediate queue actions, especially for **Bliss me
+there...** or simple Extend/Reorder previews.
+
 Every source-snapshot mode then starts with the same invariants:
 
 - let `S` be the number of unique original tracks;
