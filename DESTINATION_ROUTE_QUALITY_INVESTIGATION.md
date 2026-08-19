@@ -103,10 +103,26 @@ Consequently, endpoint-local evidence can favor Aretha Franklin near Nina Simone
 
 For exact selection, the minimum variation pool is `candidate_limit + 1`, currently nine. With 25% Variation and up to 32 accepted candidates, the best 14 are shuffled before only eight are expanded. Variation therefore changes reachability and can discard higher-quality paths. It should operate over complete routes inside a bounded quality band, not alter the candidate graph before route quality is known.  
 
+### One percentile performs two different jobs
+
+`extension.trigger_percentile` becomes `BridgeConfig.max_leg_percentile` for a destination route. A value of 70% therefore means both "intervene when the direct transition is worse than the 70th percentile" and "accept a generated leg as long as it is no worse than the 70th percentile." The first is a sensitivity control; the second is a route-quality target. They should not be the same setting.  
+
+For these jobs the direct edge was around 99.9%, so intervention was appropriate. But a one-track mathematical midpoint at 38% or 58% easily passed the permissive 70% leg gate, causing Automatic to stop immediately. Split the contract into a direct-transition trigger, a desired adjacent-leg target, and a minimum material-improvement or knee-point rule. Exact mode also needs quality wording rather than calling its leg gate a trigger.  
 ### Whole-track features permit false midpoints
 
 The current 23 normalized whole-track features capture tempo, zero-crossing rate, spectral summaries, loudness, and chroma. They do not directly encode genre, instrumentation, vocal style, distortion, rhythmic density, arrangement, or the ending and opening segments that form the audible transition. A linear Mahalanobis midpoint can therefore be close to both endpoints without sounding like a bridge. This is expected evidence for the broader richer-acoustic-evidence roadmap, but Better Call Bliss still needs robust routing behavior with the present representation.  
 
+## Why the existing tests passed
+
+The current tests establish useful structural behavior but do not exercise this quality contract:  
+
+- `automatic_destination_route_accepts_a_qualified_direct_transition` uses a 100% threshold and checks only that a direct route can be returned.  
+- `two_track_destination_uses_library_reference_for_automatic_trigger` verifies that the frozen reference has more than one observation and that the internally reported contextual percentile is below the same configured threshold. It does not independently evaluate adjacent edges.  
+- the exact multi-hop unit test uses a tiny linear synthetic set where `[0, 1, 2, 3]` is the obvious route. It cannot reveal a frozen midpoint shortlist or false midpoints in a 64k-track real library.  
+- no destination test places a generated candidate with the same artist or album as the explicit destination; and  
+- no test compares complete-route quality before and after Variation, missing metadata, or endpoint-only semantic evidence.  
+
+The release gates operated correctly against their current assertions. The missing work is stronger behavioral specification and fixtures, not merely running the same test suite more often.  
 ## Recommended repair sequence
 
 ### Gate 1: Regression and truthful artifacts
@@ -114,7 +130,7 @@ The current 23 normalized whole-track features capture tempo, zero-crossing rate
 1. Add a sanitized fixture derived from these feature vectors and identities without publishing private paths or the full library database.  
 2. Add per-adjacent-edge distance, percentile, strategy/matrix identity, and semantic evidence to destination results.  
 3. Add separate rolling-context metrics when Adaptive is active.  
-4. Publish final-route bottleneck, sum, route length, target outcome, and best-effort state for both Automatic and Exact modes.  
+4. Publish final-route bottleneck, sum, route length, target outcome, and best-effort state for both Automatic and Exact modes. Split the direct-transition trigger from the adjacent-leg quality target.  
 5. Add a test proving that generated tracks remain subject to artist/album windows against the explicit destination.  
 6. Add tests proving that Variation cannot move a result outside the accepted complete-route quality band.  
 
