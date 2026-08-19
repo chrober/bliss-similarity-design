@@ -16,6 +16,7 @@ The four inspected **Bliss me there...** previews are valid according to the cur
 6. Variation is applied while expanding candidates. At 25%, it shuffles the best 14 accepted candidates and retains only eight for a state, so it can remove better branches before complete routes are compared.  
 7. The current 23 whole-track features, whether scored through the learned matrix or Static weights, can contain mathematical midpoints that are not convincing perceptual transitions.  
 8. The destination's artist and album repeat keys are cleared to honor explicit user intent. This also prevents generated candidates from being checked against the destination and can violate the configured repeat windows.  
+9. A two-track destination job builds one percentile reference from start-track-to-library distances, then reuses it for later distances produced by different contexts and sometimes different Adaptive matrices. Those later percentiles are not calibrated to what they claim to measure.  
 
 The repair should therefore be a dedicated fixed-destination path search with explicit adjacent-edge evidence, not another threshold adjustment around the current generic gap-insertion search.  
 
@@ -33,6 +34,35 @@ All four requests used Adaptive scoring, a three-track context, learned blend 20
 The automatic job reported a successful 37.8% worst leg and selected a Bliss-only bridge with no Last.fm evidence. That figure is misleading as an adjacent-transition claim: the Immortal destination was evaluated against the mean context `[Nina Simone, Stevie Ray Vaughan]`, not against Stevie Ray Vaughan alone.  
 
 The exact-four artifacts do not publish `quality_target_met`, `achieved_max_leg_percentile`, or a final adjacent-route objective. Their per-candidate values are contextual removal/reinsertion evaluations. Later values collapse as low as 0.006%, which is not credible evidence that the neighboring songs are virtually identical.  
+
+### Fixed-route pairwise rescoring
+
+The four original routes were rescored unchanged with `seed_limit = 1`; the optimizer was not allowed to replace or reorder any track. This reveals the adjacent distances hidden by the original rolling-context artifacts:  
+
+| Job | Learned-matrix adjacent distances, in route order | Worst learned edge | Static adjacent distances, in route order | Worst Static edge |
+| --- | --- | ---: | --- | ---: |
+| `preview-1786461653-0001` | `2.728, 4.708` | `4.708` | `1.433, 1.099` | `1.433` |
+| `preview-1786461772-0002` | `2.641, 0.117, 0.171, 0.040, 4.736` | `4.736` | `0.609, 0.924, 1.422, 0.255, 1.100` | `1.422` |
+| `preview-1786461862-0003` | `2.641, 0.129, 0.171, 0.133, 4.720` | `4.720` | `0.609, 0.575, 1.422, 1.308, 1.148` | `1.422` |
+| `preview-1786461884-0004` | `2.717, 0.095, 0.335, 0.225, 4.722` | `4.722` | `0.924, 3.242, 0.750, 1.573, 1.225` | `3.242` |
+
+Raw distances are comparable only inside one scoring strategy; each strategy has its own matrix and reference distribution. The direct Nina Simone -> *Grim and Frostbitten Kingdoms* baselines are `7.424` with the learned matrix and `1.800` with Static weights. The learned-matrix pattern is unambiguous: the original one-bridge route still has a `4.708` bottleneck, while all three exact-four routes retain a `4.720-4.736` bottleneck. Forcing four bridges therefore did not improve the learned bottleneck beyond the one-bridge result; it added an extremely tight middle cluster before essentially the same final cliff into Immortal instead of distributing the change progressively across five transitions.  
+
+The automatic route is equally revealing. Its original artifact reported left and right contextual distances near `2.73`, but unchanged pairwise rescoring gives Nina Simone -> Stevie Ray Vaughan `2.728` and Stevie Ray Vaughan -> Immortal `4.708`. The apparent balanced midpoint was created by scoring Immortal against the mean of Nina Simone and Stevie Ray Vaughan.  
+Each final edge was then calibrated correctly against distances from that same last bridge to the complete local candidate library:  
+
+| Job | Final adjacent edge | Learned percentile | Static percentile |
+| --- | --- | ---: | ---: |
+| `preview-1786461653-0001` | Stevie Ray Vaughan -> *Grim and Frostbitten Kingdoms* | `98.71%` | `52.96%` |
+| `preview-1786461772-0002` | Jim Morrison / The Doors -> *Battles in the North* | `98.86%` | `69.29%` |
+| `preview-1786461862-0003` | Jim Morrison / The Doors -> *Grim and Frostbitten Kingdoms* | `98.84%` | `71.75%` |
+| `preview-1786461884-0004` | Hawkwind -> *Through the Halls of Eternity* | `98.75%` | `72.30%` |
+
+Each reference contained about `64,127` distances produced from the exact same left track and matrix as its observed edge. The direct Nina Simone -> Immortal transitions were about the `99.9th` learned percentile. The learned scorer therefore agrees with the listening impression: every generated route left a final transition almost as extreme as the original problem, although the original contextual artifacts presented much lower values and Automatic declared its target met.  
+
+The Static control for the fourth route exposes a different hidden discontinuity: Aretha Franklin -> Dizzy Gillespie has distance `3.242`, much larger than its other Static edges. Different matrices disagree about which transition is bad, reinforcing the need to publish component evidence and evaluate route quality explicitly rather than treating one contextual score as truth.  
+
+The `score` artifact also mislabels every Static leg as `learned-matrix`. `algorithm_requested` is correctly `static`, and the distances come from the captured Static-weight matrix, but the per-leg algorithm label is inherited from the generic adaptive scorer. This is a diagnostics defect and should be covered alongside the destination artifact changes.  
 
 ## Controlled replays
 
@@ -85,6 +115,20 @@ Destination artifacts need to expose at least two explicitly named views:
 
 Neither value should be labelled generically as a leg without identifying its context.  
 
+### The frozen percentile reference does not follow the scoring context
+
+For a two-track destination request, the initial reference contains one source observation and triggers the library fallback. `build_frozen_reference` then scores every local candidate from the original start-track context. In the investigated jobs, all `64,127` reference distances are therefore Nina-Simone-to-library distances under the one-seed learned matrix.  
+
+The same sorted distribution is subsequently used to percentile-rank:  
+
+- the first bridge from Nina Simone, for which it is appropriately calibrated;  
+- the destination from `[Nina Simone, first bridge]`;  
+- later bridges and destinations from other rolling means; and  
+- with multi-track Adaptive context, distances produced by variance/learned blended matrices that can differ at every depth.  
+
+Those quantities do not share one distribution. The original automatic result's similar `37.8%` left and `37.5%` right values therefore do not demonstrate two equally smooth adjacent legs. The correctly calibrated Stevie Ray Vaughan -> Immortal edge is at the `98.71st` learned percentile. The reported right value merely ranked an unrelated rolling-context distance inside the Nina-to-library distribution. This also explains why later exact-route contextual percentiles can collapse toward zero.  
+
+The destination search needs a declared calibration model. A practical primary adjacent-edge measure is a source-relative neighbor percentile: rank `distance(A, B)` among `distance(A, C)` for eligible local `C`, using the same fixed pairwise matrix for both the observed edge and its reference distribution. Cache this distribution for each retained frontier track. If rolling Adaptive context remains as secondary evidence, its percentile must be calibrated against candidates scored from that exact same context and effective matrix; otherwise publish only a clearly labelled raw contextual score.  
 ### The multi-hop search begins with a midpoint
 
 The current exact search inserts every new candidate immediately before the original right endpoint. `ReachableFromLeft` checks only the left percentile for acceptance, but `rank_for_evolving_route` still sorts accepted candidates by adjusted `max_percentile` and detour, both of which include the right endpoint. The first retained candidates are therefore endpoint compromises. Subsequent tracks refine only the remaining right side; the search cannot reconsider the initial large step.  
@@ -98,6 +142,8 @@ The optimizer reserves at most 32 endpoint-semantic candidates and fills the rem
 Each job made four LastMix calls: similar tracks for both endpoints and similar artists for both endpoint artists. The evidence artifact contained 25 recording edges for each endpoint and 50 artist edges for each endpoint artist. No calls or edges were created for selected or prospective intermediate tracks.  
 
 Consequently, endpoint-local evidence can favor Aretha Franklin near Nina Simone and Emperor, Enslaved, Darkthrone, or Satyricon near Immortal. It cannot say whether Aretha -> Santana, Santana -> Emperor, Emperor -> Enslaved, or another middle edge is semantically plausible. Increasing the current Last.fm percentages cannot create evidence that was never collected.  
+
+At the configured 25% similar-track and 25% similar-artist guidance, `adjusted_percentile` can improve a candidate by at most five percentile points when both evidence kinds have maximum support; a candidate supported by only one kind normally gains at most 2.5 points. Thirty-two semantic candidates are reserved in the 256-track shortlist, but final ranking remains predominantly acoustic. The poor automatic Stevie Ray Vaughan bridge was `bliss_only`, so Last.fm did not select it. The defect is missing path evidence, not excessive Last.fm weight.  
 
 ### Variation removes branches too early
 
@@ -128,7 +174,7 @@ The release gates operated correctly against their current assertions. The missi
 ### Gate 1: Regression and truthful artifacts
 
 1. Add a sanitized fixture derived from these feature vectors and identities without publishing private paths or the full library database.  
-2. Add per-adjacent-edge distance, percentile, strategy/matrix identity, and semantic evidence to destination results.  
+2. Add per-adjacent-edge distance, source-relative percentile, reference identity, strategy/matrix identity, and semantic evidence to destination results. Reject any percentile whose observation and reference were produced from different contexts or matrices.  
 3. Add separate rolling-context metrics when Adaptive is active.  
 4. Publish final-route bottleneck, sum, route length, target outcome, and best-effort state for both Automatic and Exact modes. Split the direct-transition trigger from the adjacent-leg quality target.  
 5. Add a test proving that generated tracks remain subject to artist/album windows against the explicit destination.  
@@ -137,11 +183,31 @@ The release gates operated correctly against their current assertions. The missi
 Suggested regression names:  
 
 - `destination_route_reports_adjacent_and_contextual_metrics_separately`;  
+- `destination_leg_percentiles_use_matching_context_reference`;  
 - `destination_candidate_cannot_use_explicit_destination_repeat_exemption`;  
 - `multi_hop_search_can_improve_the_first_leg_after_depth_one`;  
-- `destination_variation_is_applied_only_after_complete_route_ranking`; and  
-- `exact_destination_result_reports_final_quality`.  
+- `destination_variation_is_applied_only_after_complete_route_ranking`;  
+- `exact_destination_result_reports_final_quality`; and  
+- `static_score_legs_report_static_strategy`.  
 
+### First implementation slice and compatibility contract
+
+Do not ship `seed_limit = 1` alone as the fix; the controlled pairwise replays still produced implausible paths. Implement the first corrective slice in this order:  
+
+1. Preserve the existing route result for comparison, but add truthful final adjacent-edge diagnostics and fix the Static leg label.  
+2. Make the explicit-destination repeat exemption role-aware. Existing immutable endpoint/context conflicts may be tolerated, while every pair involving a generated track must respect artist and album windows, including generated track versus destination.  
+3. Add a fixed pairwise primary matrix for destination edges: learned matrix when Adaptive has one available, captured Static weights for Static or matrix-free fallback. Keep rolling Adaptive context only as a labelled secondary score.  
+4. Rank complete deterministic routes by worst primary adjacent distance, then primary adjacent sum, then optional contextual/semantic evidence. Calibrate percentiles only from observations produced by the same metric/reference model.  
+5. Split the request controls before reconnecting Automatic selection. Evaluate every depth through the configured budget, choose the shortest route that genuinely meets the adjacent target, and use the best bottleneck route only as an explicitly reported best effort.  
+6. Move Variation to the final complete-route quality band. A variation seed may choose among routes close to the deterministic optimum, but it must not change graph reachability or evade repeat constraints.  
+
+Keep request schema version 1 replayable during migration by accepting the current `trigger_percentile` as a deprecated fallback. New destination requests should distinguish fields equivalent to:  
+
+- `direct_trigger_percentile`: whether the unmodified endpoint edge warrants intervention;  
+- `target_max_adjacent_percentile`: desired maximum adjacent edge in the generated route; and  
+- `max_added_tracks` or exact `additional_track_count`: structural budget, not a quality percentage.  
+
+Do not choose final UI defaults until the sanitized regression corpus has calibrated the new adjacent reference. Better Call Bliss can migrate the old saved trigger into the new direct-trigger field, but should use an independently tested target default. Results should identify `quality_metric`, `reference_model`, pairwise matrix/hash, adjacent bottleneck/sum, contextual secondary score where applicable, target outcome, and whether the returned route is best effort. Existing ambiguous `left_percentile` and `right_percentile` fields should be retained only for artifact replay or renamed so their rolling context is unmistakable.  
 ### Gate 2: Dedicated layered destination search
 
 Create a destination-specific search rather than routing through the generic preserved-gap insertion path. For an exact `N`, model `N + 1` adjacent edges between immutable endpoints. For Automatic, evaluate every permitted depth rather than stopping at the first broadly acceptable false midpoint.  
