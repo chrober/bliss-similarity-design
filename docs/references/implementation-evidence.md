@@ -1,8 +1,8 @@
 # Implementation and comparison evidence
 
-**Status:** Descriptive evidence inventory
+**Status:** Descriptive evidence inventory  
 **Primary scope:** Existing code, project documentation, and related implementations  
-**Last reviewed:** 2026-08-01
+**Last reviewed:** 2026-08-19
 
 ## Historical, implementation, and comparison evidence
 
@@ -62,6 +62,19 @@
 
 ## Related implementations
 
+- [`bliss-mixer-core`](https://github.com/chrober/bliss-mixer-core) - shared
+  Rust scoring library used to keep the playlist optimizer aligned with the
+  learned-matrix-enabled `bliss-mixer` fork instead of duplicating its core
+  similarity behavior.
+- [`bliss-playlist-optimizer`](https://github.com/chrober/bliss-playlist-optimizer)
+  - native, versioned constrained-route optimizer. It consumes immutable request
+  artifacts and provides deterministic results, diagnostics, cancellation, and
+  structured progress independently of the LMS user interface.
+- [`lms-better-call-bliss`](https://github.com/chrober/lms-better-call-bliss) -
+  LMS plugin that captures saved-playlist or queue snapshots, exposes per-job
+  controls, prepares optional semantic evidence, runs read-only previews, and
+  accepts results into a playlist or player queue. It depends on an installed
+  LMS BlissMixer environment but does not modify that plugin.
 - [`bliss-learner`](https://github.com/chrober/bliss-learner) - this project's
   public but experimental standalone Rust port, adapted to the LMS survey,
   `TracksV2` schema, JSON artifacts, and progress notifications; it is not an

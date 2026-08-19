@@ -2,7 +2,7 @@
 
 **Status:** Living research and design proposal  
 **Primary scope:** Phased downstream experimentation and rollout  
-**Last reviewed:** 2026-08-01
+**Last reviewed:** 2026-08-19
 
 ## Delivery phases
 
@@ -45,13 +45,22 @@ their exact definitions and differences from the baseline documented.
 ### Phase 1a: experimental fixed-set sequencing
 
 Fixed-set sequencing can be evaluated alongside Phase 1 without changing the
-23-feature schema or the current database layout. A standalone experimental
-one-shot prototype already demonstrates the mechanics, but its implementation
-is currently untracked and is not part of the shipped LMS BlissMixer system.
+23-feature schema or the current database layout. The original one-shot
+prototype has become a versioned downstream implementation: shared scoring in
+`bliss-mixer-core`, native orchestration in `bliss-playlist-optimizer`, and an
+LMS preview-and-accept workflow in Better Call Bliss. This implementation is
+separate from LMS BlissMixer and does not turn its experimental objectives into
+validated perceptual models.
+
+The implemented baseline now covers exact-permutation ordering,
+order-preserving extension, destination-constrained queue routes, captured
+per-job constraints and scoring settings, optional semantic evidence, progress,
+cancellation, preview, and accepted playlist or queue output. Those capabilities
+provide a reproducible evaluation surface rather than completing the research.
 
 The next research steps are to:
 
-- preserve an exact reorder-only membership contract;
+- continue verifying the exact reorder-only membership contract;
 - evaluate directional Adaptive continuation scoring with a strict sliding
   seed window, hard repeat constraints, and original/random/reversed controls;
 - report total, mean, upper-tail, and worst-leg costs rather than only the
@@ -64,6 +73,8 @@ The next research steps are to:
   subsequence;
 - evaluate destination-constrained routes separately, with a fixed endpoint and
   an immutable source or queue prefix;
+- test learned-only, Static-only, and conservative dual-model destination
+  acceptance on cases where the metrics disagree;
 - compare one-track bridges with multi-track gap routes, rescoring through the
   right anchor rather than treating additions independently;
 - generalize semantic evidence cautiously from the prototype's artist-only
@@ -75,13 +86,12 @@ The next research steps are to:
   [evaluation contract](mixing-evaluation.md#fixed-set-sequencing-evaluation)
   and [operational contract](../mixing/operations.md#one-shot-reproducibility-and-deployment-observability).
 
-If the evidence is favorable, a later product could expose a dedicated ordering
-command or API whose input is an explicit track set and whose output preserves
-membership unless a bridge policy is requested. LMS BlissMixer integration
-could then add preview, audition, accept, cancellation, progress, and
-transactional persistence. None of that product surface is implemented today,
-and it should not be hidden inside the existing mix endpoint merely because the
-prototype reuses Adaptive scoring.
+The downstream product surface now demonstrates a dedicated request/result
+contract, preview, cancellation, progress, and transactional acceptance without
+hiding route optimization inside the existing mix endpoint. Remaining product
+work and perceptual research must still be kept distinct: a successful native
+job proves contract and execution behavior, while listener evaluation and
+boundary-aware evidence determine whether its route actually sounds better.
 
 ### Phase 2: analysis prototype
 

@@ -1,12 +1,12 @@
 # Fixed-set sequencing and bridge insertion
 
-**Status:** Experimental one-shot prototype; implementation currently untracked
-and not part of the shipped LMS BlissMixer system
+**Status:** Implemented downstream capability; perceptual quality remains an
+experimental research question
 
 **Primary scope:** Ordering an already curated collection and optionally adding
 explicitly justified bridge tracks
 
-**Last reviewed:** 2026-07-29
+**Last reviewed:** 2026-08-19
 
 Fixed-set sequencing starts after somebody or something has already chosen the
 playlist members. Its question is not _which tracks belong in the playlist?_
@@ -14,10 +14,19 @@ but _in which direction and order should these tracks play?_ An optional later
 stage may add a limited number of bridge tracks, but that changes membership and
 must therefore remain separately visible and evaluable.
 
-The current evidence comes from a standalone, experimental one-shot prototype.
-It operates on immutable snapshots and writes candidate playlists for review.
-It does not add a command, API, or user interface to LMS BlissMixer, and none of
-the behavior below should be read as shipped plugin functionality.
+The work began as a standalone one-shot prototype and now has a versioned
+downstream implementation. `bliss-mixer-core` shares the scoring behavior with
+the native `bliss-playlist-optimizer`; the Better Call Bliss LMS plugin supplies
+snapshot capture, job configuration, preview, progress, cancellation, and
+accepted playlist or queue output. This remains separate from LMS BlissMixer,
+which supplies the installed Bliss data and compatible mixing defaults but is
+not modified by the optimizer.
+
+That implementation establishes an executable and testable contract. It does
+not establish that the current whole-track objective predicts audible flow or
+that its defaults generalize across libraries and listeners. This page therefore
+documents the general constrained-sequencing problem, the implemented baseline,
+and the evidence still required rather than serving as a product manual.
 
 ## Relationship to retrieval, diversity, and transitions
 
@@ -111,9 +120,9 @@ useful evaluation control, not a free canonicalization of an Adaptive result.
 ## Adaptive similarity as a continuation score
 
 The current mix API finds new tracks from seeds; it does not accept a complete
-collection and return an ordering. The one-shot prototype nevertheless reuses
-the current Adaptive calculation as a directional continuation score inside
-its own route search.
+collection and return an ordering. The playlist optimizer reuses the same
+Adaptive calculation as a directional continuation score inside its separate
+route search.
 
 For position `k`, let `S_k` be the strictly ordered suffix of tracks already
 placed before the candidate, limited to the configured seed-window size. The
@@ -154,6 +163,37 @@ The learned matrix is blended directly with the variance-derived matrix. It is
 not a separate ranking channel in Adaptive mode. The score is contextual and
 asymmetric even though each individual Mahalanobis matrix is symmetric once its
 context has been fixed.
+
+### Single-seed disagreement and conservative corroboration
+
+The learned matrix is optional. When it is present, however, the one-seed rule
+above means that it becomes the complete effective Adaptive metric for the first
+leg: the configured multi-seed blend cannot contribute because no seed variance
+exists yet. This behavior matters especially for destination-constrained routes,
+whose direct source-to-destination decision starts from exactly one boundary
+track.
+
+The matrix is learned from symmetric whole-track similarity judgments. It may
+capture a listener's useful preferences, but it was not trained as a directional
+transition or boundary-quality model. A deployed destination-route case exposed
+a consequential disagreement: the learned metric considered a direct edge
+ordinary while the configured Static metric considered the same edge unusually
+difficult, and listening review found the transition abrupt.
+
+The current destination-route implementation therefore uses conservative
+corroboration when Adaptive has a learned matrix. It maps the direct endpoint
+edge independently onto source-relative learned and Static reference
+distributions and uses the higher risk percentile for route discovery and
+acceptance. It does **not** add incomparable raw distances, and it does not claim
+that Static is ground truth. Model disagreement is treated as uncertainty: one
+whole-track metric cannot declare a boundary safe merely because the other view
+sees a warning.
+
+This safeguard is intentionally narrower than a future transition model. It can
+reduce false acceptance caused by one metric, but it still cannot observe the
+actual source outro, destination intro, silence, fade, or structural boundary.
+Its value must be tested through learned-only, Static-only, and corroborated
+ablations plus listening review.
 
 ### Route objective and search
 
@@ -275,6 +315,12 @@ This tiered bridge policy is specific to the one-shot prototype. It is not the
 same algorithm as the existing LMS BlissMixer Last.fm weighting option, even
 when both draw metadata from the LastMix integration.
 
+The current downstream implementation has moved from this artist-only policy to
+the provider-neutral frozen evidence model below. Its Last.fm adapter can retain
+both recording-level and artist-level support, but that support remains
+secondary evidence over local analyzed candidates rather than an acoustic
+transition score.
+
 ### Generalized semantic evidence
 
 A provider-neutral extension should keep semantic evidence separate from the
@@ -314,12 +360,18 @@ legs is invalid: by construction its worst leg would always receive percentile
 `1.0`, making a “bridge the worst percentile” rule self-triggering even when
 the complete route is already strong.
 
-The prototype instead freezes a cross-context reference distribution by
-scoring every original curated candidate under every actual seed context in the
-selected route, excluding the context's own seeds. Direct route legs and both
-candidate bridge legs are mapped onto this same distribution. This supplies a
-broader contextual baseline, although it is still library- and playlist-relative
-and must not be presented as a calibrated probability of transition quality.
+For general gap insertion, the optimizer freezes a cross-context reference
+distribution by scoring every original curated candidate under every actual
+seed context in the selected route, excluding the context's own seeds. Direct
+route legs and both candidate bridge legs are mapped onto this same distribution.
+This supplies a broader contextual baseline, although it is still library- and
+playlist-relative and must not be presented as a calibrated probability of
+transition quality.
+
+Destination-constrained routes use a different adjacent-edge view: each edge is
+compared with a source-relative local-library distribution under the governing
+fixed metric. When both learned and Static views are available, the direct edge
+selects the more conservative calibrated view as described above.
 
 Bridge acceptance currently requires both a maximum-leg threshold and a
 two-leg-total threshold. Artist-evidence tier breaks semantic ties before the
@@ -327,7 +379,8 @@ acoustic leg criteria and deterministic track identity fields.
 
 ## Relationship to boundary-aware transitions
 
-This prototype sequences tracks using the existing 23 whole-track descriptors.
+The current optimizer baseline sequences tracks using the existing 23
+whole-track descriptors.
 It is therefore a baseline for local flow, not the boundary-aware algorithm
 described under [transition-aware selection](transitions.md). It remains exposed
 to the
@@ -348,28 +401,30 @@ or refine a whole-track route without changing the fixed-set membership
 contract. They could also improve bridge selection by evaluating the actual
 `A.outro -> X.intro` and `X.outro -> B.intro` boundaries. Such reranking is a
 later analysis-dependent refinement, not functionality already implemented by
-the one-shot prototype.
+the current optimizer.
 
 ## Evidence and implementation boundary
 
-The prototype demonstrates that fixed-set sequencing, repeat-safe heuristic
-search, contextual rescoring, and conservative bridge analysis can be evaluated
-without changing the Bliss database schema. It does not yet establish:
+The downstream implementation demonstrates that fixed-set sequencing,
+repeat-safe heuristic search, contextual rescoring, conservative bridge
+analysis, and interactive LMS preview and acceptance can operate without
+changing the Bliss database schema. It does not yet establish:
 
 - that its heuristic route is globally optimal;
 - that whole-track continuation cost predicts perceived flow;
 - that the energy proxy improves listening experience;
 - that a particular bridge threshold or budget generalizes across libraries;
-- that Last.fm artist proximity implies a musically good transition; or
-- that the workflow is ready for unattended or interactive LMS use.
+- that Last.fm recording or artist proximity implies a musically good
+  transition; or
+- that a successful preview is sufficient evidence for unattended acceptance.
 
-Current unit tests cover M3U block handling, the leading `#CURTRACK` case,
-Static scaling, learned-distance caching, the Adaptive variance formula,
-deterministic exact-permutation search, artist/album repeat safety, and the
-artist-evidence tier helper. They do not yet exercise end-to-end automatic or
-explicit-count bridge insertion, outgoing-context rescoring, cross-context
-reference construction, run-manifest completeness, native candidate-score
-parity, or post-deployment scanner behavior.
+Automated tests now span the shared scoring core, native optimizer contracts,
+schemas and request validation, deterministic constrained routes, repeat safety,
+addition and destination-route behavior, result diagnostics, and LMS-plugin
+request and workflow integration. These tests validate software invariants and
+regressions, not audible quality. Real-player queue behavior, scanner behavior,
+remote-provider variability, representative-library performance, and listener
+judgment still require integration tests and controlled evaluation.
 
 Evaluation requirements are specified under [fixed-set sequencing
 evaluation](../evaluation/mixing-evaluation.md#fixed-set-sequencing-evaluation),

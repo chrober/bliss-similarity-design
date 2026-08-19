@@ -2,7 +2,7 @@
 
 **Status:** Living research and design proposal  
 **Primary scope:** Task-specific quality, coherence, diversity, personalization, and transitions  
-**Last reviewed:** 2026-07-19
+**Last reviewed:** 2026-08-19
 
 ## Dataset and fixtures
 
@@ -188,6 +188,38 @@ Compare against the same membership in:
 The reversed controls are particularly important for Adaptive scoring because
 its sliding context makes route costs directional. Search restarts are not
 independent baselines: they are attempts by the same optimizer.
+
+### Destination-route disagreement and path quality
+
+Destination-constrained routes need a dedicated false-acceptance fixture set.
+Include endpoints for which the active learned metric, Static metric, contextual
+continuation score, and listening judgment disagree. For each case, compare:
+
+- direct-edge acceptance under the learned metric alone;
+- direct-edge acceptance under Static alone;
+- conservative acceptance using the higher separately calibrated risk;
+- routes found at every permitted intermediate depth; and
+- the direct and routed boundaries in a blind listening review.
+
+Report each model's raw distance and source-relative percentile separately.
+Never add the raw learned and Static distances: they do not share a calibrated
+scale. A disagreement is itself diagnostic evidence and should remain visible
+in the result trace.
+
+An automatic destination-route bridge count is a **maximum search budget**, not
+a target count and not a promise that consuming more of it improves quality. A
+shorter route that satisfies the declared acceptance rule may be preferable to
+a longer one. Evaluation should nevertheless retain the best admissible route
+at each explored depth so that stopping policy, route-length penalty, worst-leg
+risk, total path quality, and listener preference can be compared rather than
+conflated.
+
+Runtime reports must separate inventory preparation, reference-distribution
+construction, candidate discovery, exact route scoring, and local search. Run
+the same fixtures at multiple library sizes, including at least a roughly
+64,000-track real or synthetic inventory and a 200,000-track condition. Report
+both warm- and cold-cache behavior and verify that the configured search effort
+changes bounded work rather than the result contract.
 
 ### Bridge ablation and evidence
 

@@ -2,11 +2,12 @@
 
 **Status:** Living research and design proposal  
 **Primary scope:** MPD, LMS, mixer, learner, and other library integrations  
-**Last reviewed:** 2026-08-01
+**Last reviewed:** 2026-08-19
 
 The contracts in this section are illustrative, not LMS-exclusive.
 `blissify-rs` represents the established MPD lineage; `bliss-analyser`, the
-`chrober/bliss-mixer` fork, `bliss-learner`, and the
+`chrober/bliss-mixer` fork, `bliss-mixer-core`, `bliss-playlist-optimizer`,
+`bliss-learner`, Better Call Bliss, and the
 [`chrober/lms-blissmixer`](https://github.com/chrober/lms-blissmixer) fork
 represent the current LMS-oriented experiment. They are evidence about existing
 consumer relationships, not a proposed architecture for `bliss-rs` or other
@@ -31,9 +32,13 @@ flowchart TB
     subgraph LMS[LMS-oriented integration]
         BA[bliss-analyser<br/>or analysis companion]
         BA --> LDB[(bliss.db and optional<br/>enhanced sidecar)]
+        CORE[bliss-mixer-core<br/>shared scoring]
         LDB --> MX[chrober/bliss-mixer fork]
+        CORE --> MX
         MX --> PLUGIN[lms-blissmixer]
-        MX --> BCB[Better Call Bliss<br/>playlist optimizer]
+        LDB --> OPT[bliss-playlist-optimizer<br/>native route search]
+        CORE --> OPT
+        OPT --> BCB[Better Call Bliss<br/>LMS application layer]
         PLUGIN --> PLAYER[Lyrion/LMS players]
         BCB --> PLAYER
 
@@ -130,11 +135,13 @@ rejected continuations, skips with suitable context, repeated listening, and
 other consented behavioral signals can bootstrap a metric. Explicit questions
 can then be selected for uncertain, conflicting, or high-information cases
 rather than presented as a fixed 100-plus-round prerequisite.
+
 Better Call Bliss makes these signals more structured than ordinary playback
 history. It records whether a playlist was merely previewed, accepted as a
-copy, written over the source, sent to a player queue, grown from seeds, or
-changed by bridge insertion. Those events should be exposed to the learner as
-typed observations only after consent and retention policy are defined. Raw
+copy, written over the source, sent to a player queue, extended with selected
+library tracks, or used for a destination-constrained route. Those events
+should be exposed to the learner as typed observations only after consent and
+retention policy are defined. Raw
 Better Call Bliss outputs should be treated as exposure records, not preference
 labels, until the user reacts to them. See
 [Playlist-derived learning signals](../mixing/playlist-derived-learning.md)

@@ -2,7 +2,7 @@
 
 **Status:** Living research and design proposal  
 **Primary scope:** User-curated playlists, Better Call Bliss outputs, and lower-effort bliss-learner evidence  
-**Last reviewed:** 2026-08-08
+**Last reviewed:** 2026-08-19
 
 ## Why playlists matter
 
@@ -20,10 +20,10 @@ listener considered worth grouping, and sometimes worth ordering, in a real
 context.
 
 Better Call Bliss makes this evidence more concrete. It separates fixed-set
-reordering, bridge insertion, seed growth, preview acceptance, copy creation,
-source overwrite, and player-queue output. That separation gives the learner a
-chance to distinguish the source of a signal instead of flattening all behavior
-into one implicit preference label.
+reordering, order-preserving extension, destination-constrained routing,
+preview acceptance, copy creation, source overwrite, and player-queue output.
+That separation gives the learner a chance to distinguish the source of a
+signal instead of flattening all behavior into one implicit preference label.
 
 ## Signal classes
 

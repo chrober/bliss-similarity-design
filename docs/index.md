@@ -2,7 +2,7 @@
 
 **Status:** Living research synthesis and design exploration
 
-**Last reviewed:** 2026-08-11
+**Last reviewed:** 2026-08-19
 
 ## Abstract
 
@@ -131,7 +131,10 @@ linked elsewhere in the site.
 | [`CDrummond/bliss-mixer`](https://github.com/CDrummond/bliss-mixer) | Original HTTP mixing service and source of the Static Weights and Extended Isolation Forest strategies. |
 | [`CDrummond/lms-blissmixer`](https://github.com/CDrummond/lms-blissmixer) | Original Lyrion Music Server plugin and upstream of the current `chrober/lms-blissmixer` fork. |
 | [`chrober/bliss-mixer`](https://github.com/chrober/bliss-mixer) | Mixer fork adding variance-based Adaptive Weighting and learned-matrix loading, use, and blending. |
-| [`chrober/lms-blissmixer`](https://github.com/chrober/lms-blissmixer) | LMS integration fork hosting the current similarity survey, learner integration, and the existing **Create bliss mix** / **Bliss Mix erstellen** action for immediate Bliss-based mix generation. |
+| [`chrober/bliss-mixer-core`](https://github.com/chrober/bliss-mixer-core) | Shared Rust scoring library used by the learned-matrix-enabled mixer and native playlist optimizer. |
+| [`chrober/bliss-playlist-optimizer`](https://github.com/chrober/bliss-playlist-optimizer) | Native constrained-route optimizer providing versioned requests, deterministic results, diagnostics, progress, and cancellation. |
+| [`chrober/lms-blissmixer`](https://github.com/chrober/lms-blissmixer) | LMS integration fork hosting the current similarity survey, learner integration, and the existing **Create bliss mix** action for immediate single-track-seeded Bliss mix generation. |
+| [`chrober/lms-better-call-bliss`](https://github.com/chrober/lms-better-call-bliss) | LMS application layer for playlist and queue snapshots, per-job route controls, preview, and accepted playlist or queue output. |
 | [`chrober/bliss-learner`](https://github.com/chrober/bliss-learner) | Experimental Rust port of the `bliss-metric-learning` training workflow, adapted to the LMS survey and consumed by the mixer fork. |
 
 ### Platform and historical evidence

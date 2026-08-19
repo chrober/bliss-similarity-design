@@ -2,7 +2,7 @@
 
 **Status:** Living research and design proposal  
 **Primary scope:** Boundary descriptors, compatibility, and late reranking  
-**Last reviewed:** 2026-07-23
+**Last reviewed:** 2026-08-19
 
 ## Transition-aware selection
 
@@ -10,6 +10,30 @@ Transition awareness is the first fully described task-specific scoring path.
 It consumes anchor and boundary descriptors from the broader enhanced-analysis
 model, but it is not required for experiments that improve general song
 similarity.
+
+### Four evidence roles in a musical route
+
+Recent constrained-route work reinforces that “similarity” is not one decision.
+A route needs four distinguishable forms of evidence:
+
+| Evidence role | Question | Suitable current or future evidence |
+|---|---|---|
+| **Collection relevance** | Does this track belong in the requested musical context at all? | Whole-track Bliss retrieval, source-set profiles, and optional semantic support such as Last.fm |
+| **Contextual continuation** | Does it follow the ordered sequence heard so far? | Sliding-context Adaptive scoring or another explicitly contextual model |
+| **Adjacent compatibility** | Will this exact physical boundary sound plausible? | Ideally source-outro to candidate-intro evidence, with whole-track distances only as a fallback proxy |
+| **Trajectory** | Does the complete path progress coherently toward its destination or requested shape? | Route-level direction, remaining-distance, pacing, and worst-leg objectives |
+
+These roles may share features and utilities, but they should remain separately
+observable and ablatable. Last.fm can strengthen relevance or semantic support;
+it does not measure an acoustic playback boundary. Likewise, a learned
+whole-track metric can improve personalized relevance without becoming a
+directional transition model.
+
+Raw scores from the four roles must not be added merely because they are
+numeric. Each score needs a declared reference population or calibration, and
+model disagreement should remain visible as uncertainty. The current
+destination-route safeguard illustrates this principle by comparing learned and
+Static source-relative risk percentiles rather than summing their raw distances.
 
 The reranker operates only after global retrieval and existing filtering. It
 uses the actual playback boundary, preserves candidates with missing metadata,
