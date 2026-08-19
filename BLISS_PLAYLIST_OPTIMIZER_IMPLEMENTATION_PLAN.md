@@ -93,14 +93,14 @@ workflow is connected; those are listed separately.
 | 🟡 Partial | Some layers or UX scaffolding exist, but the capability is not complete end to end. |
 | ⬜ Not implemented | Roadmap contract exists, but no usable implementation is connected. |
 
-Current inventory: **50 implemented**, **19 partial**, and **8 not implemented
+Current inventory: **50 implemented**, **20 partial**, and **8 not implemented
 or later-roadmap** rows. These are feature rows, not a percentage-complete
 release estimate; foundational and user-facing capabilities intentionally have
 the same row weight.
 
 | Area | Roadmap feature | Status | Current boundary / remaining work |
 | --- | --- | --- | --- |
-| Foundation | Bulk database preparation and identity-bound decoded-library cache | ✅ Implemented | Cold jobs use one ordered SQLite query; warm jobs reuse the database hash, successful integrity result, and checksum-protected decoded library only for an unchanged plugin-supplied file identity. |
+| Foundation | Bulk database preparation and identity-bound decoded-library cache | ✅ Implemented | Cold jobs use one ordered SQLite query. Cache v2 separates compact metadata from route features, rejects inconsistent vector counts, and lets warm jobs reuse the hash, successful integrity result, and decoded library only for an unchanged plugin-supplied file identity. Destination jobs borrow cached tracks instead of cloning the complete library. |
 | Foundation | Component identities and public repositories | ✅ Implemented | Core, optimizer, plugin, design, mixer fork, and extension-index ownership are established. |
 | Foundation | Shared `bliss-mixer-core` library | ✅ Implemented | Database, matrix, Adaptive scoring, filtering, and diagnostics are shared rather than copied. |
 | Foundation | `bliss-mixer` consumes the shared core | ✅ Implemented | The maintained learned-matrix-enabled mixer fork and optimizer use the same core. |
@@ -169,6 +169,7 @@ the same row weight.
 | Observability | Reproducible JSON and human-readable reports | 🟡 Partial | Native request/result artifacts and diagnostics exist; durable sanitized report retention/export is missing. |
 | Observability | Persistent non-LMS Bliss-row audit | ✅ Implemented | A private JSON ledger retains current and resolved unmatched identities, exact filename-case variants, reasons, metadata, row IDs, and first/last-seen observations across LMS restarts. INFO logs and `bettercallbliss status` expose only its count and location. In the current UX, Extras renders the diagnostic box only when the current inventory has excluded rows; loading the persisted summary at page initialization remains a clarity improvement. |
 | Performance | High-recall bridge-candidate shortlist before strict contextual reranking | ✅ Implemented | The plugin bounds evolving search to 256 candidates per internal gap after the full strict initial-gap Adaptive rank and semantic reserve. The exhaustive one-gap winner was preserved, and the formerly four-minute native exact-eight request completed in 21.1 seconds. |
+| Performance | Large-library destination setup and bounded memory | 🟡 Partial | Optimizer 0.1.5 adds capability-gated trusted-plugin requests, allocation-free evidence-scoped semantic matching, a one-pass LMS inventory split, reusable fixed-matrix reference work, and conservative Fast/Balanced/Thorough contextual-prefilter caps of 65,536/131,072/262,144 tracks. On the 64,128-track ARM64 Pi fixture, warm Fast fell from about 6.24s to 2.05s with identical selected route/quality, cold Fast fell from 9.44s to 5.50s, and warm peak RSS fell from about 1.14GB to about 226MB. A 200,000-candidate regression protects evidence-sized retained lookup state, but a representative 200k+ end-to-end database benchmark and longer-lived/memory-mapped index decision remain open. |
 | Reliability | Analysis-running and database-consistency coordination | 🟡 Partial | Read-only access, artifact identity, and unchanged-database checks exist; complete scan scheduling, snapshot, and restart cases remain. |
 | Reliability | Server-restart recovery | ⬜ Not implemented | In-memory jobs/results do not survive LMS restart. |
 | Reliability | Privacy/redaction audit and failure-matrix testing | 🟡 Partial | Public fixtures/docs are sanitized and runtime logging is restrained; formal redaction tests and the complete outage/recovery matrix remain. |
