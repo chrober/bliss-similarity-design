@@ -30,6 +30,10 @@ groups durable settings, disables inapplicable route/Last.fm controls, and
 migrates the two Last.fm guidance defaults to 25%. Optimizer revisions `5b78b53`
 and `66a4f85` add and publish the target-first, best-effort destination-route
 contract as optimizer `0.1.4`.  
+**Working-tree Gate 2 (2026-08-19):** destination routes now use a dedicated  
+fixed-matrix layered adjacent path search with complete-route Variation, a  
+shared transformed-feature distance index, and configurable Fast, Balanced, or  
+Thorough effort. Fast is the Raspberry Pi-oriented plugin default.  
 **Previous checkpoints:** [Target and double track-count presets](IMPLEMENTATION_CHECKPOINT_30.md), [Accept-time output targets and release packaging](IMPLEMENTATION_CHECKPOINT_29.md), [Per-job variation and optional Last.fm track/artist evidence](IMPLEMENTATION_CHECKPOINT_28.md), [Finalized Grow from these seeds](IMPLEMENTATION_CHECKPOINT_27.md), [Draft retention, audit clarity, and second-server deployment](IMPLEMENTATION_CHECKPOINT_26.md), [LMS-local bridge inventory and persistent audit](IMPLEMENTATION_CHECKPOINT_25.md), [Preserve source order and fill gaps](IMPLEMENTATION_CHECKPOINT_24.md), [Strict-rank bridge shortlist and live scaling](IMPLEMENTATION_CHECKPOINT_23.md), [Prepared-library cache and measured Pi performance](IMPLEMENTATION_CHECKPOINT_22.md), [Live exact-count extension](IMPLEMENTATION_CHECKPOINT_21.md), [Accessible outcomes and monochrome Extras icon](IMPLEMENTATION_CHECKPOINT_20.md), [Clarified job controls and extension icon](IMPLEMENTATION_CHECKPOINT_19.md), [Visible outcomes and safe copy naming](IMPLEMENTATION_CHECKPOINT_18.md), [Live automatic extension](IMPLEMENTATION_CHECKPOINT_17.md), [Verified optimized-copy persistence](IMPLEMENTATION_CHECKPOINT_16.md), [Complete UX shell](IMPLEMENTATION_CHECKPOINT_15.md), [First live Lyrion preview](IMPLEMENTATION_CHECKPOINT_14.md), [Explicit endpoint insertion](IMPLEMENTATION_CHECKPOINT_13.md), [Multi-track preserved-gap routing](IMPLEMENTATION_CHECKPOINT_12.md), [Preserve-order gap-filling preview](IMPLEMENTATION_CHECKPOINT_11.md), [Exact-count bridge-selection preview](IMPLEMENTATION_CHECKPOINT_10.md), [Automatic bridge-selection preview](IMPLEMENTATION_CHECKPOINT_9.md), [Provider-neutral semantic bridge ranking](IMPLEMENTATION_CHECKPOINT_8.md), [Native bridge-analysis CLI](IMPLEMENTATION_CHECKPOINT_7.md), [Contextual bridge-scoring kernel](IMPLEMENTATION_CHECKPOINT_6.md), [Deterministic native route search](IMPLEMENTATION_CHECKPOINT_5.md), [Parallel contextual scoring](IMPLEMENTATION_CHECKPOINT_4.md), [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md), [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)  
 **Reference implementation:** The tracked Python tools and sanitized 2025/2026
 execution reports in this repository remain a migration and parity oracle until
@@ -70,7 +74,7 @@ inventory follows this table.
 | Send the accepted preview to a player queue | ✅ Available | Completed previews can replace, replace only upcoming tracks, append to, or play next on a selected player queue, with optional playback start. Same-player replace-upcoming rechecks the live queue and trims already-played preview items when the snapshot is still recognizable. |
 | Start from the Extras job editor | ✅ Available | The rich per-job editor is the working primary interface. |
 | Start from a saved-playlist context action | ✅ Available | The context item opens the Better Call Bliss Extras job editor with the selected saved playlist preselected. In Material this appears through the item menu / More affordance rather than as a permanent inline row button. |
-| Use **Bliss me there...** to append a fluent route to a selected track | 🟡 Partial | The direct quick action, immutable destination, live-tail validation, bounded Automatic/Exact policies, background status, and suffix-only queue append are operational. Musical-quality correctness is not mature: contextual values are presented like adjacent-edge quality, Automatic overloads one percentile as trigger and target, multi-hop search uses a frozen midpoint shortlist, and the destination repeat exemption can admit generated same-artist/album conflicts. See the linked destination-route investigation. |
+| Use **Bliss me there...** to append a fluent route to a selected track | 🟡 Partial | The quick action, live-tail validation, suffix-only append, calibrated adjacent evidence, destination-aware repeat rules, and dedicated layered adjacent path search are operational. Automatic searches each permitted count and Exact uses the same path objective. Fast, Balanced, and Thorough effort profiles trade latency for breadth, and Variation now acts only inside a complete-route quality band. Remaining quality work includes split trigger/target controls, depth-aware candidate discovery beyond one frozen endpoint shortlist, richer acoustic evidence, and intermediate semantic-path evidence. |
 | See running, success, failure, and accept-action outcomes in the UI | ✅ Available | The page polls current jobs and presents accessible, actionable status banners for previews, copy creation, source overwrite, and player-queue output without requiring log inspection. |
 | Cancel jobs, resume after restart, and browse/export past results | 🟡 Limited | Current in-memory jobs can be polled by ID, listed in the Extras page, and cancelled while the native optimizer process is running. Restart recovery, durable history, persistence-phase cancellation, search, and report export are missing. |
 | Configure durable defaults and inspect system readiness | 🟡 Partial | The settings page and core readiness checks exist; complete provider, active-job, and persistence-health status is unfinished. |
@@ -118,12 +122,12 @@ the same row weight.
 | Native routing | Multiple inserted tracks inside one preserved gap | ✅ Implemented | Bounded one-through-eight-track internal gap routes are supported. |
 | Native routing | Explicit opening and closing insertion slots | ✅ Implemented | Capacity-one endpoint slots are independent opt-ins in exact-count native requests. |
 | Native routing | Fixed-source relevance selection and diversity-aware extension | ✅ Implemented | The `fixed_source_extension` request ranks the LMS-local analyzed library in parallel against the complete immutable source set, applies repeat-window capacity during exact membership selection, and either routes the complete fixed membership with deterministic Rayon search or preserves source order with a deterministic insertion pass. Seeded weighted sampling varies membership inside a bounded high-quality pool; Last.fm-endorsed similar-track and similar-artist targets are applied when usable evidence exists. |
-| Native routing | Fixed-destination route generation | 🟡 Partial | Endpoint locking, bounded Automatic/Exact construction, target/best-effort fields, library reference building, and deterministic execution are implemented. The current generic gap-insertion search is not yet an adequate destination path algorithm: it conflates rolling-context and adjacent evidence, stops at false midpoints, reuses one endpoint shortlist at every depth, applies Variation before complete-route ranking, and has a destination-role repeat exemption defect. |
+| Native routing | Fixed-destination route generation | 🟡 Partial | Endpoint locking, fixed-matrix layered path search, all-count Automatic comparison, exact-count routing, adjacent diagnostics, truthful target/best-effort fields, role-aware repeat enforcement, complete-route Variation, shared transformed-feature distance indexing, and Fast/Balanced/Thorough breadth profiles are implemented. The search still reuses one endpoint-derived shortlist at every depth and overloads one percentile as both direct trigger and generated-route target. |
 | Lyrion integration | BlissMixer compatibility and inherited defaults | ✅ Implemented | Database, matrix, strategy parameters, and repeat windows are captured read-only. |
 | Lyrion integration | Per-job scoring, repeat, search, variation, provider, and extension controls | ✅ Implemented | Working modes receive validated job-local overrides without changing BlissMixer preferences. Blank generation seeds are regenerated per job and explicit seeds are retained for reproducibility. |
 | Lyrion integration | Extras rich-job editor | ✅ Implemented | The live ARM64 server exposes the form, relevance rules, Advanced controls, result area, and working/not-connected labels. |
 | Lyrion integration | Alternative result-list / library-view UX | ⬜ Planned | `lms-blissmixer`'s **Create bliss mix** can return an LMS menu-mode result list (`item_loop`) with a "Play this mix" item plus individual tracks and play/add/insert actions. Better Call Bliss should explore whether some previews or quick actions should offer a similar navigable result surface in addition to the rich Extras job editor. |
-| Lyrion integration | Durable plugin settings surface | ✅ Implemented | `Settings.pm` persists suffixes, resource defaults, provider flags, cache policy, and retention defaults. The page follows BlissMixer's grouped, collapsible-section pattern, remembers open sections, and disables both native inputs and Material sliders when the selected **Bliss me there...** intermediate policy or Last.fm enable state makes them inapplicable. Similar-track and similar-artist guidance both default to 25%; unused future settings remain labelled. |
+| Lyrion integration | Durable plugin settings surface | ✅ Implemented | `Settings.pm` persists suffixes, resource defaults, provider flags, cache policy, retention defaults, and the **Bliss me there...** Fast/Balanced/Thorough search effort. The page follows BlissMixer's grouped, collapsible-section pattern, remembers open sections, and disables both native inputs and Material sliders when the selected intermediate policy or Last.fm enable state makes them inapplicable. Similar-track and similar-artist guidance both default to 25%; unused future settings remain labelled. |
 | Lyrion integration | Complete capability/system-status dashboard | 🟡 Partial | Core readiness and problems are visible; provider, active-job, and persistence-health rows are incomplete. |
 | Lyrion integration | Namespaced command API | 🟡 Partial | `bettercallbliss status`, job status/cancel, and the client-bound `bettercallbliss route_to` quick action exist; general optimize, durable result, and history commands remain incomplete. |
 | Source input | Current player queue snapshot | ✅ Implemented | The plugin-side source adapter resolves a selected player queue into the canonical ordered source-track snapshot, supports full/current-plus-upcoming/upcoming-only scopes, restores the submitted source fields, stores a lightweight queue fingerprint, and adds a replace-upcoming queue output action with accept-time same-player reconciliation. The workflow has been exercised on the ARM64 LMS server and included in private-beta packaging. |
@@ -144,7 +148,7 @@ the same row weight.
 | Playlist workflow | Player-queue output target | ✅ Implemented | Completed previews can be sent to a selected player as Replace queue, Append to queue, or Play next, with optional playback start. |
 | Playlist workflow | Playlist-embedded provenance comments | ⬜ Not implemented | Generated M3Us should include safe Better Call Bliss comment blocks with plugin/native versions, request schema, selected parameters, source playlist identity, original source positions, generated-track roles, report ID, and hashes sufficient for later audit without leaking more than the playlist already contains. |
 | Entry points | Saved-playlist context action | ✅ Implemented | The shortcut opens the Extras editor with the selected saved playlist preselected. Material exposes it through the item menu / More affordance rather than as a permanent inline button. |
-| Entry points | Track action **Bliss me there...** | 🟡 Partial | The client-bound background action, settings defaults, immutable destination, stale-tail refusal, status visibility, and validated suffix append are implemented. The entry point remains partial until the native destination search reports truthful adjacent quality and fixes the documented path-quality and repeat-window defects. |
+| Entry points | Track action **Bliss me there...** | 🟡 Partial | The client-bound background action, settings defaults, immutable destination, stale-tail refusal, status visibility, suffix append, adjacent-quality result, destination-aware repeat enforcement, dedicated complete-route adjacent ranking, route-level Variation, and configurable effort are implemented. It remains partial until direct triggering and route target controls are separated and candidate discovery can follow the evolving path rather than one original endpoint shortlist. |
 | Jobs and UX | Running, success, failure, and accept-action feedback | ✅ Implemented | Automatic polling and prominent actionable outcome banners are live for previews, copy creation, source overwrite, and player-queue output. |
 | Jobs and UX | Restore submitted job values after an outcome | ✅ Implemented | Polling, failure, successful Preview, and accept actions repopulate the rich editor from the job request so iterative tuning does not lose per-job values. Output choices are made after preview and changing them does not rerun the optimizer. |
 | Jobs and UX | Load previous parameters from playlist provenance | ⬜ Not implemented | If the selected input playlist contains trusted Better Call Bliss provenance comments, the Extras editor should offer to prefill the ordering, extension, scoring, repeat, variation, semantic, and search parameters used to create it. |
@@ -1032,30 +1036,30 @@ destination is the selected track; its source is the last playable track
 already in the selected player's queue. If no usable source exists, the action
 is disabled with an explanation.
 
-The action never removes, reorders, or replaces existing queue entries. It
-finds zero or more intermediate local tracks, applies the current queue tail as
-look-back context, and appends the intermediates followed by the selected
-destination. If the direct transition is already acceptable, Automatic may
-append only the destination. Otherwise it searches from one through the saved
-maximum and stops at the shortest route meeting the saved percentile quality
-target. If no route meets that target, Automatic compares the direct route and
-every permitted intermediate count, then returns the repeat-safe route with the
-lowest achieved worst-leg percentile and records the target miss as
-best-effort. Exact-count mode remains strict and fails unless precisely the
-requested route exists. Automatic or exact-count behavior is configured
-through grouped plugin settings; the settings page disables the maximum or
-exact-count input that does not apply to the selected policy.
-Selecting the context action starts the job in the background without opening
-Extras or requiring a separate acceptance step.
+The action never removes, reorders, or replaces existing queue entries. It  
+finds zero or more intermediate local tracks and appends them followed by the  
+selected destination. A dedicated layered search ranks complete paths by worst  
+fixed-matrix adjacent distance and then adjacent sum. If the direct edge meets  
+the target, Automatic may append only the destination. Otherwise it searches  
+each count through the saved maximum and selects the shortest route whose  
+source-relative adjacent percentiles meet the target. If none does, it returns  
+the smoothest repeat-safe best effort. Exact-count mode uses the same adjacent  
+objective and fails unless precisely the requested route exists.  
 
-The selected destination is fixed, while intermediate tracks remain subject to
-analysis coverage, uniqueness, repeat windows, and the configured optional
-semantic-evidence policy. Automatic's quality percentile is a target rather
-than a hard reason to discard the smoothest route found within its budget.
-Stale-tail validation, an infeasible exact-count request, unresolved tracks, or
-another hard membership/repeat failure leaves the queue unchanged and records
-an actionable job error. Every invocation gets a normal job ID and native
-artifact so its decisions remain auditable and reproducible.
+Fast, Balanced, and Thorough settings control shortlist, expansion, and beam  
+breadth without relaxing quality or repeat constraints. Fast is the default  
+for Raspberry Pi-class servers. Selecting the context action starts the job in  
+the background without opening Extras or requiring a separate acceptance step.  
+
+The selected destination is fixed, while intermediate tracks remain subject to  
+analysis coverage, uniqueness, repeat windows, and optional semantic evidence.  
+Variation chooses only among complete routes inside a narrow quality band.  
+Automatic's percentile is a target rather than a reason to discard the  
+smoothest route found within its budget. Stale-tail validation, an infeasible  
+exact-count request, unresolved tracks, or another hard membership/repeat  
+failure leaves the queue unchanged and records an actionable job error. Every  
+invocation gets a normal job ID and native artifact so its decisions remain  
+auditable and reproducible.  
 
 The quick action itself opens no editor or acceptance page. Running, completed,
 best-effort, and failed jobs remain inspectable through the shared Extras
@@ -1071,10 +1075,13 @@ Live job `preview-1786461653-0001` exposed a quality problem that must be resolv
 
 A diagnostic replay with `seed_limit = 1` removed that context leakage but still accepted Nina Simone to Mithotyn to Immortal, with both pairwise legs near the 58th percentile. This shows a second problem: the present 23-feature space and learned distance can contain a mathematical midpoint that is not a convincing perceptual transition across genre, timbre, intensity, or performance style. Lowering the trigger percentile or merely allowing more intermediate tracks does not solve either issue.  
 
+The 2026-08-19 Gate 1 slice now publishes fixed-matrix adjacent legs with source-relative local-library percentiles, matrix identity, route sum and bottleneck; derives Automatic target/best-effort state from that evidence; labels Static score legs correctly; and prevents generated artist/album conflicts with the destination. The frozen-shortlist search itself is deliberately unchanged so its old and new evidence can be compared.  
+
+Gate 2 replaces that generic search with a fixed-matrix layered beam. It searches complete routes for each permitted count, uses an endpoint-distance lower bound to prevent a final cliff, selects by adjacent bottleneck and sum, applies Variation only to complete near-optimal routes, measures only the requested tail-to-destination path, and reuses one transformed-feature index. The `search_effort` contract exposes Fast (128/6/32), Balanced (256/8/64), and Thorough (512/16/192) shortlist/per-state/beam limits; schema-v1 requests without the field remain Balanced.  
+
 Continue the work from the preserved job artifacts on `192.168.1.111` and address the following before tuning defaults:  
 
-- add explicit adjacent-edge diagnostics to every destination-route result instead of presenting contextual leg percentiles as if they described neighboring songs;  
-- design and test a destination objective that makes adjacent acoustic continuity a primary bottleneck or acceptance guard while retaining Adaptive context only where it adds useful history;  
+- split the direct-transition trigger from the generated-route adjacent-quality target while keeping request schema v1 replayable;  
 - evaluate semantic path continuity, including whether Last.fm evidence should support intermediate-to-intermediate progression rather than only endpoint candidate discovery;  
 - add a sanitized regression fixture reproducing the false-midpoint behavior and assert that a one-track route is not accepted merely because it lies near the feature-space midpoint;  
 - decide how an automatic quick action reports or handles a bounded best-effort route when no perceptually credible route exists, without silently claiming that a weak route met its quality target; and  

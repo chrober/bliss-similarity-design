@@ -2,8 +2,20 @@
 
 **Date:** 2026-08-11  
 **System:** Lyrion at `192.168.1.111`, Better Call Bliss `0.15.4`, bliss-playlist-optimizer `0.1.4`  
-**Status:** Reproducible defect analysis; no corrective implementation has been made yet.  
+**Status:** Gate 1 diagnostics/constraints and the bounded Gate 2 adjacent path search are implemented; live Pi quality and latency validation remains.  
 
+## Implementation checkpoint: 2026-08-19
+
+The first corrective slice is now implemented in the optimizer workspace:  
+
+- destination results publish a `route_quality` object containing every actual adjacent edge, its fixed-matrix distance, a source-relative percentile calibrated against the same matrix and LMS-local library, the matrix role and hash, route sum, bottleneck, and worst percentile;  
+- Automatic `quality_target_met`, `achieved_max_leg_percentile`, and `best_effort` now reflect that adjacent metric instead of the legacy rolling-context insertion values;  
+- Static `score` legs report `static-weights` rather than `learned-matrix`; and  
+- repeat validation checks each generated track against all tracks in its configured artist and album windows, including the explicit destination, while tolerating conflicts that already exist solely among immutable queue-context tracks.  
+
+Gate 2 now replaces generic destination gap insertion with a fixed-matrix layered beam. It evaluates complete routes by adjacent bottleneck and sum, searches every permitted count when necessary, applies Variation only inside a complete-route quality band, checks generated tracks against the destination, and measures only the requested tail-to-destination suffix. A transformed-feature index reuses matrix work, while `search_effort=fast|balanced|thorough` exposes bounded speed/quality profiles; Fast is the Raspberry Pi-oriented plugin default and older requests remain Balanced.  
+
+Candidate discovery still freezes one shortlist from the original endpoint gap. Split direct-trigger/route-target controls, depth-aware candidate expansion, semantic evidence between intermediates, richer acoustic evidence, and live listening/latency validation remain open.  
 ## Executive finding
 
 The four inspected **Bliss me there...** previews are valid according to the current optimizer contract, but that contract is not yet a reliable model of a fluent audible journey from Nina Simone to Immortal. The weakness is not explained by one bad default. Several effects reinforce each other:  
@@ -173,12 +185,12 @@ The release gates operated correctly against their current assertions. The missi
 
 ### Gate 1: Regression and truthful artifacts
 
-1. Add a sanitized fixture derived from these feature vectors and identities without publishing private paths or the full library database.  
-2. Add per-adjacent-edge distance, source-relative percentile, reference identity, strategy/matrix identity, and semantic evidence to destination results. Reject any percentile whose observation and reference were produced from different contexts or matrices.  
-3. Add separate rolling-context metrics when Adaptive is active.  
-4. Publish final-route bottleneck, sum, route length, target outcome, and best-effort state for both Automatic and Exact modes. Split the direct-transition trigger from the adjacent-leg quality target.  
-5. Add a test proving that generated tracks remain subject to artist/album windows against the explicit destination.  
-6. Add tests proving that Variation cannot move a result outside the accepted complete-route quality band.  
+1. **Pending:** add a sanitized fixture derived from these feature vectors and identities without publishing private paths or the full library database.  
+2. **Partial:** adjacent distances, source-relative percentiles, reference identity, and strategy/matrix identity are published and use a matching metric/reference. Per-edge semantic evidence remains to be added.  
+3. **Pending:** add separate, explicitly labelled rolling-context metrics when Adaptive is active.  
+4. **Partial:** final adjacent bottleneck, sum, target outcome, and best-effort state are published for feasible Automatic and Exact routes. An explicit route-length field and split trigger/target controls remain.  
+5. **Implemented:** `destination_candidate_cannot_use_explicit_destination_repeat_exemption` covers generated artist and album conflicts with the destination while allowing conflicts solely among immutable endpoints.  
+6. **Pending:** add tests proving that Variation cannot move a result outside the accepted complete-route quality band.  
 
 Suggested regression names:  
 
@@ -210,11 +222,11 @@ Keep request schema version 1 replayable during migration by accepting the curre
 Do not choose final UI defaults until the sanitized regression corpus has calibrated the new adjacent reference. Better Call Bliss can migrate the old saved trigger into the new direct-trigger field, but should use an independently tested target default. Results should identify `quality_metric`, `reference_model`, pairwise matrix/hash, adjacent bottleneck/sum, contextual secondary score where applicable, target outcome, and whether the returned route is best effort. Existing ambiguous `left_percentile` and `right_percentile` fields should be retained only for artifact replay or renamed so their rolling context is unmistakable.  
 ### Gate 2: Dedicated layered destination search
 
-Create a destination-specific search rather than routing through the generic preserved-gap insertion path. For an exact `N`, model `N + 1` adjacent edges between immutable endpoints. For Automatic, evaluate every permitted depth rather than stopping at the first broadly acceptable false midpoint.  
+**Bounded first implementation complete.** Destination requests no longer route through generic preserved-gap insertion. For exact `N`, the layered beam models `N + 1` fixed-matrix adjacent edges between immutable endpoints. Automatic returns a qualified direct edge, otherwise evaluates increasing depths and continues through the budget when it needs a best effort.  
 
-The primary objective should be the worst adjacent-edge percentile, followed by adjacent-edge sum and then a contextual/semantic secondary score. Automatic should choose a knee point: the shortest complete route whose worst edge is close to the best achievable result within the budget, or keep adding tracks while the bottleneck improves materially. The configured maximum remains a budget, not a promise to consume every slot.  
+Complete routes are ranked by worst raw adjacent distance, adjacent sum, semantic support, and deterministic identity. Automatic chooses the shortest route meeting the calibrated adjacent-percentile target; otherwise it returns the best bottleneck/sum result across the budget. Variation is delayed until complete routes and constrained to a 2% bottleneck/5% sum quality band. Fast, Balanced, and Thorough profiles control shortlist, per-state expansion, and beam width. The configured maximum remains a budget, not a promise to consume every slot.  
 
-Candidate layers should be rebuilt per depth or frontier. A practical bounded first implementation can union:  
+The remaining Gate 2 step is rebuilding candidate layers per depth or frontier instead of reusing the original endpoint shortlist. A future bounded expansion can union:  
 
 - nearest candidates to the current left frontier;  
 - nearest candidates to the right endpoint;  
