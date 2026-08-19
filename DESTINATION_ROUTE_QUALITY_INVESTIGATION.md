@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-11  
 **System:** Lyrion at `192.168.1.111`, Better Call Bliss `0.15.4`, bliss-playlist-optimizer `0.1.4`  
-**Status:** Gate 1 diagnostics/constraints and the bounded Gate 2 adjacent path search are implemented; live Pi quality and latency validation remains.  
+**Status:** Gate 1 diagnostics/constraints, Gate 2 adjacent path search, and the conservative learned/Static direct-edge safeguard are implemented and live-validated; depth-aware trajectory search and listening validation remain.  
 
 ## Implementation checkpoint: 2026-08-19
 
@@ -15,13 +15,17 @@ The first corrective slice is now implemented in the optimizer workspace:
 
 Gate 2 now replaces generic destination gap insertion with a fixed-matrix layered beam. It evaluates complete routes by adjacent bottleneck and sum, searches every permitted count when necessary, applies Variation only inside a complete-route quality band, checks generated tracks against the destination, and measures only the requested tail-to-destination suffix. A transformed-feature index reuses matrix work, while `search_effort=fast|balanced|thorough` exposes bounded speed/quality profiles; Fast is the deliberately bounded plugin default and older requests remain Balanced. Automatic routing now also accepts a validated minimum and maximum intermediate count.  
 
-Candidate discovery still freezes one shortlist from the original endpoint gap. Split direct-trigger/route-target controls, depth-aware candidate expansion, semantic evidence between intermediates, richer acoustic evidence, and live listening/latency validation remain open.  
+Destination candidate discovery now uses the same governing fixed acoustic view as the adjacent route objective instead of applying a conflicting contextual rerank. It still freezes one bounded endpoint/midpoint shortlist from the original gap. Split direct-trigger/route-target controls, depth-aware candidate expansion, semantic evidence between intermediates, richer acoustic evidence, and broader live listening validation remain open.  
+
+The broader shared proposal is recorded in [Acoustic path finding for Better Call Bliss](ACOUSTIC_PATH_FINDING_DESIGN.md). It defines reusable relevance, contextual, adjacent, trajectory, and future boundary evidence across all Better Call Bliss workflows.  
 
 ### Live false positive: Aretha Franklin to Rotor
 
 Job `preview-1787147358-0004`, produced by optimizer 0.1.5, transitioned from Aretha Franklin - *I Get High* to Rotor - *Volllast*. Automatic inserted no bridge because the contextual direct percentile was 53.47% and the fixed learned-matrix adjacent percentile was 48.27%, both below the configured 70% target. The listener nevertheless experienced a tough break. The artifact also contained 126 acoustically accepted, repeat-safe bridge candidates; several one-track candidate diagnostics had legs around the 28th-35th percentiles, although the dedicated fixed-route search was skipped once the direct edge qualified.  
 
 This is a genuine perceptual false positive for the present evidence, not proof that the listener is wrong. A library-relative percentile says only how the current 23-feature matrix ranks the pair; it is not a guarantee of compatible genre, instrumentation, intensity, arrangement, or actual outro-to-intro continuity. A positive Automatic minimum gives users a practical override, but it does not fix the evidence model. This case belongs in the future listening corpus for composite learned/Static evidence, segment-aware features, richer descriptors, and explicit user feedback.  
+
+Optimizer revision `baf626f` resolves this specific false direct acceptance conservatively. It evaluates the endpoint jump under both the learned matrix and current Static BlissMixer weights, lets the higher-risk percentile govern the complete destination search, and reports both verdicts. Replaying the exact preserved request on 2026-08-19 produced 73.75% Static versus 48.27% learned, selected Static, inserted Jethro Tull - *Rare and Precious Chain*, and reported a 64.71% worst resulting leg against the 70% target. Native runtime was 1.432 seconds and wall time 1.45 seconds. The mechanism and latency are validated; the bridge choice still needs listening review and should not become a hard-coded expected track.  
 ## Executive finding
 
 The four inspected **Bliss me there...** previews are valid according to the current optimizer contract, but that contract is not yet a reliable model of a fluent audible journey from Nina Simone to Immortal. The weakness is not explained by one bad default. Several effects reinforce each other:  
