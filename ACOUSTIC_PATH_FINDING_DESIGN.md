@@ -87,6 +87,21 @@ Automatic evaluates every permitted depth and selects the shortest route meeting
 
 Collection relevance, route continuation, adjacent boundaries, and trajectory remain different decisions even when they share feature vectors and search utilities.
 
+### Current split and desired convergence
+
+The current Better Call Bliss implementation does not yet use one identical route builder for every "bridge from A to B" situation. **Bliss me there...** uses a destination-route path optimized for one live transition from the current queue tail to a selected target. It owns destination-specific concerns such as immutable listening history, live-tail validation, minimum/maximum intermediate counts, cautious direct-transition handling, and suffix-only queue append.
+
+Playlist gap filling is related but currently uses the preserved-order bridge machinery. It may examine many gaps in one playlist, such as `A -> B`, `B -> C`, and `C -> D`, then decide where additions are justified or how already selected additions can be placed around ordered anchors. That outer problem is different because the budget, repeat windows, and earlier insertions can interact across several gaps.
+
+The long-term design should share the inner engine that answers: "given a left anchor A, a right anchor B, context, repeat policy, candidate inventory, and bridge budget, which complete A-to-B path is valid and worthwhile?" The outer planner should remain feature-specific:
+
+- **Bliss me there...:** one gap, fixed live source tail, fixed destination, append-only output.
+- **Preserve order and improve difficult transitions:** many existing playlist gaps, global addition budget, insert only where a bridge improves the transition.
+- **Fill every gap with N bridge tracks:** many gaps with a strict per-gap count; fail visibly if any required gap route cannot be built.
+- **Preserve order while extending:** choose membership against the complete original source set, then place selected additions around immutable anchors.
+
+This convergence would reduce duplicated bridge logic without pretending the listener-facing workflows are the same feature.
+
 ## Last.fm and future boundary evidence
 
 Last.fm track and artist similarity provide optional semantic support, not acoustic transition quality. Endpoint evidence should be depth-aware: source support matters more near the source and destination support more near the destination. Querying every frontier online would be slow and fragile, so an intermediate semantic graph needs durable caching, strict request budgets, and top-frontier-only expansion. The optimizer remains network-free and must preserve Bliss-only operation.
