@@ -96,7 +96,7 @@ Playlist gap filling is related but currently uses the preserved-order bridge ma
 The long-term design should share the inner engine that answers: "given a left anchor A, a right anchor B, context, repeat policy, candidate inventory, and bridge budget, which complete A-to-B path is valid and worthwhile?" The outer planner should remain feature-specific:
 
 - **Bliss me there... one-way actions:** one gap, fixed queue-end or current-song start, fixed destination, and append or replace-upcoming output.
-- **Bliss me there... from here... and back again!:** two coupled gaps, fixed current-song start, mandatory selected waypoint, locked first-upcoming rejoin, and non-destructive insertion with one shared bridge budget.
+- **Bliss me there... and back again!:** two coupled gaps, fixed current-song start, mandatory selected waypoint, locked first-upcoming rejoin, and non-destructive insertion with one shared bridge budget.
 - **Preserve order and improve difficult transitions:** many existing playlist gaps, global addition budget, insert only where a bridge improves the transition.
 - **Fill every gap with N bridge tracks:** many gaps with a strict per-gap count; fail visibly if any required gap route cannot be built.
 - **Preserve order while extending:** choose membership against the complete original source set, then place selected additions around immutable anchors.

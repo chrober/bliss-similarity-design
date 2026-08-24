@@ -1,7 +1,7 @@
 # Better Call Bliss productization and implementation plan
 
 **Status:** In progress - full ARM64 UX shell deployed and private-beta release
-packaging established. Version `0.15.7` is published and listed through the
+packaging established. Version `0.16.1` is published and listed through the
 private Lyrion extension repository. Optimized source order supports no
 additions, difficult-transition improvements, Extend playlist additions
 (exact count, target count, and double count); preserved source order supports
@@ -28,7 +28,7 @@ the same fixed-source extension, and deliver it as a separately maintained
 Lyrion plugin without requiring Python on the server or modifying
 `lms-blissmixer`.  
 **Latest implementation checkpoint:** [Destination-route maturity and reporting](IMPLEMENTATION_CHECKPOINT_32.md).  
-**Published implementation through `0.16.0`:** `lms-better-call-bliss`
+**Published implementation through `0.16.1`:** `lms-better-call-bliss`
 revision `5d8f85b` completed the original background **Bliss me there...**
 workflow; revision `ec3ce81` grouped durable settings, disabled inapplicable
 route/Last.fm controls, and migrated the two Last.fm guidance defaults to 25%.
@@ -36,9 +36,12 @@ Optimizer revisions through `3bdb777` supplied the packaged `0.1.7`
 destination-route foundation. Revisions `1f5cf38` and `8199bc9` then added
 richer reporting plus native waypoint-and-rejoin routing, published by
 `3142987` as optimizer `0.1.8`. Better Call Bliss revision `59ee5d0` publishes
-that binary contract and the three sibling actions as Better Call Bliss
-`0.16.0`: **Bliss me there...**, **Bliss me there... from here!**, and
-**Bliss me there... from here... and back again!**. The round-trip action uses
+that binary contract and the three sibling route modes as Better Call Bliss
+`0.16.0`. Revision `96cec2e` publishes their final labels and exact menu order
+as Better Call Bliss `0.16.1`: **Bliss me there...** starts from the currently
+playing song and replaces upcoming tracks, **Bliss me there... and back again!**
+inserts the round trip, and **Bliss me there... when we're through!** starts
+from the queue end and appends. The round-trip action uses
 a native three-anchor request—current song, mandatory selected waypoint, and
 first upcoming rejoin—with one bridge budget, quality result, and repeat
 contract spanning both legs.  
@@ -106,7 +109,7 @@ inventory follows this table.
 | See running, success, failure, and accept-action outcomes in the UI | ✅ Available | The page polls current jobs and presents accessible, actionable status banners for previews, copy creation, source overwrite, and player-queue output without requiring log inspection. |
 | Cancel jobs, resume after restart, and browse/export past results | 🟡 Limited | Current in-memory jobs can be polled by ID, listed in the Extras page, and cancelled while the native optimizer process is running. Restart recovery, durable history, persistence-phase cancellation, search, and report export are missing. |
 | Configure durable defaults and inspect system readiness | 🟡 Partial | The settings page and core readiness checks exist; complete provider, active-job, and persistence-health status is unfinished. |
-| Install and update from a Lyrion extension repository | 🟡 Private beta | The plugin release workflow builds ZIP/checksum artifacts, bundles optimizer binaries, publishes GitHub releases, and updates `chrober/lms-plugins`; `0.15.7` is the current private-beta package and pins optimizer release `v0.1.7`. Clean install/upgrade/failure testing, cache/update visibility, and public compatibility documentation remain. |
+| Install and update from a Lyrion extension repository | 🟡 Private beta | The plugin release workflow builds ZIP/checksum artifacts, bundles optimizer binaries, publishes GitHub releases, and updates `chrober/lms-plugins`; `0.16.1` is the current private-beta package and pins optimizer release `v0.1.8`. Clean install/upgrade/failure testing, cache/update visibility, and public compatibility documentation remain. |
 
 ## Detailed roadmap status
 
@@ -204,9 +207,9 @@ the same row weight.
 | Reliability | Privacy/redaction audit and failure-matrix testing | 🟡 Partial | Public fixtures/docs are sanitized and runtime logging is restrained; formal redaction tests and the complete outage/recovery matrix remain. |
 | Packaging | ARM64 development deployment | ✅ Implemented | The plugin and bundled optimizer are repeatedly exercised on the live ARM64 LMS server. |
 | Packaging | Supported multi-platform native/plugin packages | ✅ Implemented | The plugin release workflow consumes optimizer release artifacts for aarch64, armhf, x86_64 Linux, macOS, and Windows and packages them without committing binaries. Broader smoke coverage can still improve. |
-| Packaging | Versioned plugin ZIPs and checksums | ✅ Implemented | GitHub Actions creates versioned plugin ZIPs plus SHA-1/SHA-256 files from the pinned optimizer release. Better Call Bliss `0.15.7` packages optimizer `v0.1.7`; later main-branch reporting fixes still need the next release bump. Manual hot-deploy remains useful for live development. |
+| Packaging | Versioned plugin ZIPs and checksums | ✅ Implemented | GitHub Actions creates versioned plugin ZIPs plus SHA-1/SHA-256 files from the pinned optimizer release. Better Call Bliss `0.16.1` packages optimizer `v0.1.8`, including native binaries for every supported platform. Manual hot-deploy remains useful for live development. |
 | Release | Extension-repository listing | ✅ Implemented | The plugin release workflow updates `chrober/lms-plugins` with immutable GitHub release-asset URLs for Unix, macOS, and Windows packages. |
-| Release | Private beta install/upgrade/failure testing | 🟡 Partial | A private-beta feed and live installs exist, with current package `0.15.7`. Clean install, upgrade visibility/cache refresh, uninstall, outage, scanner, cancellation, and recovery cases still need systematic testing. |
+| Release | Private beta install/upgrade/failure testing | 🟡 Partial | A private-beta feed and live installs exist, with current package `0.16.1`. Clean install, upgrade visibility/cache refresh, uninstall, outage, scanner, cancellation, and recovery cases still need systematic testing. |
 | Release | Public release and compatibility documentation | ⬜ Not implemented | No discoverable public release, compatibility matrix, or extension-manager installation exists yet. |
 
 ## Canonical design references
@@ -1073,15 +1076,15 @@ claim of joint global optimality.
 
 Register three sibling actions on the context menu of a playable local track:  
 
-- **Bliss me there…** uses the last playable queue track as start and appends
-  the route to the selected destination.  
-- **Bliss me there… from here!** keeps the current song, excludes later
+- **Bliss me there…** keeps the current song, excludes later
   queue entries from captured context, and replaces only those upcoming tracks
   with a route to the selected destination.  
-- **Bliss me there… from here… and back again!** uses the current song as start, the
+- **Bliss me there… and back again!** uses the current song as start, the
   selected track as mandatory waypoint, and the first upcoming track as locked
   rejoin. It inserts the excursion before the otherwise unchanged upcoming
   queue.  
+- **Bliss me there… when we're through!** uses the last playable queue track as
+  start and appends the route to the selected destination.  
 
 Earlier analyzed queue entries through the selected start are captured
 separately as immutable listening history: they can provide Adaptive context,
@@ -1772,13 +1775,13 @@ upgrade, and uninstall the plugin through the extension manager.
 - Reorder-only mode preserves every original track exactly once.
 - Preserve order and fill gaps returns the originals as an identical ordered
   subsequence and never moves an anchor.
-- Queue-end **Bliss me there…** leaves existing entries unchanged and appends
-  only a validated route ending at the selected destination.
-- **Bliss me there… from here!** preserves the still-current song and
+- **Bliss me there…** preserves the still-current song and
   playback while replacing only its upcoming queue with the validated route.
-- **Bliss me there… from here… and back again!** inserts a validated route through the
+- **Bliss me there… and back again!** inserts a validated route through the
   selected waypoint and back to the unchanged first upcoming track, with one
   total bridge budget and repeat/quality contract spanning both legs.
+- **Bliss me there… when we're through!** leaves existing entries unchanged and
+  appends only a validated route from the queue end to the selected destination.
 - Exact bridge count either produces exactly the requested count or fails
   without creating a misleading partial result.
 - Extend playlist reaches the requested final total, retains every original
