@@ -79,7 +79,7 @@ Automatic evaluates every permitted depth and selects the shortest route meeting
 
 | Feature | Shared-model use |
 | --- | --- |
-| **Bliss me there...** | Locked endpoints, conservative dual-metric direct test, depth-aware frontier, corridor, and adjacent objective. Recent queue tracks remain contextual and repeat evidence but do not redefine the physical tail boundary. |
+| **Bliss me there...** | Locked one-way endpoints or a three-anchor start/waypoint/rejoin excursion, conservative dual-metric baseline test, depth-aware frontier, corridor, and adjacent objective. Recent queue tracks remain contextual and repeat evidence but do not redefine the selected live start or rejoin boundary. |
 | **Preserve order and improve difficult transitions** | Detect gaps with the same adjacent evidence, construct path options per gap, then allocate the global addition budget by marginal improvement instead of committing left to right. |
 | **Preserve order while extending** | Keep fixed-source relevance selection, then jointly place all additions around immutable anchors. Replace one-addition-at-a-time greedy placement with a beam or dynamic program across slots. |
 | **Reorder only** | Keep fixed membership and multi-start permutation search, but report and eventually optimize calibrated adjacent evidence alongside contextual continuation. Keep the energy arc secondary and explicit. |
@@ -89,13 +89,14 @@ Collection relevance, route continuation, adjacent boundaries, and trajectory re
 
 ### Current split and desired convergence
 
-The current Better Call Bliss implementation does not yet use one identical route builder for every "bridge from A to B" situation. **Bliss me there...** uses a destination-route path optimized for one live transition from the current queue tail to a selected target. It owns destination-specific concerns such as immutable listening history, live-tail validation, minimum/maximum intermediate counts, cautious direct-transition handling, and suffix-only queue append.
+The current Better Call Bliss implementation does not yet use one identical route builder for every "bridge from A to B" situation. The **Bliss me there...** family uses a destination-route path optimized for a live queue start and selected target. The queue-end action appends; the current-song action replaces upcoming tracks; and the round-trip action couples `start -> selected waypoint` with `waypoint -> first upcoming rejoin`, sharing one intermediate budget and whole-route quality/repeat contract. These routes own destination-specific concerns such as immutable listening history, live-anchor validation, minimum/maximum intermediate totals, cautious baseline handling, and anchor-safe queue mutation.
 
 Playlist gap filling is related but currently uses the preserved-order bridge machinery. It may examine many gaps in one playlist, such as `A -> B`, `B -> C`, and `C -> D`, then decide where additions are justified or how already selected additions can be placed around ordered anchors. That outer problem is different because the budget, repeat windows, and earlier insertions can interact across several gaps.
 
 The long-term design should share the inner engine that answers: "given a left anchor A, a right anchor B, context, repeat policy, candidate inventory, and bridge budget, which complete A-to-B path is valid and worthwhile?" The outer planner should remain feature-specific:
 
-- **Bliss me there...:** one gap, fixed live source tail, fixed destination, append-only output.
+- **Bliss me there... one-way actions:** one gap, fixed queue-end or current-song start, fixed destination, and append or replace-upcoming output.
+- **Bliss me there... from here... and back again!:** two coupled gaps, fixed current-song start, mandatory selected waypoint, locked first-upcoming rejoin, and non-destructive insertion with one shared bridge budget.
 - **Preserve order and improve difficult transitions:** many existing playlist gaps, global addition budget, insert only where a bridge improves the transition.
 - **Fill every gap with N bridge tracks:** many gaps with a strict per-gap count; fail visibly if any required gap route cannot be built.
 - **Preserve order while extending:** choose membership against the complete original source set, then place selected additions around immutable anchors.
