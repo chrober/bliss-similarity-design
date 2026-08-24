@@ -28,24 +28,20 @@ the same fixed-source extension, and deliver it as a separately maintained
 Lyrion plugin without requiring Python on the server or modifying
 `lms-blissmixer`.  
 **Latest implementation checkpoint:** [Destination-route maturity and reporting](IMPLEMENTATION_CHECKPOINT_32.md).  
-**Post-checkpoint implementation through `0.15.7`:** `lms-better-call-bliss`
-revision `5d8f85b` completes the background **Bliss me there...** workflow;
-revision `ec3ce81` groups durable settings, disables inapplicable route/Last.fm
-controls, and migrates the two Last.fm guidance defaults to 25%. Optimizer
-revisions `5b78b53` and `66a4f85` add and publish the target-first,
-best-effort destination-route contract as optimizer `0.1.4`. Optimizer
-revisions `9d78df5`, `baf626f`, `688ac61`, `80bc12d`, `68107eb`, `19d866c`,
-and release `3bdb777` carry the route to packaged optimizer `0.1.7`.
-Plugin revisions `3114845`, `5fefe65`, `e72191d`, `fbf0e6f`, and release
-`a7bac89` expose those controls, diagnostics, and packaged binaries as Better
-Call Bliss `0.15.7`. Revisions `1f5cf38` in the optimizer and `6db530d` in
-the plugin are post-`0.15.7`/post-`0.1.7` reporting fixes on `main`: they are
-not yet a new public package, but have been hot-deployed to the ARM64 test
-server. The current unreleased working tree adds **Bliss me there... from
-here!** and **Bliss me there... from here... and back again!** as sibling context
-actions. The latter uses a native three-anchor request—current song, mandatory
-selected waypoint, and first upcoming rejoin—with one bridge budget, quality
-result, and repeat contract spanning both legs.  
+**Published implementation through `0.16.0`:** `lms-better-call-bliss`
+revision `5d8f85b` completed the original background **Bliss me there...**
+workflow; revision `ec3ce81` grouped durable settings, disabled inapplicable
+route/Last.fm controls, and migrated the two Last.fm guidance defaults to 25%.
+Optimizer revisions through `3bdb777` supplied the packaged `0.1.7`
+destination-route foundation. Revisions `1f5cf38` and `8199bc9` then added
+richer reporting plus native waypoint-and-rejoin routing, published by
+`3142987` as optimizer `0.1.8`. Better Call Bliss revision `59ee5d0` publishes
+that binary contract and the three sibling actions as Better Call Bliss
+`0.16.0`: **Bliss me there...**, **Bliss me there... from here!**, and
+**Bliss me there... from here... and back again!**. The round-trip action uses
+a native three-anchor request—current song, mandatory selected waypoint, and
+first upcoming rejoin—with one bridge budget, quality result, and repeat
+contract spanning both legs.  
 **Working-tree Gate 2 (2026-08-19):** destination routes now use a dedicated  
 fixed-matrix layered adjacent path search with complete-route Variation, a  
 shared transformed-feature distance index, and configurable Fast, Balanced, or  
