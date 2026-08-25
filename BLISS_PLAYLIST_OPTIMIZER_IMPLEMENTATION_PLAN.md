@@ -82,6 +82,7 @@ inventory follows this table.
 | --- | --- | --- |
 | Re-run playlist optimization without re-preparing an unchanged Bliss library | ✅ Available | Warm jobs reuse a checksum-protected decoded library. Addition jobs also bound repeated evolving-route work to a deterministic 256-candidate shortlist per internal gap; the formerly four-minute native exact-eight request now completes in about 21 seconds. |
 | Exclude and review Bliss rows that are not current local LMS tracks | ✅ Available | Every addition job uses a frozen LMS-local allowlist before candidate search. A private persistent ledger records current and historically resolved unmatched rows with reason and first/last-seen observations; Extras and `bettercallbliss status` show its count and location. |
+| Respect BlissMixer genre and Christmas filtering | ✅ Available | Every track-adding workflow captures BlissMixer's genre groups/globs, match-all and per-track-genre modes, plus its December-aware Christmas switch. One shared native candidate boundary filters generated additions while leaving source tracks, immutable history, destinations, waypoints, and queue-rejoin anchors untouched. Preview and INFO logs report ordinary-genre and Christmas rejection counts. |
 | Reorder a curated saved playlist for better flow | ✅ Available | Select a playlist, optimize every original track exactly once, Preview the route, then accept it as a copy, confirmed source overwrite, or player-queue output. |
 | Use a current player queue as input | ✅ Available | The Extras editor can select a saved playlist or current player queue. Queue input is captured as a frozen source snapshot with full queue, now-playing plus upcoming, or upcoming-only scopes. Queue output also has a replace-upcoming action for seamless active-player updates, including accept-time snapshot reconciliation for same-player output. The workflow has been exercised on the ARM64 LMS server and shipped through the private-beta release path. |
 | Choose addition purpose before amount details | ✅ Available | The Extras editor exposes a listener-facing **Additional tracks** purpose first: no additions, improve difficult transitions, or Extend playlist. Only **Extend playlist** opens the amount selector for exact additions, target count, or double count; it submits a native fixed-source extension request after calculating the requested final size. Internal strict gap-bridge modes remain specialized/advanced paths. |
@@ -124,14 +125,14 @@ workflow is connected; those are listed separately.
 | 🟡 Partial | Some layers or UX scaffolding exist, but the capability is not complete end to end. |
 | ⬜ Not implemented | Roadmap contract exists, but no usable implementation is connected. |
 
-Current inventory: **50 implemented**, **20 partial**, and **8 not implemented
+Current inventory: **51 implemented**, **20 partial**, and **8 not implemented
 or later-roadmap** rows. These are feature rows, not a percentage-complete
 release estimate; foundational and user-facing capabilities intentionally have
 the same row weight.
 
 | Area | Roadmap feature | Status | Current boundary / remaining work |
 | --- | --- | --- | --- |
-| Foundation | Bulk database preparation and identity-bound decoded-library cache | ✅ Implemented | Cold jobs use one ordered SQLite query. Cache v2 separates compact metadata from route features, rejects inconsistent vector counts, and lets warm jobs reuse the hash, successful integrity result, and decoded library only for an unchanged plugin-supplied file identity. Destination jobs borrow cached tracks instead of cloning the complete library. |
+| Foundation | Bulk database preparation and identity-bound decoded-library cache | ✅ Implemented | Cold jobs use one ordered SQLite query. Cache v3 separates compact metadata—including normalized genres—from route features, rejects inconsistent vector counts, and lets warm jobs reuse the hash, successful integrity result, and decoded library only for an unchanged plugin-supplied file identity. Destination jobs borrow cached tracks instead of cloning the complete library. |
 | Foundation | Component identities and public repositories | ✅ Implemented | Core, optimizer, plugin, design, mixer fork, and extension-index ownership are established. |
 | Foundation | Shared `bliss-mixer-core` library | ✅ Implemented | Database, matrix, Adaptive scoring, filtering, and diagnostics are shared rather than copied. |
 | Foundation | `bliss-mixer` consumes the shared core | ✅ Implemented | The maintained learned-matrix-enabled mixer fork and optimizer use the same core. |
@@ -149,6 +150,7 @@ the same row weight.
 | Native routing | Automatic bridge insertion | ✅ Implemented | Conservative threshold/budget selection over the evolving route is implemented. |
 | Native routing | Exact-count insertion | ✅ Implemented | Strict exactly-N bounded search fails without returning a misleading partial route. |
 | Native routing | LMS-local candidate membership before bridge search | ✅ Implemented | The plugin freezes a checksum-protected allowlist bound to the LMS scan generation and exact `bliss.db` identity. The native optimizer validates it and excludes non-local rows before semantic ranking, shortlisting, or scoring; post-result catalog/file resolution remains mandatory. |
+| Native routing | BlissMixer-compatible genre policy for generated candidates | ✅ Implemented | The plugin snapshots genre restriction, configured group/glob rows, match-all mode, per-track genre mode, and effective seasonal Christmas exclusion into every request. The optimizer applies the shared `bliss-mixer-core` semantics once after LMS-local/source exclusion and before every addition strategy. Source tracks and immutable history establish acceptable groups; input anchors are never removed. Typed contracts, capability gating, rejection diagnostics, and regression tests prevent silent fallback to an older optimizer. |
 | Native routing | Immutable-anchor preserved-order routing | ✅ Implemented | Original tracks remain an identical ordered subsequence. |
 | Native routing | Multiple inserted tracks inside one preserved gap | ✅ Implemented | Bounded one-through-eight-track internal gap routes are supported. |
 | Native routing | Explicit opening and closing insertion slots | ✅ Implemented | Capacity-one endpoint slots are independent opt-ins in exact-count native requests. |
