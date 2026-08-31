@@ -1,7 +1,7 @@
 # Better Call Bliss productization and implementation plan
 
 **Status:** In progress - full ARM64 UX shell deployed and private-beta release
-packaging established. Version `0.16.1` is published and listed through the
+packaging established. Version `0.16.2` is published and listed through the
 private Lyrion extension repository. Optimized source order supports no
 additions, difficult-transition improvements, Extend playlist additions
 (exact count, target count, and double count); preserved source order supports
@@ -14,21 +14,22 @@ background and automatically append, replace the upcoming queue, or insert a
 round-trip excursion only after route and live-anchor validation succeed. Static
 scoring, matrix-free Adaptive fallback, per-job Adaptive gap context,
 per-job variation, optional Last.fm similar-track/artist guidance,
+per-job Lyrion virtual-library candidate scoping,
 saved-playlist context preselection, and the full **Bliss me there...**
 destination-locked quick action are functionally connected but remain partial
 for musical-quality correctness; see the destination-route investigation.
 Incomplete explicit endpoint controls, duration targets, provider-owned durable
 caches, durable history, localization, and persistence-phase cancellation
 remain visibly marked.  
-**Date:** 2026-08-24  
+**Date:** 2026-08-31  
 **Primary objective:** Productize the experimentally exercised playlist sequencing and
 bridge-insertion workflow, add order-preserving gap filling and destination
 routes for the live queue, let short source lists reach an exact target through
 the same fixed-source extension, and deliver it as a separately maintained
 Lyrion plugin without requiring Python on the server or modifying
 `lms-blissmixer`.  
-**Latest implementation checkpoint:** [Destination-route maturity and reporting](IMPLEMENTATION_CHECKPOINT_32.md).  
-**Published implementation through `0.16.1`:** `lms-better-call-bliss`
+**Latest implementation checkpoint:** [Lyrion virtual-library candidate scope](IMPLEMENTATION_CHECKPOINT_33.md).  
+**Published implementation through `0.16.2`:** `lms-better-call-bliss`
 revision `5d8f85b` completed the original background **Bliss me there...**
 workflow; revision `ec3ce81` grouped durable settings, disabled inapplicable
 route/Last.fm controls, and migrated the two Last.fm guidance defaults to 25%.
@@ -44,7 +45,9 @@ inserts the round trip, and **Bliss me there... when we're through!** starts
 from the queue end and appends. The round-trip action uses
 a native three-anchor request—current song, mandatory selected waypoint, and
 first upcoming rejoin—with one bridge budget, quality result, and repeat
-contract spanning both legs.  
+contract spanning both legs. Optimizer revision `2029a0d` and Better Call Bliss
+revisions `67f2372`/`a3ffdde` add virtual-library candidate scoping and are
+published as optimizer `v0.1.9` and Better Call Bliss `0.16.2`.  
 **Working-tree Gate 2 (2026-08-19):** destination routes now use a dedicated  
 fixed-matrix layered adjacent path search with complete-route Variation, a  
 shared transformed-feature distance index, and configurable Fast, Balanced, or  
@@ -65,7 +68,13 @@ target was met, and their search statistics aggregate the bridge search that
 actually ran rather than showing only the selected zero-bridge option. The
 Extras page now explains the target-met and target-missed no-beneficial cases
 separately.  
-**Previous checkpoints:** [Context entry points and 0.14.4 release](IMPLEMENTATION_CHECKPOINT_31.md), [Target and double track-count presets](IMPLEMENTATION_CHECKPOINT_30.md), [Accept-time output targets and release packaging](IMPLEMENTATION_CHECKPOINT_29.md), [Per-job variation and optional Last.fm track/artist evidence](IMPLEMENTATION_CHECKPOINT_28.md), [Finalized Grow from these seeds](IMPLEMENTATION_CHECKPOINT_27.md), [Draft retention, audit clarity, and second-server deployment](IMPLEMENTATION_CHECKPOINT_26.md), [LMS-local bridge inventory and persistent audit](IMPLEMENTATION_CHECKPOINT_25.md), [Preserve source order and fill gaps](IMPLEMENTATION_CHECKPOINT_24.md), [Strict-rank bridge shortlist and live scaling](IMPLEMENTATION_CHECKPOINT_23.md), [Prepared-library cache and measured Pi performance](IMPLEMENTATION_CHECKPOINT_22.md), [Live exact-count extension](IMPLEMENTATION_CHECKPOINT_21.md), [Accessible outcomes and monochrome Extras icon](IMPLEMENTATION_CHECKPOINT_20.md), [Clarified job controls and extension icon](IMPLEMENTATION_CHECKPOINT_19.md), [Visible outcomes and safe copy naming](IMPLEMENTATION_CHECKPOINT_18.md), [Live automatic extension](IMPLEMENTATION_CHECKPOINT_17.md), [Verified optimized-copy persistence](IMPLEMENTATION_CHECKPOINT_16.md), [Complete UX shell](IMPLEMENTATION_CHECKPOINT_15.md), [First live Lyrion preview](IMPLEMENTATION_CHECKPOINT_14.md), [Explicit endpoint insertion](IMPLEMENTATION_CHECKPOINT_13.md), [Multi-track preserved-gap routing](IMPLEMENTATION_CHECKPOINT_12.md), [Preserve-order gap-filling preview](IMPLEMENTATION_CHECKPOINT_11.md), [Exact-count bridge-selection preview](IMPLEMENTATION_CHECKPOINT_10.md), [Automatic bridge-selection preview](IMPLEMENTATION_CHECKPOINT_9.md), [Provider-neutral semantic bridge ranking](IMPLEMENTATION_CHECKPOINT_8.md), [Native bridge-analysis CLI](IMPLEMENTATION_CHECKPOINT_7.md), [Contextual bridge-scoring kernel](IMPLEMENTATION_CHECKPOINT_6.md), [Deterministic native route search](IMPLEMENTATION_CHECKPOINT_5.md), [Parallel contextual scoring](IMPLEMENTATION_CHECKPOINT_4.md), [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md), [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)  
+**Virtual-library gate (2026-08-25):** every track-adding job now freezes a
+per-job Lyrion virtual-library membership and applies it at the shared native
+addition boundary. Extras exposes a Candidate library selector that initially
+follows Material Skin's active library, then the active player's assignment.
+Existing input/history/destination/waypoint/rejoin anchors remain valid outside
+the selection.  
+**Previous checkpoints:** [Destination-route maturity and reporting](IMPLEMENTATION_CHECKPOINT_32.md), [Context entry points and 0.14.4 release](IMPLEMENTATION_CHECKPOINT_31.md), [Target and double track-count presets](IMPLEMENTATION_CHECKPOINT_30.md), [Accept-time output targets and release packaging](IMPLEMENTATION_CHECKPOINT_29.md), [Per-job variation and optional Last.fm track/artist evidence](IMPLEMENTATION_CHECKPOINT_28.md), [Finalized Grow from these seeds](IMPLEMENTATION_CHECKPOINT_27.md), [Draft retention, audit clarity, and second-server deployment](IMPLEMENTATION_CHECKPOINT_26.md), [LMS-local bridge inventory and persistent audit](IMPLEMENTATION_CHECKPOINT_25.md), [Preserve source order and fill gaps](IMPLEMENTATION_CHECKPOINT_24.md), [Strict-rank bridge shortlist and live scaling](IMPLEMENTATION_CHECKPOINT_23.md), [Prepared-library cache and measured Pi performance](IMPLEMENTATION_CHECKPOINT_22.md), [Live exact-count extension](IMPLEMENTATION_CHECKPOINT_21.md), [Accessible outcomes and monochrome Extras icon](IMPLEMENTATION_CHECKPOINT_20.md), [Clarified job controls and extension icon](IMPLEMENTATION_CHECKPOINT_19.md), [Visible outcomes and safe copy naming](IMPLEMENTATION_CHECKPOINT_18.md), [Live automatic extension](IMPLEMENTATION_CHECKPOINT_17.md), [Verified optimized-copy persistence](IMPLEMENTATION_CHECKPOINT_16.md), [Complete UX shell](IMPLEMENTATION_CHECKPOINT_15.md), [First live Lyrion preview](IMPLEMENTATION_CHECKPOINT_14.md), [Explicit endpoint insertion](IMPLEMENTATION_CHECKPOINT_13.md), [Multi-track preserved-gap routing](IMPLEMENTATION_CHECKPOINT_12.md), [Preserve-order gap-filling preview](IMPLEMENTATION_CHECKPOINT_11.md), [Exact-count bridge-selection preview](IMPLEMENTATION_CHECKPOINT_10.md), [Automatic bridge-selection preview](IMPLEMENTATION_CHECKPOINT_9.md), [Provider-neutral semantic bridge ranking](IMPLEMENTATION_CHECKPOINT_8.md), [Native bridge-analysis CLI](IMPLEMENTATION_CHECKPOINT_7.md), [Contextual bridge-scoring kernel](IMPLEMENTATION_CHECKPOINT_6.md), [Deterministic native route search](IMPLEMENTATION_CHECKPOINT_5.md), [Parallel contextual scoring](IMPLEMENTATION_CHECKPOINT_4.md), [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md), [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)  
 **Reference implementation:** The tracked Python tools and sanitized 2025/2026
 execution reports in this repository remain a migration and parity oracle until
 the Rust implementation reaches declared parity. They are not the normative
@@ -83,6 +92,7 @@ inventory follows this table.
 | Re-run playlist optimization without re-preparing an unchanged Bliss library | ✅ Available | Warm jobs reuse a checksum-protected decoded library. Addition jobs also bound repeated evolving-route work to a deterministic 256-candidate shortlist per internal gap; the formerly four-minute native exact-eight request now completes in about 21 seconds. |
 | Exclude and review Bliss rows that are not current local LMS tracks | ✅ Available | Every addition job uses a frozen LMS-local allowlist before candidate search. A private persistent ledger records current and historically resolved unmatched rows with reason and first/last-seen observations; Extras and `bettercallbliss status` show its count and location. |
 | Respect BlissMixer genre and Christmas filtering | ✅ Available | Every track-adding workflow captures BlissMixer's genre groups/globs, match-all and per-track-genre modes, plus its December-aware Christmas switch. One shared native candidate boundary filters generated additions while leaving source tracks, immutable history, destinations, waypoints, and queue-rejoin anchors untouched. Preview and INFO logs report ordinary-genre and Christmas rejection counts. |
+| Restrict additions to a Lyrion virtual library | ✅ Available | Extras offers a per-job **Candidate library** selector, initially following Material Skin's active library and then the active player's assigned library. Only generated tracks must belong to the frozen selection; existing playlist/queue tracks, listening history, destinations, waypoints, and rejoin anchors remain valid outside it. |
 | Reorder a curated saved playlist for better flow | ✅ Available | Select a playlist, optimize every original track exactly once, Preview the route, then accept it as a copy, confirmed source overwrite, or player-queue output. |
 | Use a current player queue as input | ✅ Available | The Extras editor can select a saved playlist or current player queue. Queue input is captured as a frozen source snapshot with full queue, now-playing plus upcoming, or upcoming-only scopes. Queue output also has a replace-upcoming action for seamless active-player updates, including accept-time snapshot reconciliation for same-player output. The workflow has been exercised on the ARM64 LMS server and shipped through the private-beta release path. |
 | Choose addition purpose before amount details | ✅ Available | The Extras editor exposes a listener-facing **Additional tracks** purpose first: no additions, improve difficult transitions, or Extend playlist. Only **Extend playlist** opens the amount selector for exact additions, target count, or double count; it submits a native fixed-source extension request after calculating the requested final size. Internal strict gap-bridge modes remain specialized/advanced paths. |
@@ -110,7 +120,7 @@ inventory follows this table.
 | See running, success, failure, and accept-action outcomes in the UI | ✅ Available | The page polls current jobs and presents accessible, actionable status banners for previews, copy creation, source overwrite, and player-queue output without requiring log inspection. |
 | Cancel jobs, resume after restart, and browse/export past results | 🟡 Limited | Current in-memory jobs can be polled by ID, listed in the Extras page, and cancelled while the native optimizer process is running. Restart recovery, durable history, persistence-phase cancellation, search, and report export are missing. |
 | Configure durable defaults and inspect system readiness | 🟡 Partial | The settings page and core readiness checks exist; complete provider, active-job, and persistence-health status is unfinished. |
-| Install and update from a Lyrion extension repository | 🟡 Private beta | The plugin release workflow builds ZIP/checksum artifacts, bundles optimizer binaries, publishes GitHub releases, and updates `chrober/lms-plugins`; `0.16.1` is the current private-beta package and pins optimizer release `v0.1.8`. Clean install/upgrade/failure testing, cache/update visibility, and public compatibility documentation remain. |
+| Install and update from a Lyrion extension repository | 🟡 Private beta | The plugin release workflow builds ZIP/checksum artifacts, bundles optimizer binaries, publishes GitHub releases, and updates `chrober/lms-plugins`; `0.16.2` is the current private-beta package and pins optimizer release `v0.1.9`. Clean install/upgrade/failure testing, cache/update visibility, and public compatibility documentation remain. |
 
 ## Detailed roadmap status
 
@@ -125,7 +135,7 @@ workflow is connected; those are listed separately.
 | 🟡 Partial | Some layers or UX scaffolding exist, but the capability is not complete end to end. |
 | ⬜ Not implemented | Roadmap contract exists, but no usable implementation is connected. |
 
-Current inventory: **51 implemented**, **20 partial**, and **8 not implemented
+Current inventory: **53 implemented**, **20 partial**, and **12 not implemented
 or later-roadmap** rows. These are feature rows, not a percentage-complete
 release estimate; foundational and user-facing capabilities intentionally have
 the same row weight.
@@ -150,6 +160,7 @@ the same row weight.
 | Native routing | Automatic bridge insertion | ✅ Implemented | Conservative threshold/budget selection over the evolving route is implemented. |
 | Native routing | Exact-count insertion | ✅ Implemented | Strict exactly-N bounded search fails without returning a misleading partial route. |
 | Native routing | LMS-local candidate membership before bridge search | ✅ Implemented | The plugin freezes a checksum-protected allowlist bound to the LMS scan generation and exact `bliss.db` identity. The native optimizer validates it and excludes non-local rows before semantic ranking, shortlisting, or scoring; post-result catalog/file resolution remains mandatory. |
+| Native routing | Lyrion virtual-library candidate scope | ✅ Implemented | Every track-adding workflow may narrow the frozen LMS-local allowlist to one registered virtual library. A membership digest invalidates stale caches even when the LMS scan timestamp is unchanged. The optimizer treats the inventory strictly as an addition allowlist, so immutable source/history/destination/waypoint/rejoin anchors need usable Bliss rows but need not belong to the selected library. Outside-library LMS rows are reported separately from genuinely stale/non-LMS Bliss rows. |
 | Native routing | BlissMixer-compatible genre policy for generated candidates | ✅ Implemented | The plugin snapshots genre restriction, configured group/glob rows, match-all mode, per-track genre mode, and effective seasonal Christmas exclusion into every request. The optimizer applies the shared `bliss-mixer-core` semantics once after LMS-local/source exclusion and before every addition strategy. Source tracks and immutable history establish acceptable groups; input anchors are never removed. Typed contracts, capability gating, rejection diagnostics, and regression tests prevent silent fallback to an older optimizer. |
 | Native routing | Immutable-anchor preserved-order routing | ✅ Implemented | Original tracks remain an identical ordered subsequence. |
 | Native routing | Multiple inserted tracks inside one preserved gap | ✅ Implemented | Bounded one-through-eight-track internal gap routes are supported. |
@@ -209,9 +220,9 @@ the same row weight.
 | Reliability | Privacy/redaction audit and failure-matrix testing | 🟡 Partial | Public fixtures/docs are sanitized and runtime logging is restrained; formal redaction tests and the complete outage/recovery matrix remain. |
 | Packaging | ARM64 development deployment | ✅ Implemented | The plugin and bundled optimizer are repeatedly exercised on the live ARM64 LMS server. |
 | Packaging | Supported multi-platform native/plugin packages | ✅ Implemented | The plugin release workflow consumes optimizer release artifacts for aarch64, armhf, x86_64 Linux, macOS, and Windows and packages them without committing binaries. Broader smoke coverage can still improve. |
-| Packaging | Versioned plugin ZIPs and checksums | ✅ Implemented | GitHub Actions creates versioned plugin ZIPs plus SHA-1/SHA-256 files from the pinned optimizer release. Better Call Bliss `0.16.1` packages optimizer `v0.1.8`, including native binaries for every supported platform. Manual hot-deploy remains useful for live development. |
+| Packaging | Versioned plugin ZIPs and checksums | ✅ Implemented | GitHub Actions creates versioned plugin ZIPs plus SHA-1/SHA-256 files from the pinned optimizer release. Better Call Bliss `0.16.2` packages optimizer `v0.1.9`, including native binaries for every supported platform. Manual hot-deploy remains useful for live development. |
 | Release | Extension-repository listing | ✅ Implemented | The plugin release workflow updates `chrober/lms-plugins` with immutable GitHub release-asset URLs for Unix, macOS, and Windows packages. |
-| Release | Private beta install/upgrade/failure testing | 🟡 Partial | A private-beta feed and live installs exist, with current package `0.16.1`. Clean install, upgrade visibility/cache refresh, uninstall, outage, scanner, cancellation, and recovery cases still need systematic testing. |
+| Release | Private beta install/upgrade/failure testing | 🟡 Partial | A private-beta feed and live installs exist, with current package `0.16.2`. Clean install, upgrade visibility/cache refresh, uninstall, outage, scanner, cancellation, and recovery cases still need systematic testing. |
 | Release | Public release and compatibility documentation | ⬜ Not implemented | No discoverable public release, compatibility matrix, or extension-manager installation exists yet. |
 
 ## Canonical design references
