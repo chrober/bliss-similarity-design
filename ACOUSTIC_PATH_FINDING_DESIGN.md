@@ -1,8 +1,8 @@
 # Acoustic path finding for Better Call Bliss
 
-**Status:** Conservative dual-model destination gate implemented and live-validated; shared trajectory model remains proposed  
+**Status:** Outer-planner-neutral anchored A-to-B kernel extracted for destination routes; playlist-planner convergence and the shared trajectory model remain partial  
 **Scope:** Destination routes, gap repair, preserved-anchor insertion, fixed-set sequencing, and extension placement  
-**Last reviewed:** 2026-08-19  
+**Last reviewed:** 2026-09-01  
 
 ## Decision
 
@@ -89,11 +89,11 @@ Collection relevance, route continuation, adjacent boundaries, and trajectory re
 
 ### Current split and desired convergence
 
-The current Better Call Bliss implementation does not yet use one identical route builder for every "bridge from A to B" situation. The **Bliss me there...** family uses a destination-route path optimized for a live queue start and selected target. The queue-end action appends; the current-song action replaces upcoming tracks; and the round-trip action couples `start -> selected waypoint` with `waypoint -> first upcoming rejoin`, sharing one intermediate budget and whole-route quality/repeat contract. These routes own destination-specific concerns such as immutable listening history, live-anchor validation, minimum/maximum intermediate totals, cautious baseline handling, and anchor-safe queue mutation.
+The optimizer now has one pure anchored-path kernel for the bounded inner search from `A` to `B`. Its input separates the anchors, route prefix, immutable listening history, unavailable outer-plan membership, candidate evidence, repeat windows, search breadth, Variation, and adjacent-distance function. It returns complete scored alternatives without knowing whether a playlist or queue will eventually be changed. Existing destination and waypoint-and-rejoin paths use this kernel through compatibility adapters, so their request/result contracts remain unchanged.
 
-Playlist gap filling is related but currently uses the preserved-order bridge machinery. It may examine many gaps in one playlist, such as `A -> B`, `B -> C`, and `C -> D`, then decide where additions are justified or how already selected additions can be placed around ordered anchors. That outer problem is different because the budget, repeat windows, and earlier insertions can interact across several gaps.
+Playlist gap filling still uses the preserved-order bridge machinery. It may examine many gaps in one playlist, such as `A -> B`, `B -> C`, and `C -> D`, then decide where additions are justified or how already selected additions can be placed around ordered anchors. That outer problem is different because the budget, repeat windows, and earlier insertions can interact across several gaps. It must migrate to the shared kernel through a global planner rather than call the kernel independently and commit each local winner.
 
-The long-term design should share the inner engine that answers: "given a left anchor A, a right anchor B, context, repeat policy, candidate inventory, and bridge budget, which complete A-to-B path is valid and worthwhile?" The outer planner should remain feature-specific:
+The extracted inner engine answers: "given a left anchor A, a right anchor B, context, repeat policy, candidate inventory, and bridge budget, which complete A-to-B paths are valid and worthwhile?" It can retain multiple alternatives per intermediate count so a future multi-gap planner is not trapped by one locally optimal route. The outer planner remains feature-specific:
 
 - **Bliss me there... one-way actions:** one gap, fixed queue-end or current-song start, fixed destination, and append or replace-upcoming output.
 - **Bliss me there... and back again!:** two coupled gaps, fixed current-song start, mandatory selected waypoint, locked first-upcoming rejoin, and non-destructive insertion with one shared bridge budget.
@@ -127,12 +127,12 @@ Fast should continue to target roughly five seconds on the current Raspberry Pi 
 1. **Truthful diagnostics - partial:** Static and learned direct-edge evidence, selected role, matrix identities, and effective single-seed behavior are published. Exact Adaptive context reporting and separate direct-trigger sensitivity versus generated-route quality remain open.
 2. **Conservative direct-edge experiment - implemented:** disagreement selects the higher-risk view and triggers repair when that view misses the target. Generic unit and end-to-end destination tests cover the policy; a sanitized corpus case should still be added without hard-coding one bridge as the expected answer.
 3. **Depth-aware destination frontier:** add frontier, endpoint, corridor, and reverse-frontier retrieval; measure recall and latency at 64k and synthetic 200k sizes.
-4. **Shared preserved-gap engine:** route multiple tracks per gap, allocate budgets globally, and jointly place preserved-order extension additions.
+4. **Shared anchored-path and preserved-gap engine - partial:** the pure A-to-B kernel and destination compatibility adapter are implemented. Next make playlist gap planning request multiple alternatives, coordinate membership/repeat state globally, allocate budgets across gaps, and jointly place preserved-order extension additions.
 5. **Shared fixed-set report:** expose adjacent, contextual, and arc evidence before changing reorder selection behavior.
 6. **Boundary-aware late fusion:** add versioned intro/outro evidence and require held-out directional improvement before changing defaults.
 
 ## Immediate recommendation
 
-Do not begin with new audio analysis. Dual Static/learned direct diagnostics and the conservative direct-edge experiment are now implemented and solve the observed false direct acceptance. Next replace the one-shot destination shortlist with a depth-aware, corridor-guided frontier and evaluate its route choices through listening tests. This addresses selection quality while remaining measurable with the current database.
+Do not begin with new audio analysis. The pure anchored-path boundary is now available without changing destination behavior. Next migrate preserved playlist gaps behind a global outer planner and use the kernel's multiple alternatives to keep later gaps feasible under shared membership and repeat constraints. This is the prerequisite for strict **Fill every gap with N bridge tracks**.
 
-Once stable, reuse the engine for multi-track preserved gaps and joint preserved-order extension placement. Reordering should adopt the shared report before its objective changes so old and new behavior can be compared honestly.
+In parallel, replace the one-shot destination shortlist with a depth-aware, corridor-guided frontier and evaluate its route choices through listening tests. Reordering should adopt the shared report before its objective changes so old and new behavior can be compared honestly.

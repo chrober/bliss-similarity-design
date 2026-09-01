@@ -2,7 +2,9 @@
 
 **Status:** In progress - full ARM64 UX shell deployed and private-beta release
 packaging established. Version `0.16.2` is published and listed through the
-private Lyrion extension repository. Optimized source order supports no
+private Lyrion extension repository; its package pins optimizer `v0.1.9`.
+Standalone optimizer `v0.1.10` contains the newer shared anchored-path kernel
+and is published independently, but is not yet bundled by the plugin. Optimized source order supports no
 additions, difficult-transition improvements, Extend playlist additions
 (exact count, target count, and double count); preserved source order supports
 difficult-transition improvements plus the same Extend playlist amounts placed
@@ -21,14 +23,14 @@ for musical-quality correctness; see the destination-route investigation.
 Incomplete explicit endpoint controls, duration targets, provider-owned durable
 caches, durable history, localization, and persistence-phase cancellation
 remain visibly marked.  
-**Date:** 2026-08-31  
+**Date:** 2026-09-01  
 **Primary objective:** Productize the experimentally exercised playlist sequencing and
 bridge-insertion workflow, add order-preserving gap filling and destination
 routes for the live queue, let short source lists reach an exact target through
 the same fixed-source extension, and deliver it as a separately maintained
 Lyrion plugin without requiring Python on the server or modifying
 `lms-blissmixer`.  
-**Latest implementation checkpoint:** [Lyrion virtual-library candidate scope](IMPLEMENTATION_CHECKPOINT_33.md).  
+**Latest implementation checkpoint:** [Shared anchored A-to-B path engine](IMPLEMENTATION_CHECKPOINT_34.md).  
 **Published implementation through `0.16.2`:** `lms-better-call-bliss`
 revision `5d8f85b` completed the original background **Bliss me there...**
 workflow; revision `ec3ce81` grouped durable settings, disabled inapplicable
@@ -74,7 +76,18 @@ addition boundary. Extras exposes a Candidate library selector that initially
 follows Material Skin's active library, then the active player's assignment.
 Existing input/history/destination/waypoint/rejoin anchors remain valid outside
 the selection.  
-**Previous checkpoints:** [Destination-route maturity and reporting](IMPLEMENTATION_CHECKPOINT_32.md), [Context entry points and 0.14.4 release](IMPLEMENTATION_CHECKPOINT_31.md), [Target and double track-count presets](IMPLEMENTATION_CHECKPOINT_30.md), [Accept-time output targets and release packaging](IMPLEMENTATION_CHECKPOINT_29.md), [Per-job variation and optional Last.fm track/artist evidence](IMPLEMENTATION_CHECKPOINT_28.md), [Finalized Grow from these seeds](IMPLEMENTATION_CHECKPOINT_27.md), [Draft retention, audit clarity, and second-server deployment](IMPLEMENTATION_CHECKPOINT_26.md), [LMS-local bridge inventory and persistent audit](IMPLEMENTATION_CHECKPOINT_25.md), [Preserve source order and fill gaps](IMPLEMENTATION_CHECKPOINT_24.md), [Strict-rank bridge shortlist and live scaling](IMPLEMENTATION_CHECKPOINT_23.md), [Prepared-library cache and measured Pi performance](IMPLEMENTATION_CHECKPOINT_22.md), [Live exact-count extension](IMPLEMENTATION_CHECKPOINT_21.md), [Accessible outcomes and monochrome Extras icon](IMPLEMENTATION_CHECKPOINT_20.md), [Clarified job controls and extension icon](IMPLEMENTATION_CHECKPOINT_19.md), [Visible outcomes and safe copy naming](IMPLEMENTATION_CHECKPOINT_18.md), [Live automatic extension](IMPLEMENTATION_CHECKPOINT_17.md), [Verified optimized-copy persistence](IMPLEMENTATION_CHECKPOINT_16.md), [Complete UX shell](IMPLEMENTATION_CHECKPOINT_15.md), [First live Lyrion preview](IMPLEMENTATION_CHECKPOINT_14.md), [Explicit endpoint insertion](IMPLEMENTATION_CHECKPOINT_13.md), [Multi-track preserved-gap routing](IMPLEMENTATION_CHECKPOINT_12.md), [Preserve-order gap-filling preview](IMPLEMENTATION_CHECKPOINT_11.md), [Exact-count bridge-selection preview](IMPLEMENTATION_CHECKPOINT_10.md), [Automatic bridge-selection preview](IMPLEMENTATION_CHECKPOINT_9.md), [Provider-neutral semantic bridge ranking](IMPLEMENTATION_CHECKPOINT_8.md), [Native bridge-analysis CLI](IMPLEMENTATION_CHECKPOINT_7.md), [Contextual bridge-scoring kernel](IMPLEMENTATION_CHECKPOINT_6.md), [Deterministic native route search](IMPLEMENTATION_CHECKPOINT_5.md), [Parallel contextual scoring](IMPLEMENTATION_CHECKPOINT_4.md), [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md), [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)  
+**Shared anchored-path gate (2026-09-01):** the optimizer's bounded destination
+search now lives behind a pure outer-planner-neutral A-to-B kernel. It receives
+anchors, immutable history, unavailable route membership, candidate evidence,
+repeat policy, search controls, Variation, and an adjacent-distance function,
+then returns complete scored alternatives without mutating a playlist or queue.
+The existing one-way and waypoint-and-rejoin destination adapters retain one
+alternative per bridge count and preserve their wire artifacts. The kernel can
+retain several alternatives for the future global playlist-gap planner.
+Optimizer revisions `84e2d8b` and `57f4d8a` are published as standalone
+optimizer `v0.1.10`; Better Call Bliss `0.16.2` remains pinned to `v0.1.9`
+because this extraction changes neither the plugin nor the wire contract.  
+**Previous checkpoints:** [Lyrion virtual-library candidate scope](IMPLEMENTATION_CHECKPOINT_33.md), [Destination-route maturity and reporting](IMPLEMENTATION_CHECKPOINT_32.md), [Context entry points and 0.14.4 release](IMPLEMENTATION_CHECKPOINT_31.md), [Target and double track-count presets](IMPLEMENTATION_CHECKPOINT_30.md), [Accept-time output targets and release packaging](IMPLEMENTATION_CHECKPOINT_29.md), [Per-job variation and optional Last.fm track/artist evidence](IMPLEMENTATION_CHECKPOINT_28.md), [Finalized Grow from these seeds](IMPLEMENTATION_CHECKPOINT_27.md), [Draft retention, audit clarity, and second-server deployment](IMPLEMENTATION_CHECKPOINT_26.md), [LMS-local bridge inventory and persistent audit](IMPLEMENTATION_CHECKPOINT_25.md), [Preserve source order and fill gaps](IMPLEMENTATION_CHECKPOINT_24.md), [Strict-rank bridge shortlist and live scaling](IMPLEMENTATION_CHECKPOINT_23.md), [Prepared-library cache and measured Pi performance](IMPLEMENTATION_CHECKPOINT_22.md), [Live exact-count extension](IMPLEMENTATION_CHECKPOINT_21.md), [Accessible outcomes and monochrome Extras icon](IMPLEMENTATION_CHECKPOINT_20.md), [Clarified job controls and extension icon](IMPLEMENTATION_CHECKPOINT_19.md), [Visible outcomes and safe copy naming](IMPLEMENTATION_CHECKPOINT_18.md), [Live automatic extension](IMPLEMENTATION_CHECKPOINT_17.md), [Verified optimized-copy persistence](IMPLEMENTATION_CHECKPOINT_16.md), [Complete UX shell](IMPLEMENTATION_CHECKPOINT_15.md), [First live Lyrion preview](IMPLEMENTATION_CHECKPOINT_14.md), [Explicit endpoint insertion](IMPLEMENTATION_CHECKPOINT_13.md), [Multi-track preserved-gap routing](IMPLEMENTATION_CHECKPOINT_12.md), [Preserve-order gap-filling preview](IMPLEMENTATION_CHECKPOINT_11.md), [Exact-count bridge-selection preview](IMPLEMENTATION_CHECKPOINT_10.md), [Automatic bridge-selection preview](IMPLEMENTATION_CHECKPOINT_9.md), [Provider-neutral semantic bridge ranking](IMPLEMENTATION_CHECKPOINT_8.md), [Native bridge-analysis CLI](IMPLEMENTATION_CHECKPOINT_7.md), [Contextual bridge-scoring kernel](IMPLEMENTATION_CHECKPOINT_6.md), [Deterministic native route search](IMPLEMENTATION_CHECKPOINT_5.md), [Parallel contextual scoring](IMPLEMENTATION_CHECKPOINT_4.md), [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md), [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)  
 **Reference implementation:** The tracked Python tools and sanitized 2025/2026
 execution reports in this repository remain a migration and parity oracle until
 the Rust implementation reaches declared parity. They are not the normative
@@ -98,7 +111,7 @@ inventory follows this table.
 | Choose addition purpose before amount details | ✅ Available | The Extras editor exposes a listener-facing **Additional tracks** purpose first: no additions, improve difficult transitions, or Extend playlist. Only **Extend playlist** opens the amount selector for exact additions, target count, or double count; it submits a native fixed-source extension request after calculating the requested final size. Internal strict gap-bridge modes remain specialized/advanced paths. |
 | Add bridge tracks automatically where transitions are difficult | ✅ Available | Bliss-only automatic insertion is connected; it may correctly decide that zero additions are needed. |
 | Extend playlist | ✅ Available | Enter exact additions, a final target count, or double-count per job. The plugin calculates the final size and uses fixed-source membership selection, so the requested amount is not capped by internal source gaps. A short input can therefore serve as a mood reference without needing a separate Grow strategy. |
-| Fill every gap with N bridge tracks | ⬜ Planned | A strict per-gap preset will insert the same configured number of bridges between every adjacent pair of original tracks. `N = 1` replaces the old one-bridge-per-transition preset. This should reuse the future shared A-to-B path engine rather than copy the current playlist gap logic or the destination-route logic. |
+| Fill every gap with N bridge tracks | ⬜ Planned | A strict per-gap preset will insert the same configured number of bridges between every adjacent pair of original tracks. `N = 1` replaces the old one-bridge-per-transition preset. The shared A-to-B kernel now exists; the missing work is the global playlist planner that requests alternatives for every gap and selects an all-or-nothing combination under shared membership and repeat constraints. |
 | Reach a chosen target track count or double the playlist by count | ✅ Available | These are amount choices under **Extend playlist**. They derive the required additions and use fixed-source membership selection. Duration-based targets remain future work. |
 | Turn a short source list into a full similar playlist | ✅ Available | Choose **Extend playlist** and **Reach a final track count**. The same fixed-source extension keeps the complete original set as its relevance reference, then either optimizes all tracks together or preserves the originals as ordered anchors. This is a usage of Extend playlist, not a separate strategy. |
 | Preserve the existing song order and fill its gaps | ✅ Available | Choose preserved source order with difficult-transition improvements or Extend playlist. Every original remains in exact relative order; Extend playlist places selected additions around the ordered anchors instead of being capped by source-gap count. |
@@ -135,7 +148,7 @@ workflow is connected; those are listed separately.
 | 🟡 Partial | Some layers or UX scaffolding exist, but the capability is not complete end to end. |
 | ⬜ Not implemented | Roadmap contract exists, but no usable implementation is connected. |
 
-Current inventory: **53 implemented**, **20 partial**, and **12 not implemented
+Current inventory: **53 implemented**, **21 partial**, and **12 not implemented
 or later-roadmap** rows. These are feature rows, not a percentage-complete
 release estimate; foundational and user-facing capabilities intentionally have
 the same row weight.
@@ -155,6 +168,7 @@ the same row weight.
 | Scoring | Deterministic parallel scoring and route search | ✅ Implemented | Indexed Rayon work, derived seeds, stable tie-breaking, and bounded CPU defaults are implemented. |
 | Scoring | Reproducible per-job variation | ✅ Implemented | A strategy-neutral 0-100 control and explicit or generated seed vary route search for movable routes and membership sampling for fixed-source extension. Zero preserves strict best-match behavior; identical seeds reproduce selection. |
 | Native routing | Reorder-only fixed-set optimization | ✅ Implemented | Exact membership, repeat windows, aggregate/worst-leg objectives, restarts, and optional energy-arc selection are available. |
+| Native routing | Shared anchored A-to-B path engine | 🟡 Partial | A pure bounded kernel now accepts anchors, immutable history, unavailable membership, candidate evidence, repeat windows, search breadth, Variation, and a caller-owned adjacent-distance function. It can retain multiple complete alternatives per intermediate count. Destination and waypoint-and-rejoin adapters use it without schema or artifact changes; preserved playlist gaps and fixed-source placement have not yet migrated to a global outer planner. |
 | Native routing | Contextual bridge candidate analysis | ✅ Implemented | Stable Bliss candidates, two-sided rescoring, acoustic gates, rejection reasons, and database-bound identities are available. |
 | Native routing | Provider-neutral semantic evidence ranking | ✅ Implemented | Recording-before-artist and endpoint-before-collection tiers, provenance, failure state, and Bliss fallback are supported in optimizer input. |
 | Native routing | Automatic bridge insertion | ✅ Implemented | Conservative threshold/budget selection over the evolving route is implemented. |
@@ -180,7 +194,7 @@ the same row weight.
 | Playlist workflow | Add automatically: Preview and create copy | ✅ Implemented | Bliss-only automatic insertion is connected end to end and may correctly add zero tracks. |
 | Playlist workflow | Repeat-window spacer repair for difficult-transition improvements | ⬜ Planned | True constraint repair needs a native selection/artifact expansion that can insert multiple spacer tracks solely to separate repeated artists or albums before acoustic transition improvement. Current automatic mode still requires a valid source route first; Extend playlist with a large enough target can repair repeated-seed sets today. |
 | Playlist workflow | Extend playlist | ✅ Implemented | Per-job exact additions, target count, and double-count are mapped to native fixed-source extension membership selection, all-or-nothing normalization, result diagnostics, verified copy persistence, and live ARM64-compatible requests. |
-| Playlist workflow | Fill every gap with N bridge tracks | ⬜ Not implemented | The strict per-gap preset is not connected. For `S` originals and `B` bridges per gap, it must add exactly `B * (S - 1)` tracks and fail visibly if any original gap cannot be filled. |
+| Playlist workflow | Fill every gap with N bridge tracks | ⬜ Not implemented | The shared inner A-to-B kernel is available, but the strict multi-gap outer planner and UX are not connected. For `S` originals and `B` bridges per gap, it must add exactly `B * (S - 1)` tracks, coordinate candidate membership and repeat state globally, and fail visibly if any original gap cannot be filled. |
 | Playlist workflow | Reach target track count | ✅ Implemented | The plugin validates the final track count, calculates `N = T - S`, and uses native fixed-source extension membership selection. Duration targeting remains future work. |
 | Playlist workflow | Double playlist by track count | ✅ Implemented | The preset calculates `T = 2S` and `N = S`, then uses native fixed-source extension membership selection. Duration-based doubling remains future work. |
 | Playlist workflow | Use Extend playlist on a short source to reach an exact target | ✅ Implemented | Exact target, immutable complete-source relevance, strict proofs, per-job Variation, optional Last.fm guidance, result diagnostics, form restoration, and accept-time output actions all use the same fixed-source extension implementation as every other Extend playlist amount choice. |
@@ -192,7 +206,7 @@ the same row weight.
 | Playlist workflow | Player-queue output target | ✅ Implemented | Completed previews can be sent to a selected player as Replace queue, Append to queue, or Play next, with optional playback start. |
 | Playlist workflow | Playlist-embedded provenance comments | ⬜ Not implemented | Generated M3Us should include safe Better Call Bliss comment blocks with plugin/native versions, request schema, selected parameters, source playlist identity, original source positions, generated-track roles, report ID, and hashes sufficient for later audit without leaking more than the playlist already contains. |
 | Entry points | Saved-playlist context action | ✅ Implemented | The shortcut opens the Extras editor with the selected saved playlist preselected. Material exposes it through the item menu / More affordance rather than as a permanent inline button. |
-| Entry points | Three **Bliss me there...** track actions | 🟡 Partial | Queue-end append, current-song replace-upcoming, and current-song waypoint-and-rejoin insertion are implemented in the unreleased working tree. Source selection and queue mutation are centrally locked together. The round-trip request makes start, waypoint, and rejoin unique route members, shares one bridge budget across both gaps, constrains return candidates with outward membership/repeat state, omits both queue anchors from insertion, and rejects stale current or rejoin tracks before sending any LMS queue command. Musical maturity remains partial for the same candidate-discovery and acoustic-evidence reasons as one-way destination routes. |
+| Entry points | Three **Bliss me there...** track actions | 🟡 Partial | Queue-end append, current-song replace-upcoming, and current-song waypoint-and-rejoin insertion are published through Better Call Bliss `0.16.2`. Source selection and queue mutation are centrally locked together. The round-trip request makes start, waypoint, and rejoin unique route members, shares one bridge budget across both gaps, constrains return candidates with outward membership/repeat state, omits both queue anchors from insertion, and rejects stale current or rejoin tracks before sending any LMS queue command. Musical maturity remains partial for the same candidate-discovery and acoustic-evidence reasons as one-way destination routes. |
 | Jobs and UX | Running, success, failure, and accept-action feedback | ✅ Implemented | Automatic polling and prominent actionable outcome banners are live for previews, copy creation, source overwrite, and player-queue output. |
 | Jobs and UX | Persistent quick-action progress indicator in Material | ⬜ Planned | Lyrion can store generic `Slim::Utils::Progress` rows and the classic web layer has a progress page, but Material's visible progress integration is scanner-specific. Its plugin notification channel provides transient snackbars only (normally 2.5 seconds, explicitly at most 30 seconds). Better Call Bliss already returns a job ID and exposes `bettercallbliss job status`. Explore a small Material background-task chip/spinner driven by a namespaced server notification plus status polling; avoid repeated snackbars and avoid pretending scanner progress is a plugin-job API. |
 | Jobs and UX | Restore submitted job values after an outcome | ✅ Implemented | Polling, failure, successful Preview, and accept actions repopulate the rich editor from the job request so iterative tuning does not lose per-job values. Output choices are made after preview and changing them does not rerun the optimizer. |
@@ -991,12 +1005,11 @@ smaller or equal target is invalid because this product does not discard
 curated originals and this mode exists specifically to add tracks.
 
 Double track count sets `T = 2S`, and therefore requests `N = S` additions. This
-is not the same as Fill every gap with one bridge: that preset adds only `S - 1` and
-produces `2S - 1`. The connected count-preset slice permits at most one bridge
-per internal gap for either optimized or preserved ordering, and enables an
-opening or closing slot only when internal gaps alone cannot reach the requested
-count. It retains the same strict failure rule as Extend playlist if the
-target cannot be reached safely.
+is not the same as Fill every gap with one bridge: that preset adds only `S - 1`
+and produces `2S - 1`. Target and double count use fixed-source membership
+selection and are not limited by the number of original gaps. The strict
+per-gap preset instead makes the placement structure itself part of the request
+and must fail if even one required anchored path cannot be constructed.
 
 The UI should always show the calculation before Preview:
 ```text
