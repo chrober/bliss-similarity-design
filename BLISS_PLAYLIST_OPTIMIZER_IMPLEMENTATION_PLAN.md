@@ -1,16 +1,15 @@
 # Better Call Bliss productization and implementation plan
 
 **Status:** In progress - full ARM64 UX shell deployed and private-beta release
-packaging established. Version `0.16.2` is published and listed through the
-private Lyrion extension repository; its package pins optimizer `v0.1.9`.
-Standalone optimizer `v0.1.10` contains the newer shared anchored-path kernel
-and is published independently, but is not yet bundled by the plugin. Optimized source order supports no
+packaging established. Version `0.17.3` is published and listed through the
+private Lyrion extension repository; its package pins optimizer `v0.1.10`,
+including the shared anchored-path kernel. Optimized source order supports no
 additions, difficult-transition improvements, Extend playlist additions
 (exact count, target count, and double count); preserved source order supports
 difficult-transition improvements plus the same Extend playlist amounts placed
 around ordered anchors. Completed editor previews
 are read-only until the user accepts them as a verified copy, confirmed source
-overwrite, or player-queue output. The three **Bliss me there...** track
+overwrite, or player-queue output. The three **Bliss me there...** track and album
 shortcuts are deliberate exceptions: they run destination routes in the
 background and automatically append, replace the upcoming queue, or insert a
 round-trip excursion only after route and live-anchor validation succeed. Static
@@ -23,7 +22,7 @@ for musical-quality correctness; see the destination-route investigation.
 Incomplete explicit endpoint controls, duration targets, provider-owned durable
 caches, durable history, localization, and persistence-phase cancellation
 remain visibly marked.  
-**Date:** 2026-09-01  
+**Date:** 2026-09-07  
 **Primary objective:** Productize the experimentally exercised playlist sequencing and
 bridge-insertion workflow, add order-preserving gap filling and destination
 routes for the live queue, let short source lists reach an exact target through
@@ -31,7 +30,7 @@ the same fixed-source extension, and deliver it as a separately maintained
 Lyrion plugin without requiring Python on the server or modifying
 `lms-blissmixer`.  
 **Latest implementation checkpoint:** [Shared anchored A-to-B path engine](IMPLEMENTATION_CHECKPOINT_34.md).  
-**Published implementation through `0.16.2`:** `lms-better-call-bliss`
+**Published implementation baseline through `0.17.3`:** `lms-better-call-bliss`
 revision `5d8f85b` completed the original background **Bliss me there...**
 workflow; revision `ec3ce81` grouped durable settings, disabled inapplicable
 route/Last.fm controls, and migrated the two Last.fm guidance defaults to 25%.
@@ -49,7 +48,11 @@ a native three-anchor request—current song, mandatory selected waypoint, and
 first upcoming rejoin—with one bridge budget, quality result, and repeat
 contract spanning both legs. Optimizer revision `2029a0d` and Better Call Bliss
 revisions `67f2372`/`a3ffdde` add virtual-library candidate scoping and are
-published as optimizer `v0.1.9` and Better Call Bliss `0.16.2`.  
+published as optimizer `v0.1.9` and Better Call Bliss `0.16.2`. Later releases
+added optional BlissMixerLab personalization, platform-specific plugin packages,
+restored the deliberately independent Better Call Bliss Last.fm guidance
+controls, and improved quick-action startup plus scan-in-progress feedback.
+Better Call Bliss `0.17.3` packages optimizer `v0.1.10`.  
 **Working-tree Gate 2 (2026-08-19):** destination routes now use a dedicated  
 fixed-matrix layered adjacent path search with complete-route Variation, a  
 shared transformed-feature distance index, and configurable Fast, Balanced, or  
@@ -85,8 +88,20 @@ The existing one-way and waypoint-and-rejoin destination adapters retain one
 alternative per bridge count and preserve their wire artifacts. The kernel can
 retain several alternatives for the future global playlist-gap planner.
 Optimizer revisions `84e2d8b` and `57f4d8a` are published as standalone
-optimizer `v0.1.10`; Better Call Bliss `0.16.2` remains pinned to `v0.1.9`
-because this extraction changes neither the plugin nor the wire contract.  
+optimizer `v0.1.10`; Better Call Bliss `0.17.3` now packages that release.  
+**Working-tree album-destination gate (2026-09-07):** all three sibling quick
+actions are also registered in album context menus when the optimizer advertises
+destination-block support. A selected album becomes immutable ordered route
+membership containing every local audio track in canonical disc/track order.
+The shared anchored-path engine searches only the approach to the first album
+track and, for the round trip, the return from the last album track. Album
+members cannot become generated bridges; internal album transitions are not
+rerouted or counted against destination-path acceptance. Repeat windows continue
+to constrain generated bridges rather than rejecting the user's album sequence.
+An album with any non-local, non-audio, or unresolved Bliss member is rejected
+rather than silently truncated.
+The existing append, replace-upcoming, and insert-and-rejoin queue writers then
+emit the complete album without duplicating the captured queue anchors.  
 **Previous checkpoints:** [Lyrion virtual-library candidate scope](IMPLEMENTATION_CHECKPOINT_33.md), [Destination-route maturity and reporting](IMPLEMENTATION_CHECKPOINT_32.md), [Context entry points and 0.14.4 release](IMPLEMENTATION_CHECKPOINT_31.md), [Target and double track-count presets](IMPLEMENTATION_CHECKPOINT_30.md), [Accept-time output targets and release packaging](IMPLEMENTATION_CHECKPOINT_29.md), [Per-job variation and optional Last.fm track/artist evidence](IMPLEMENTATION_CHECKPOINT_28.md), [Finalized Grow from these seeds](IMPLEMENTATION_CHECKPOINT_27.md), [Draft retention, audit clarity, and second-server deployment](IMPLEMENTATION_CHECKPOINT_26.md), [LMS-local bridge inventory and persistent audit](IMPLEMENTATION_CHECKPOINT_25.md), [Preserve source order and fill gaps](IMPLEMENTATION_CHECKPOINT_24.md), [Strict-rank bridge shortlist and live scaling](IMPLEMENTATION_CHECKPOINT_23.md), [Prepared-library cache and measured Pi performance](IMPLEMENTATION_CHECKPOINT_22.md), [Live exact-count extension](IMPLEMENTATION_CHECKPOINT_21.md), [Accessible outcomes and monochrome Extras icon](IMPLEMENTATION_CHECKPOINT_20.md), [Clarified job controls and extension icon](IMPLEMENTATION_CHECKPOINT_19.md), [Visible outcomes and safe copy naming](IMPLEMENTATION_CHECKPOINT_18.md), [Live automatic extension](IMPLEMENTATION_CHECKPOINT_17.md), [Verified optimized-copy persistence](IMPLEMENTATION_CHECKPOINT_16.md), [Complete UX shell](IMPLEMENTATION_CHECKPOINT_15.md), [First live Lyrion preview](IMPLEMENTATION_CHECKPOINT_14.md), [Explicit endpoint insertion](IMPLEMENTATION_CHECKPOINT_13.md), [Multi-track preserved-gap routing](IMPLEMENTATION_CHECKPOINT_12.md), [Preserve-order gap-filling preview](IMPLEMENTATION_CHECKPOINT_11.md), [Exact-count bridge-selection preview](IMPLEMENTATION_CHECKPOINT_10.md), [Automatic bridge-selection preview](IMPLEMENTATION_CHECKPOINT_9.md), [Provider-neutral semantic bridge ranking](IMPLEMENTATION_CHECKPOINT_8.md), [Native bridge-analysis CLI](IMPLEMENTATION_CHECKPOINT_7.md), [Contextual bridge-scoring kernel](IMPLEMENTATION_CHECKPOINT_6.md), [Deterministic native route search](IMPLEMENTATION_CHECKPOINT_5.md), [Parallel contextual scoring](IMPLEMENTATION_CHECKPOINT_4.md), [First shared-core consumers](IMPLEMENTATION_CHECKPOINT_3.md), [Repository publication](IMPLEMENTATION_CHECKPOINT_2.md), [Phase 1 shared-core extraction](IMPLEMENTATION_CHECKPOINT_1.md), [Phase 0 bootstrap](IMPLEMENTATION_CHECKPOINT_0.md)  
 **Reference implementation:** The tracked Python tools and sanitized 2025/2026
 execution reports in this repository remain a migration and parity oracle until
@@ -129,7 +144,7 @@ inventory follows this table.
 | Send the accepted preview to a player queue | ✅ Available | Completed previews can replace, replace only upcoming tracks, append to, or play next on a selected player queue, with optional playback start. Same-player replace-upcoming rechecks the live queue and trims already-played preview items when the snapshot is still recognizable. |
 | Start from the Extras job editor | ✅ Available | The rich per-job editor is the working primary interface. |
 | Start from a saved-playlist context action | ✅ Available | The context item opens the Better Call Bliss Extras job editor with the selected saved playlist preselected. In Material this appears through the item menu / More affordance rather than as a permanent inline row button. |
-| Use the **Bliss me there...** track shortcuts | 🟡 Partial | The queue-end action appends a route; the current-song action preserves playback and replaces only upcoming tracks; the round-trip action inserts a route through the selected waypoint and back to the unchanged first upcoming track. All capture immutable history separately, use calibrated adjacent evidence and destination-aware repeat rules, and validate their live anchors before mutation. The round trip uses two gap-specific shortlists, carries outward membership into return search, and shares one total minimum/maximum or exact bridge count across both legs. Remaining quality work includes split trigger/target controls, depth-aware candidate discovery beyond frozen endpoint shortlists, richer acoustic evidence, intermediate semantic-path evidence, and convergence with playlist gap filling through a shared A-to-B route engine. |
+| Use the **Bliss me there...** track or album shortcuts | 🟡 Partial | The queue-end action appends a route; the current-song action preserves playback and replaces only upcoming tracks; the round-trip action inserts a route through the selected destination and back to the unchanged first upcoming track. A selected album is kept complete and immutable in canonical disc/track order, with bridge search only at its entry and optional exit boundaries. All actions capture immutable history separately, use calibrated adjacent evidence and destination-aware repeat rules, and validate their live anchors before mutation. The round trip uses two boundary-specific shortlists, carries outward membership into return search, and shares one total minimum/maximum or exact bridge count across both boundaries. Remaining quality work includes split trigger/target controls, depth-aware candidate discovery beyond frozen endpoint shortlists, richer acoustic evidence, intermediate semantic-path evidence, and convergence with playlist gap filling through a shared A-to-B route engine. |
 | See running, success, failure, and accept-action outcomes in the UI | ✅ Available | The page polls current jobs and presents accessible, actionable status banners for previews, copy creation, source overwrite, and player-queue output without requiring log inspection. |
 | Cancel jobs, resume after restart, and browse/export past results | 🟡 Limited | Current in-memory jobs can be polled by ID, listed in the Extras page, and cancelled while the native optimizer process is running. Restart recovery, durable history, persistence-phase cancellation, search, and report export are missing. |
 | Configure durable defaults and inspect system readiness | 🟡 Partial | The settings page and core readiness checks exist; complete provider, active-job, and persistence-health status is unfinished. |
@@ -206,7 +221,7 @@ the same row weight.
 | Playlist workflow | Player-queue output target | ✅ Implemented | Completed previews can be sent to a selected player as Replace queue, Append to queue, or Play next, with optional playback start. |
 | Playlist workflow | Playlist-embedded provenance comments | ⬜ Not implemented | Generated M3Us should include safe Better Call Bliss comment blocks with plugin/native versions, request schema, selected parameters, source playlist identity, original source positions, generated-track roles, report ID, and hashes sufficient for later audit without leaking more than the playlist already contains. |
 | Entry points | Saved-playlist context action | ✅ Implemented | The shortcut opens the Extras editor with the selected saved playlist preselected. Material exposes it through the item menu / More affordance rather than as a permanent inline button. |
-| Entry points | Three **Bliss me there...** track actions | 🟡 Partial | Queue-end append, current-song replace-upcoming, and current-song waypoint-and-rejoin insertion are published through Better Call Bliss `0.16.2`. Source selection and queue mutation are centrally locked together. The round-trip request makes start, waypoint, and rejoin unique route members, shares one bridge budget across both gaps, constrains return candidates with outward membership/repeat state, omits both queue anchors from insertion, and rejects stale current or rejoin tracks before sending any LMS queue command. Musical maturity remains partial for the same candidate-discovery and acoustic-evidence reasons as one-way destination routes. |
+| Entry points | Three **Bliss me there...** track and album actions | 🟡 Partial | The track actions are published through Better Call Bliss `0.17.3`; complete-album destinations are implemented in the current plugin/optimizer working trees. Queue-end append, current-song replace-upcoming, and current-song destination-and-rejoin insertion centrally bind source selection to queue mutation. A multi-track destination block preserves the complete album in canonical order and limits bridge search to its entry plus optional exit. The round-trip request shares one bridge budget across both boundaries, constrains return candidates with outward membership/repeat state, omits both queue anchors from insertion, and rejects stale current or rejoin tracks before sending any LMS queue command. Musical maturity remains partial for the same candidate-discovery and acoustic-evidence reasons as one-way destination routes. |
 | Jobs and UX | Running, success, failure, and accept-action feedback | ✅ Implemented | Automatic polling and prominent actionable outcome banners are live for previews, copy creation, source overwrite, and player-queue output. |
 | Jobs and UX | Persistent quick-action progress indicator in Material | ⬜ Planned | Lyrion can store generic `Slim::Utils::Progress` rows and the classic web layer has a progress page, but Material's visible progress integration is scanner-specific. Its plugin notification channel provides transient snackbars only (normally 2.5 seconds, explicitly at most 30 seconds). Better Call Bliss already returns a job ID and exposes `bettercallbliss job status`. Explore a small Material background-task chip/spinner driven by a namespaced server notification plus status polling; avoid repeated snackbars and avoid pretending scanner progress is a plugin-job API. |
 | Jobs and UX | Restore submitted job values after an outcome | ✅ Implemented | Polling, failure, successful Preview, and accept actions repopulate the rich editor from the job request so iterative tuning does not lose per-job values. Output choices are made after preview and changing them does not rerun the optimizer. |
@@ -1098,15 +1113,16 @@ recomputes the full route objective, and publishes separate endpoint policy and
 decision diagnostics. This is a deterministic bounded staged search, not a
 claim of joint global optimality.
 
-#### Track action: Bliss me there…
+#### Track and album actions: Bliss me there…
 
-Register three sibling actions on the context menu of a playable local track:  
+Register three sibling actions on the context menu of a playable local track or
+an album containing local audio tracks:  
 
 - **Bliss me there…** keeps the current song, excludes later
   queue entries from captured context, and replaces only those upcoming tracks
   with a route to the selected destination.  
 - **Bliss me there… and back again!** uses the current song as start, the
-  selected track as mandatory waypoint, and the first upcoming track as locked
+  selected track or complete album as mandatory destination, and the first upcoming track as locked
   rejoin. It inserts the excursion before the otherwise unchanged upcoming
   queue.  
 - **Bliss me there… when we're through!** uses the last playable queue track as
@@ -1118,10 +1134,18 @@ Last.fm evidence, and repeat-window context, but they are not route members and
 may already contain repeats. If a required local start, destination, or
 round-trip rejoin does not exist, the action fails without queue mutation.  
 
+A selected album is represented as one immutable ordered destination block. All
+local audio tracks are included in canonical disc/track order. The planner may
+add a route before the first track and, for the round trip, after the last track,
+but may neither reorder the album nor insert bridges inside it. Internal album
+transitions are user-selected content and do not participate in destination
+route acceptance. Every album member is unavailable as a generated candidate.  
+
 The one-way actions find the configured minimum or more intermediate local
-tracks before the selected destination. The round trip treats the destination
-as a mandatory waypoint and distributes the same total bridge budget across
-the outward and return gaps. A dedicated layered search ranks complete paths
+tracks before the selected destination entrance. The round trip distributes the
+same total bridge budget across the approach to the destination entrance and
+the return from its exit. For a track those are the same member; for an album
+they are its first and last tracks. A dedicated layered search ranks complete paths
 by worst fixed-matrix adjacent distance and then adjacent sum. Automatic
 searches each total from the saved minimum through maximum and selects the
 shortest permitted complete route whose source-relative adjacent percentiles
@@ -1133,12 +1157,12 @@ Exact-count mode uses the same adjacent objective and fails unless precisely
 the requested total exists.  
 
 For the round trip, the optimizer prepares one frozen candidate shortlist for
-each locked gap, retains bounded outward alternatives by bridge count, and
+each locked boundary, retains bounded outward alternatives by bridge count, and
 carries each outward route into return search with only the unused total budget.
 This is one coupled bounded result rather than two independently applied jobs:
 uniqueness, artist/album/track repeat windows, whole-route bottleneck and sum,
 cautious-model consensus, and Variation span
-`start -> ... -> waypoint -> ... -> rejoin`. The plugin strips the start and
+`start -> ... -> destination block -> ... -> rejoin`. The plugin strips the start and
 rejoin anchors from the native result and uses LMS play-next insertion so the
 existing rejoin remains exactly once.  
 
@@ -1744,7 +1768,7 @@ boundary is maintained in the plugin repository's `docs/UX_STATUS.md`.
 
 - Register the playlist context-menu provider.
 - Implement reorder and Preserve order and fill gaps Preview/Create workflows.
-- Register the three client-bound **Bliss me there...** track actions as
+- Register the three client-bound **Bliss me there...** track and album actions as
   background commands, centrally binding queue-end append, current-song
   replace-upcoming, and current-song waypoint/rejoin insertion to their matching
   source capture and live-anchor validation.
@@ -1804,10 +1828,14 @@ upgrade, and uninstall the plugin through the extension manager.
 - **Bliss me there…** preserves the still-current song and
   playback while replacing only its upcoming queue with the validated route.
 - **Bliss me there… and back again!** inserts a validated route through the
-  selected waypoint and back to the unchanged first upcoming track, with one
-  total bridge budget and repeat/quality contract spanning both legs.
+  selected track or complete ordered album and back to the unchanged first
+  upcoming track, with one total bridge budget and repeat/quality contract
+  spanning both route boundaries.
 - **Bliss me there… when we're through!** leaves existing entries unchanged and
   appends only a validated route from the queue end to the selected destination.
+- Every album action emits all local audio tracks in canonical disc/track order,
+  never inserts inside that destination block, and applies repeat constraints
+  only to generated bridge tracks.
 - Exact bridge count either produces exactly the requested count or fails
   without creating a misleading partial result.
 - Extend playlist reaches the requested final total, retains every original
