@@ -79,7 +79,7 @@ Automatic evaluates every permitted depth and selects the shortest route meeting
 
 | Feature | Shared-model use |
 | --- | --- |
-| **Bliss me there...** | Locked one-way endpoints or a three-anchor start/waypoint/rejoin excursion, conservative dual-metric baseline test, depth-aware frontier, corridor, and adjacent objective. Recent queue tracks remain contextual and repeat evidence but do not redefine the selected live start or rejoin boundary. |
+| **Bliss me there...** | Locked one-way endpoints or a start/destination-block/rejoin excursion, conservative dual-metric baseline test, depth-aware frontier, corridor, and adjacent objective. A destination block may be one track or a complete ordered album. Recent queue tracks remain contextual and repeat evidence but do not redefine the selected live start or rejoin boundary. |
 | **Preserve order and improve difficult transitions** | Detect gaps with the same adjacent evidence, construct path options per gap, then allocate the global addition budget by marginal improvement instead of committing left to right. |
 | **Preserve order while extending** | Keep fixed-source relevance selection, then jointly place all additions around immutable anchors. Replace one-addition-at-a-time greedy placement with a beam or dynamic program across slots. |
 | **Reorder only** | Keep fixed membership and multi-start permutation search, but report and eventually optimize calibrated adjacent evidence alongside contextual continuation. Keep the energy arc secondary and explicit. |
@@ -89,14 +89,14 @@ Collection relevance, route continuation, adjacent boundaries, and trajectory re
 
 ### Current split and desired convergence
 
-The optimizer now has one pure anchored-path kernel for the bounded inner search from `A` to `B`. Its input separates the anchors, route prefix, immutable listening history, unavailable outer-plan membership, candidate evidence, repeat windows, search breadth, Variation, and adjacent-distance function. It returns complete scored alternatives without knowing whether a playlist or queue will eventually be changed. Existing destination and waypoint-and-rejoin paths use this kernel through compatibility adapters, so their request/result contracts remain unchanged.
+The optimizer now has one pure anchored-path kernel for the bounded inner search from `A` to `B`. Its input separates the anchors, route prefix, immutable listening history, unavailable outer-plan membership, candidate evidence, repeat windows, search breadth, Variation, and adjacent-distance function. It returns complete scored alternatives without knowing whether a playlist or queue will eventually be changed. Existing one-way and destination-block-and-rejoin paths use this kernel through thin outer adapters. Single-track requests remain wire-compatible, while an optional ordered destination block represents a complete album.
 
 Playlist gap filling still uses the preserved-order bridge machinery. It may examine many gaps in one playlist, such as `A -> B`, `B -> C`, and `C -> D`, then decide where additions are justified or how already selected additions can be placed around ordered anchors. That outer problem is different because the budget, repeat windows, and earlier insertions can interact across several gaps. It must migrate to the shared kernel through a global planner rather than call the kernel independently and commit each local winner.
 
 The extracted inner engine answers: "given a left anchor A, a right anchor B, context, repeat policy, candidate inventory, and bridge budget, which complete A-to-B paths are valid and worthwhile?" It can retain multiple alternatives per intermediate count so a future multi-gap planner is not trapped by one locally optimal route. The outer planner remains feature-specific:
 
-- **Bliss me there... one-way actions:** one gap, fixed queue-end or current-song start, fixed destination, and append or replace-upcoming output.
-- **Bliss me there... and back again!:** two coupled gaps, fixed current-song start, mandatory selected waypoint, locked first-upcoming rejoin, and non-destructive insertion with one shared bridge budget.
+- **Bliss me there... one-way actions:** one boundary, fixed queue-end or current-song start, fixed track or immutable album destination, and append or replace-upcoming output.
+- **Bliss me there... and back again!:** two coupled boundaries, fixed current-song start, mandatory selected track or immutable ordered album block, locked first-upcoming rejoin, and non-destructive insertion with one shared bridge budget.
 - **Preserve order and improve difficult transitions:** many existing playlist gaps, global addition budget, insert only where a bridge improves the transition.
 - **Fill every gap with N bridge tracks:** many gaps with a strict per-gap count; fail visibly if any required gap route cannot be built.
 - **Preserve order while extending:** choose membership against the complete original source set, then place selected additions around immutable anchors.
