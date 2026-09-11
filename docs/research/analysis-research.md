@@ -2,7 +2,7 @@
 
 **Status:** Living research and design proposal  
 **Primary scope:** Audio representation, structure, similarity, and evaluation validity  
-**Last reviewed:** 2026-08-01
+**Last reviewed:** 2026-09-11
 
 ## Scope and research questions
 
@@ -414,6 +414,7 @@ systems below, not a claim that Bliss is uniquely capable or already superior.
 |---|---|---|---|
 | **AudioMuse-AI** | Analyzer, similarity service, and playlist application | Local sonic analysis, similar-song search, clustering, song paths, music maps, and integrations including LMS/Lyrion | Dockerized AGPL application stack rather than an embeddable crate or stable canonical representation |
 | **Essentia** | Audio analysis and representation extraction | Broad spectral, Bark/ERB, loudness, rhythm, tonal, chord, and learned-model support | Analysis toolkit without one prescribed song vector, distance, persistence contract, or mixer |
+| **AcousticBrainz** | Historical large-scale feature corpus and similarity experiment | Essentia-derived low/high-level descriptors, aspect-specific similarity indices, and frozen open dumps | Collection was discontinued after documented confidence, generalization, resolution, and similarity-quality problems |
 | **librosa plus learned models** | Experimental descriptor and embedding backends | Temporal features, recurrence/segmentation tools, and representations such as musicnn, MAEST, or MERT | Research construction kit requiring custom pooling, schema, metric, indexing, and playlist policy |
 | **Plex Sonic Analysis** | End-user sonic similarity and radio | Similar tracks, artists, albums, track/album radio, and generated mixes | Proprietary implementation whose representation and algorithms cannot be reused or audited |
 
@@ -471,6 +472,45 @@ cost still need explicit treatment. Any adopted algorithm should be specified
 and validated independently rather than importing an opaque extractor dump as a
 new default representation.
 
+### AcousticBrainz as precedent and negative result
+
+AcousticBrainz used Essentia to crowdsource low-level and high-level acoustic
+descriptions at recording scale [[31]](#r31). Its low-level representation
+separated spectral and loudness statistics, rhythm, and tonal evidence from
+model-dependent genre, mood, and instrumentation predictions [[32]](#r32). The
+configurable Essentia extractor could retain frame values or summarize frames
+with mean, variance, median, extrema, and first- and second-difference
+statistics, although the normal AcousticBrainz record emphasized aggregates
+[[22]](#r22).
+
+Its experimental similarity system is especially relevant to the
+task-conditioned view in this design. It maintained separate MFCC, weighted
+MFCC, GFCC, BPM, onset-rate, key, mood, instrument, and genre metrics, normalized
+some vectors with population statistics, and built a separate approximate
+nearest-neighbour index for each view [[33]](#r33). This is useful precedent for
+aspect-specific evaluation; it is not evidence that one of those metrics
+improves heterogeneous playlist or transition quality.
+
+MetaBrainz stopped accepting submissions in 2022 after reporting four problems:
+BPM and key errors could not be identified reliably because suitable confidence
+was absent; high-level classifiers did not generalize over the full collection;
+stored feature resolution was insufficient for newer learning approaches; and
+the content-similarity results were unsatisfactory in MetaBrainz's own use
+[[34]](#r34). This large-scale negative result directly motivates calibrated
+confidence, explicit unsupported-domain behavior, temporal retention, and
+held-out target-task evaluation.
+
+The final dumps contain roughly 29.5 million submissions, including sample
+archives and smaller low-level feature tables [[35]](#r35), and the data is
+published under CC0 [[36]](#r36). They may be useful
+for studying population normalization, duplicate or alternate submissions, and
+extractor-version robustness. They do not contain the source audio, contain
+multiple submissions for recordings, depend on MusicBrainz recording identity,
+and cannot serve as perceptual-similarity ground truth. Accordingly, this
+research should use AcousticBrainz as a reproducibility and failure-analysis
+case study and use named Essentia algorithms as controlled external baselines,
+not import the entire historical representation.
+
 ### librosa and learned representations
 
 librosa provides a flexible Python construction kit for chroma, mel spectra,
@@ -506,6 +546,8 @@ underlying method.
   clustering, idle, and mix-request resource costs;
 - treat multimodal AudioMuse-AI modes as a separate hybrid-recommendation
   comparison, not evidence about acoustic analysis alone;
+- use AcousticBrainz's frozen sample data only for suitable population,
+  duplicate, and robustness questions, never as perceptual ground truth;
 - use Essentia and librosa to prototype or cross-check descriptor hypotheses
   without silently adopting their complete output inventories;
 - include at least one lightweight and one larger learned representation in
@@ -707,3 +749,29 @@ arXiv:2205.05580, 2022.
 <a id='r30'></a>**[30]** B. Elizalde, S. Deshmukh, M. Al Ismail, and
 H. Wang, [CLAP: Learning Audio Concepts From Natural Language
 Supervision](https://arxiv.org/abs/2206.04769), arXiv:2206.04769, 2022.
+
+<a id='r31'></a>**[31]** A. Porter, D. Bogdanov, R. Kaye, R. Tsukanov, and
+X. Serra,
+"[AcousticBrainz: A Community Platform for Gathering Music Information Obtained
+from Audio](https://ismir2015.uma.es/articles/210_Paper.pdf)," ISMIR, 2015.
+
+<a id='r32'></a>**[32]** MetaBrainz Foundation,
+"[AcousticBrainz Data](https://acousticbrainz.org/data)," low-level and
+high-level representation documentation, accessed September 11, 2026.
+
+<a id='r33'></a>**[33]** MetaBrainz Foundation,
+"[Recording Similarity](https://acousticbrainz.readthedocs.io/similarity.html),"
+AcousticBrainz metric and indexing documentation, accessed September 11, 2026.
+
+<a id='r34'></a>**[34]** A. Porter,
+"[AcousticBrainz: Making a Hard Decision to End the
+Project](https://musicbrainz.wordpress.com/2022/02/16/acousticbrainz-making-a-hard-decision-to-end-the-project/),"
+MetaBrainz Blog, February 16, 2022.
+
+<a id='r35'></a>**[35]** MetaBrainz Foundation,
+"[AcousticBrainz Downloads](https://acousticbrainz.org/download)," final data,
+sample, and extractor downloads, July 6, 2022; accessed September 11, 2026.
+
+<a id='r36'></a>**[36]** MetaBrainz Foundation,
+"[AcousticBrainz](https://musicbrainz.org/doc/AcousticBrainz)," project status,
+identity model, and data license, accessed September 11, 2026.

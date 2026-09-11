@@ -2,7 +2,7 @@
 
 **Status:** Descriptive evidence inventory
 **Primary scope:** Current implementation sources and related research context
-**Last reviewed:** 2026-08-01
+**Last reviewed:** 2026-09-11
 
 - `src/song/mod.rs` - current [`Analysis`](https://github.com/Polochon-street/bliss-rs/blob/master/src/song/mod.rs#L240),
   [`AnalysisIndex`](https://github.com/Polochon-street/bliss-rs/blob/master/src/song/mod.rs#L103), and extraction orchestration.
@@ -32,6 +32,13 @@
 - [`Essentia`](https://github.com/MTG/essentia) - broad C++/Python analysis
   toolkit and model-inference ecosystem suitable for descriptor prototypes and
   external baselines, but not a canonical Bliss representation.
+- [`AcousticBrainz`](https://musicbrainz.org/doc/AcousticBrainz) - discontinued
+  Essentia-based large-scale acoustic-feature project whose
+  [similarity design](https://acousticbrainz.readthedocs.io/similarity.html),
+  [frozen open data](https://acousticbrainz.org/download), and documented
+  [quality limitations](https://musicbrainz.wordpress.com/2022/02/16/acousticbrainz-making-a-hard-decision-to-end-the-project/)
+  provide research precedent and negative-result evidence, not a current
+  service dependency or perceptual ground truth.
 - [librosa feature extraction](https://librosa.org/doc/latest/feature.html) -
   Python research toolkit for spectral, tonal, rhythmic, temporal, and
   segmentation experiments.

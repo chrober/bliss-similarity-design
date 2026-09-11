@@ -2,7 +2,7 @@
 
 **Status:** Living research and design proposal  
 **Primary scope:** Historical design evidence and contemporary baselines  
-**Last reviewed:** 2026-08-01
+**Last reviewed:** 2026-09-11
 
 ## What MusicIP actually did
 
@@ -116,6 +116,38 @@ includes Discogs-derived, musicnn, and MAEST inference options. That breadth is
 valuable for prototyping and cross-checking hypotheses, but does not provide one
 canonical vector, distance, persistence contract, or mixer.
 
+#### AcousticBrainz: precedent and negative result
+
+[`AcousticBrainz`](https://acousticbrainz.org/) is not a current Bliss
+alternative: MetaBrainz stopped accepting new submissions in 2022. It remains
+important evidence because it attempted large-scale, open acoustic description
+and similarity using Essentia. Its low-level records separated spectral,
+rhythmic, and tonal descriptors from model-dependent high-level predictions,
+while its experimental [recording-similarity
+service](https://acousticbrainz.readthedocs.io/similarity.html) exposed separate
+MFCC, GFCC, BPM, onset-rate, key, mood, instrument, and genre views. That
+aspect-specific design is more informative for this research than treating one
+large feature collection as a universal distance.
+
+The project's termination is equally relevant. MetaBrainz reported unreliable
+BPM and key estimates without sufficient confidence, high-level classifiers
+that did not generalize across the collection, stored evidence with too little
+resolution for newer learning methods, and disappointing content-similarity
+results. These findings support explicit confidence, retained temporal evidence,
+heterogeneous evaluation, and task-specific ablation; they do not validate an
+AcousticBrainz metric for Bliss. See MetaBrainz's [project-closure
+analysis](https://musicbrainz.wordpress.com/2022/02/16/acousticbrainz-making-a-hard-decision-to-end-the-project/).
+
+The frozen [data and sample dumps](https://acousticbrainz.org/download), whose
+data is [published under CC0](https://musicbrainz.org/doc/AcousticBrainz), may
+support population-statistics,
+duplicate-submission robustness, and external descriptor studies. They are not
+perceptual-similarity ground truth, do not provide the original audio, and often
+retain aggregate rather than frame-level evidence. The reusable research path
+is therefore to evaluate named Essentia algorithms or independently specified
+equivalents, not to depend on the discontinued service or import its complete
+descriptor dump.
+
 [`librosa`](https://librosa.org/doc/latest/feature.html) plus learned
 representations such as
 [`musicnn`](https://github.com/jordipons/musicnn), MAEST, or
@@ -140,6 +172,8 @@ The practical comparison policy is therefore:
 - include representative Raspberry Pi/Lyrion hardware in that comparison and
   measure initial and incremental analysis, clustering, idle footprint, storage
   traffic, and playback interference;
+- use AcousticBrainz as a historical schema, confidence, and failure-analysis
+  case study, not as a current service or similarity-quality baseline;
 - compare named Essentia/librosa descriptors and learned embeddings under a
   common local scoring and evaluation harness;
 - keep multimodal and metadata-assisted systems in a separate hybrid baseline;
