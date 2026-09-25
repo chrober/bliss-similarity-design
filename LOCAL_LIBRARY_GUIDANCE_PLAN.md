@@ -1,6 +1,6 @@
 # Local library guidance plan
 
-**Status:** Proposed follow-up  
+**Status:** In implementation — standard Lyrion signals only  
 **Scope:** Optional local Lyrion signals for Better Call Bliss and a future
 BlissMixer guidance host  
 **Last reviewed:** 2026-09-25  
@@ -12,28 +12,31 @@ The signals express listening history, freshness, and explicit rejection; they
 must never replace acoustic eligibility, repeat windows, virtual-library
 membership, genre filtering, or route validity.  
 
-The first implementation should use Lyrion's read-only SQLite data and the
-optional Alternative Play Count (APC) plugin. It must remain practical for
-large libraries: one bounded provider session per job, no whole-library JSON
-export, and no database query or network operation per individual score call.  
+The first implementation uses only Lyrion's standard read-only SQLite data.
+It must remain practical for large libraries: one bounded provider session per
+job, no whole-library JSON export, and no database query or network operation
+per individual score call. Alternative Play Count (APC) is deliberately out of
+scope for this provider and remains a separately packaged future provider.  
 
 ## Available local data
 
 | Signal family | Lyrion source | Meaning |
 | --- | --- | --- |
 | Standard listening statistics | `persist.db` / `tracks_persistent` | `playCount`, `lastPlayed`, `added`, and optional `rating`, keyed by `urlmd5`. |
-| Alternative Play Count | `persist.db` / `alternativeplaycount` | APC play count, last played, skip count, last skipped, and dynamic played/skipped value (DPSV). |
-| Detailed APC history | `apc_external.db` / `play_history` | Played timestamp, player identity, track identity, and rating captured at play time. |
+| Alternative Play Count (future separate provider) | `persist.db` / `alternativeplaycount` | APC play count, last played, skip count, last skipped, and dynamic played/skipped value (DPSV). |
+| Detailed APC history (future separate provider) | `apc_external.db` / `play_history` | Played timestamp, player identity, track identity, and rating captured at play time. |
 | Catalog metadata | `library.db` | Artist, album, genre, year, MusicBrainz IDs, label, release type, duration, BPM, replay gain, technical fields, and tags. |
 
 `tracks_persistent.added` is the appropriate library-age source. The catalog
 table's `tracks.added_time` and `updated_time` describe catalog/scan activity
 and must not be presented as a reliable user-facing "added to library" date.  
 
-APC may be semantically preferable for playback signals: it can distinguish a
-track played beyond the configured threshold from a track skipped early. Its
-DPSV is a recent preference signal: it rises after counted plays and falls
-after skips.  
+APC may eventually be semantically preferable for some playback signals: it
+can distinguish a track played beyond the configured threshold from a track
+skipped early. Its DPSV is a recent-preference signal: it rises after counted
+plays and falls after skips. That does not justify coupling it to standard
+Lyrion guidance: the data semantics, resources, diagnostics, and user controls
+are different.  
 
 ## User controls
 
@@ -45,25 +48,15 @@ are defaults only, following Better Call Bliss's existing job-override model.
 | Play-count preference | `-100` to `100` | Negative favors less-played tracks; positive favors more-played tracks. Existing behavior. |
 | Last-played recency | `-100` to `100` | Negative favors tracks unheard for longer; positive favors tracks played more recently; zero is neutral. |
 | Library age | `-100` to `100` | Negative favors older library additions; positive favors newer additions; zero is neutral. |
-| Skip avoidance | `0` to `100` | Applies an increasingly strong penalty to tracks recently or frequently skipped according to APC. Zero disables it. |
-| Recent affinity | `0` to `100` | Favors positive APC DPSV: tracks recently listened through rather than skipped. Zero disables it. |
 
 Signed ranges are appropriate only where either direction expresses a plausible
 listener intention. Play count, time since last play, and library age can
-reasonably be inverted. Skip avoidance and positive recent affinity are
-one-way safeguards; a positive control that deliberately favors skipped or
-negative-DPSV tracks would be confusing and is out of scope.  
+reasonably be inverted.  
 
-The first UI also offers a **Listening-statistics source** selector:  
-
-- **Lyrion statistics** reads `tracks_persistent`;  
-- **Alternative Play Count** reads APC fields and is unavailable when its
-  database/table is absent or invalid.  
-
-The source selection applies to count and last-played controls together. The
-provider does not silently blend row-level Lyrion and APC values, because that
-would make normalization and diagnostics ambiguous. Library age always uses
-Lyrion persistence data; skip avoidance and recent affinity require APC.  
+Future APC guidance may add one-way skip avoidance or recent-affinity controls,
+but it must be implemented by a distinct binary with explicit APC-only
+resources and settings. The standard provider must neither discover APC,
+inspect APC tables, nor silently blend APC values with Lyrion values.  
 
 Ratings and player-specific history are deliberately deferred. Ratings should
 not become a visible preference until a usable rating source is configured.
@@ -72,12 +65,12 @@ influence a route.
 
 ## Provider boundary
 
-Create a successor provider, **`bliss-guidance-library-signals`**, rather than
-continuing to expand the narrowly named `bliss-guidance-playcounts`. The new
-provider owns the coherent domain of local, unary Lyrion listening and library
-signals: count, recency, library age, skips, and DPSV. The existing provider
-can remain a compatibility baseline while the successor is introduced, then be
-retired in a coordinated Better Call Bliss release.  
+Evolve and rename the existing provider to
+**`bliss-guidance-library-signals`** rather than retaining two overlapping
+binaries. The new provider owns the coherent domain of standard local, unary
+Lyrion listening and library signals: count, recency, and library age. Its
+renamed provider ID is `library-signals-guidance`; it replaces the old
+play-count-only executable in the coordinated Better Call Bliss release.  
 
 ```mermaid
 flowchart LR
@@ -85,7 +78,6 @@ flowchart LR
     P --> O[Bliss-first optimizer host]
     O -->|prepare once| G[bliss-guidance-library-signals]
     L[(persist.db)] --> G
-    A[(Optional APC data)] --> G
     O -->|bounded candidates plus context| G
     G -->|local unary guidance signals| O
     O --> R[Route or playlist preview]
@@ -117,10 +109,10 @@ need rather than treating every catalog column as a ranking feature.
    excluded candidate or violate a hard constraint.  
 2. Positive and negative directions for signed controls are tested as exact
    opposites over a frozen candidate population.  
-3. APC-only controls disable cleanly, with visible diagnostics, when APC is
-   unavailable or selected data is missing.  
-4. Lyrion and APC statistics are never silently blended row by row.  
-5. The provider uses read-only snapshots, bounded candidate batches, indexed
+3. The provider uses read-only snapshots, bounded candidate batches, indexed
    lookups, and a job-local cache; it exports no full-library value artifact.  
-6. Provider diagnostics disclose source, coverage, normalization, and fallback
+4. Provider diagnostics disclose source, coverage, normalization, and fallback
    state without logging private track paths or detailed play history.  
+5. The v1 binary neither detects nor opens APC data. Any future APC guidance is
+   an independent provider with distinct configuration, resource validation,
+   packaging, and diagnostics.  
