@@ -66,15 +66,17 @@ supersedes it explicitly.
 
 1. Improve the perceived coherence of directional `A -> B` transitions.
 2. Preserve the current whole-track Bliss result as the relevance baseline.
-3. Compare a source outro with candidate intros without confusing transition
+3. Use Version 2 temporal derivatives as a control and reusable scaffold, not
+   as the assumed final descriptor family.
+4. Compare a source outro with candidate intros without confusing transition
    compatibility with general song similarity.
-4. Reduce reliance on a whole-track average when a track is structurally
+5. Reduce reliance on a whole-track average when a track is structurally
    heterogeneous.
-5. Reuse one transition-scoring definition in interactive mixing and one-shot
+6. Reuse one transition-scoring definition in interactive mixing and one-shot
    playlist optimization.
-6. Collect low-effort, blinded listening judgments under reproducible
+7. Collect low-effort, blinded listening judgments under reproducible
    conditions.
-7. Produce evidence that can justify, refine, or reject later integration.
+8. Produce evidence that can justify, refine, or reject later integration.
 
 ## Non-goals for the first experiment
 
@@ -87,6 +89,8 @@ supersedes it explicitly.
 - Shipping experimental behavior in upstream `lms-blissmixer` before it has
   been evaluated.
 - Training a boundary metric before boundary-specific judgments exist.
+- Treating temporal derivatives over the current 23 features as the final
+  answer when the underlying acoustic evidence is insufficient.
 
 ## Core hypothesis
 
@@ -122,6 +126,31 @@ flowchart LR
 This ordering is important. Boundary compatibility must not admit a quiet or
 timbrally similar but contextually unrelated song that the active global
 strategy would not consider relevant.
+
+## Research sequencing after early evidence
+
+The first temporal experiments deliberately operate over the existing 23 Bliss
+features. This is a control condition and a measurement scaffold: it tests
+whether whole-track aggregation is hiding useful timing information, and it
+creates reusable machinery for windowing, anchors, playback rendering, ratings,
+and reproducible comparison.
+
+That scaffold should remain modest. It should not become a long effort to tune
+every possible Version 2-derived local score. If a predeclared replication does
+not support the temporal signal, the next experiment should move to one named
+missing descriptor family rather than another combination of the same distances.
+
+The preferred descriptor-family order is:
+
+1. vocal activity, speech, and instrumental coverage;
+2. rhythm, onset density, pulse clarity, and activity rate;
+3. loudness, dynamics, transients, silence, and boundary shape;
+4. tonal or harmonic trajectory beyond the current transposition-invariant
+   chroma summaries.
+
+Each family plugs into the same temporal scaffold and receives a family-level
+ablation against Version 2. A result is only meaningful if it separates global
+relevance, physical overlap, post-overlap continuation, and overall quality.
 
 ## Candidate transition evidence
 
@@ -161,8 +190,11 @@ Candidate anchor evidence includes, subject to feature-specific validity:
 - the exact covered sample/time range and boundary policy.
 
 The first vertical slice intentionally uses one fixed intro window and one
-fixed outro window. Multi-scale and structure-aligned anchors are later
-ablations, not prerequisites for proving that local evidence has value.
+fixed outro window over the current Version 2 feature semantics. This is the
+control baseline for temporal use of existing evidence, not a claim that the
+23-feature vector is sufficient for transition quality. Multi-scale anchors,
+structure-aligned anchors, and additional descriptor families are later
+ablations once the fixed-window baseline is understood.
 
 ### Structural heterogeneity
 
@@ -492,7 +524,7 @@ Only aggregate results and redistributable fixtures belong in public reports.
 
 ## Delivery sequence
 
-### Phase 0: dependency and baseline alignment
+### Phase 0: baseline alignment and temporal scaffold
 
 1. Start experimental branches from reviewed upstream/fork baselines.
 2. Record which `bliss-rs` revision each consumer uses.
@@ -500,16 +532,33 @@ Only aggregate results and redistributable fixtures belong in public reports.
    compatible `bliss-mixer-core` revision before comparing results.
 4. Characterize current global-only output so transition weight zero is an
    exact compatibility test.
+5. Build the smallest reusable temporal scaffold over Version 2 evidence:
+   fixed windows, anchors, prefix volatility, rendering, blinded ratings, and
+   diagnostic reports.
 
-### Phase 1: extraction and persistence
+### Phase 1: Version 2 temporal control
 
 1. Implement one deterministic fixed-duration intro/outro analysis in the
    `bliss-rs` fork.
 2. Add feature validity, source ranges, policy identity, and provenance.
 3. Add incremental sidecar generation to the experimental analyser.
 4. Verify invalidation, partial coverage, and cross-platform decoder behavior.
+5. Replicate the most promising local signal on a larger source set before
+   tuning, fusion, or broader integration.
 
-### Phase 2: interactive scorer and harness
+### Phase 2: first missing descriptor family
+
+1. Prototype vocal activity, speech-like evidence, and instrumental coverage
+   as temporal evidence, preferably before more expensive source separation or
+   detailed vocal-technique classifiers.
+2. Compare the new family against the Version 2 temporal control and against
+   the unchanged whole-track baseline.
+3. Keep relevance, overlap, continuation, and overall quality as separate
+   outcomes.
+4. Continue to rhythm/onset, dynamics/boundary shape, and harmonic trajectory
+   only through similarly isolated family-level ablations.
+
+### Phase 3: interactive scorer and harness
 
 1. Add sidecar loading and transition-score primitives to
    `bliss-mixer-core`.
@@ -518,7 +567,7 @@ Only aggregate results and redistributable fixtures belong in public reports.
 4. Run a pilot that includes Bohemian-Rhapsody-like cases and homogeneous
    controls.
 
-### Phase 3: representation refinement
+### Phase 4: representation refinement
 
 1. Compare anchor durations and multi-scale fusion.
 2. Add boundary-shape ablations.
@@ -526,7 +575,7 @@ Only aggregate results and redistributable fixtures belong in public reports.
 4. Compare fixed and structure-informed boundaries only after the fixed-anchor
    baseline is understood.
 
-### Phase 4: one-shot playlist optimization
+### Phase 5: one-shot playlist optimization
 
 1. Connect the shared scorer to `bliss-playlist-optimizer`.
 2. Evaluate fixed-set route ordering against global-only ordering.
@@ -535,7 +584,7 @@ Only aggregate results and redistributable fixtures belong in public reports.
 5. Assess route-level relevance, variety, local flow, worst transitions, and
    resource cost separately.
 
-### Phase 5: consolidation discussion
+### Phase 6: consolidation discussion
 
 Only after the experiments produce useful, reproducible results should the
 projects consider:
