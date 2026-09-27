@@ -7,6 +7,43 @@ independently installable guidance extensions. It complements the native
 [`bliss-playlist-guidance-spi`](https://github.com/chrober/bliss-playlist-guidance-spi)
 contract; it does not replace that Rust process protocol.
 
+Reviewed against local Lyrion and BlissMixerLab sources on 2026-09-27.
+Each provider must have its own settings page. Its current guidance settings
+are inherited defaults for consuming hosts, which may override individual
+settings through schema-rendered controls.
+
+## Feasibility and revisions
+
+The design is feasible with existing Lyrion extension mechanisms:
+
+- `Slim::Web::Settings->new` registers each provider's own settings page;
+  its `prefs` and `handler` methods support preference storage and validation.
+- `Slim::Utils::Prefs` supplies separate namespaces, validators, and change
+  callbacks for provider defaults and host overrides.
+- `Slim::Utils::PluginManager` calls `preinitPlugin`, `initPlugin`, and
+  `postinitPlugin` in separate passes specifically to support inter-plugin
+  services. Initialize the registry in `preinitPlugin`, register providers in
+  `initPlugin`, and perform initial host discovery in `postinitPlugin`.
+
+The registry, descriptor contract, and schema renderer require new code;
+Lyrion does not automatically supply this guidance integration. No Material
+Skin changes are required for ordinary settings pages and form controls.
+Hosts need an integration adapter; an unchanged upstream BlissMixer will not
+automatically consume registered providers.
+
+This revision makes three boundaries explicit:
+
+- The registry is one shared Lyrion extension, loaded once. Providers and hosts
+  must not bundle competing registry implementations. If it is absent or
+  incompatible, providers keep their settings pages and hosts continue without
+  optional guidance. Installation instructions must explain this dependency.
+- Provider settings supply live inherited defaults, not values copied once
+  into each host. Host enablement and overrides remain independent.
+- Provider descriptors declare supported execution backends. A Perl DSTM
+  host needs an asynchronous adapter; a native host needs trusted JSONL SPI
+  process descriptors. A shared meaning does not make these execution paths
+  interchangeable or make their capabilities automatically identical.
+
 ## Intent
 
 Last.fm, local-library signals, play counts, APC, and future sources should be
@@ -27,8 +64,9 @@ The design must preserve these invariants:
   inject a track or override a hard constraint.
 - Provider failure, timeout, missing data, or incompatible versions degrades to
   neutral guidance and remains visible in diagnostics.
-- Provider settings remain independent for each host. Enabling Last.fm in
-  Better Call Bliss does not enable it in BlissMixer.
+- Provider activation and overrides remain independent for each host.
+  Enabling Last.fm in Better Call Bliss does not enable it in BlissMixer.
+  Hosts without overrides intentionally follow shared provider defaults.
 - The existing native SPI remains reusable by both
   `bliss-playlist-optimizer` and the future `bliss-mixer` host.
 
@@ -41,8 +79,8 @@ The design must preserve these invariants:
 | **Capability** | A stable function offered by a provider, for example `artist_similarity`, `track_similarity`, `play_count`, `last_played`, or `library_age`. |
 | **Provider descriptor** | Metadata used for discovery, compatibility checks, UI, and diagnostics. |
 | **Provider policy** | Host-owned effective settings for one run: enabled providers, channel weights, limits, and timeouts. |
-| **Provider-owned setting** | A setting required to operate the source, such as an API key or source-specific cache policy. |
-| **Host-owned setting** | A setting controlling whether and how a provider affects one host, such as enabled state or influence. |
+| **Provider-owned setting** | A source setting such as an API key, or a shared default for a schema-declared guidance control. |
+| **Host-owned setting** | Explicit provider activation or an override of a guidance default for one host. |
 | **Guidance signal** | A bounded, candidate-level recommendation returned by a provider. |
 
 Provider IDs are stable machine identifiers, not display names. Initial IDs may
@@ -84,8 +122,9 @@ flowchart LR
 ```
 
 The adapter may call a provider in-process, invoke a trusted helper, or prepare
-an immutable artifact for the Rust JSONL SPI. That implementation choice must
-not be visible to hosts. A provider must never receive an executable path,
+an immutable artifact for the Rust JSONL SPI. Hosts select a declared compatible
+backend through the registry without depending on source-specific internals.
+A provider must never receive an executable path,
 database path, or unrestricted command-line arguments from an LMS form field.
 
 ## Discovery and lifecycle
@@ -107,15 +146,18 @@ API. Registration is idempotent and contains a descriptor like:
     ],
     scopes       => ['global_candidate'],
     settings     => [ ... ],
+    settings_page => 'plugins/LibrarySignals/settings.html',
+    defaults     => sub { ... },
     status       => sub { ... },
-    score        => sub { ... },
+    backends     => { perl_async => { ... }, native_spi => { ... } },
 }
 ```
 
 The registry validates:
 
 - stable provider ID and API version;
-- unique capability IDs;
+- unique capability IDs within each provider; different providers may expose
+  the same capability, addressed by provider ID plus capability ID;
 - supported scopes (`global_candidate`, `edge_candidate`, or both);
 - setting schema and safe value types;
 - callback/process availability; and
@@ -129,8 +171,10 @@ installed or not enabled simply does not register.
 
 Hosts must not assume that provider registration occurred before their own
 `initPlugin` callback. The registry exposes a query after plugin initialization
-and a change notification/rescan hook. Hosts refresh the provider list when a
-plugin is enabled, disabled, installed, or removed.
+and its own registration/default-change notifications. Hosts refresh on those
+notifications and settings-page/job access, and always rebuild discovery after
+Lyrion restart. Do not assume every plugin installation or enable/disable
+operation becomes active without the restart requested by Lyrion.
 
 At job/mix start, the host takes a snapshot of the currently registered
 providers and their effective policy. A provider appearing later does not alter
@@ -140,8 +184,9 @@ an already-running job.
 
 Hosts discover descriptors but activate only providers explicitly enabled in
 their own settings. New providers are inserted as disabled entries and shown as
-available but inactive. Existing provider settings remain unchanged when a
-provider is upgraded or temporarily unavailable.
+available but inactive. Explicit host overrides remain unchanged when a
+provider is upgraded or temporarily unavailable; inherited values follow its
+validated current defaults when it is available.
 
 The host should show, at minimum:
 
@@ -163,8 +208,16 @@ Providers own settings needed to acquire or interpret their data. Examples:
 - APC database or endpoint selection;
 - source-specific identity matching and cache retention.
 
-These settings may have a provider-specific settings page. The host must not
-duplicate credentials or reach into provider preference namespaces.
+Every provider has its own settings page, containing source configuration and
+the default values for its host-exposable guidance controls. For example,
+Last.fm can expose the artist strategy and its strength/target; library signals
+can expose influences and saturation horizons. Those defaults apply across
+hosts that have not overridden the respective control.
+
+The host obtains defaults through the registry/provider API, never by reading
+another plugin's preference namespace. Credentials and acquisition settings
+remain exclusively on the provider page and are not host-overridable guidance
+controls. Changing defaults does not activate a provider in any host.
 
 ### Host-owned settings
 
@@ -172,14 +225,43 @@ Each host owns its own policy namespace, for example:
 
 ```text
 plugin.blissmixer.guidance.lastfm-guidance.enabled
-plugin.blissmixer.guidance.lastfm-guidance.artist_influence
+plugin.blissmixer.guidance.lastfm-guidance.overrides.artist_influence
 plugin.bettercallbliss.guidance.lastfm-guidance.enabled
-plugin.bettercallbliss.guidance.lastfm-guidance.artist_weight
+plugin.bettercallbliss.guidance.lastfm-guidance.overrides.artist_influence
 ```
 
-At minimum, host policy contains `enabled`, per-capability influence/weight,
-and bounded timeout or batch limits. The default for `enabled` is false. A host
-may add a per-job override, but the persistent default remains the host setting.
+At minimum, host policy contains `enabled` and a sparse map of explicit
+overrides. The default for `enabled` is false. Host safety limits for timeouts,
+batches, and combined guidance remain authoritative. Each job snapshots the
+resolved policy; a host may support validated per-job overrides as well.
+
+### Default inheritance and precedence
+
+Resolve each host-exposable control in this order, highest priority first:
+
+1. Explicit per-job override, where the host offers one.
+2. Explicit persistent override in the consuming host.
+3. Current default saved on the provider's settings page.
+4. Provider schema's factory default when no saved default exists.
+
+Do not copy inherited values into host preferences merely when enabling a
+provider or saving the host settings page. An absent override means inherit;
+zero and false are real explicit values. Store presence separately or use a
+sparse override map, and never use truthiness to decide inheritance.
+
+Inherited values follow future provider-default changes for subsequent runs.
+Explicit overrides remain fixed. Capture effective values, their origins, the
+provider/schema versions, and the settings revision at job/mix start. Running
+jobs keep that snapshot even when defaults change. Host limits still apply
+after resolution; an unsupported strategy is reported unavailable for that
+host rather than silently replaced with a different meaning.
+
+Example: the provider's last-played influence is `-60`. Better Call Bliss and
+BlissMixerLab initially inherit `-60` after their respective activation. An
+explicit Better Call Bliss override of `0` disables that channel there. If the
+provider default later becomes `-80`, BlissMixerLab follows `-80` on its next
+mix while Better Call Bliss keeps `0`. **Use provider default** removes the
+override and restores inheritance.
 
 ### Can providers inject settings into host pages?
 
@@ -194,7 +276,8 @@ The provider descriptor may declare host-exposable controls:
     type        => 'integer',
     min         => 0,
     max         => 100,
-    default     => 25,
+    factory_default => 25,
+    host_overridable => 1,
     label_token => 'LASTFM_ARTIST_INFLUENCE',
     help_token  => 'LASTFM_ARTIST_INFLUENCE_DESC',
 }
@@ -202,12 +285,32 @@ The provider descriptor may declare host-exposable controls:
 
 The host renders these controls in a provider-specific, namespaced section of
 its own settings page and validates them using the declared schema. The host
-stores the values in its own preference namespace and passes them to the
-provider as effective policy.
+stores only explicit overrides in its own preference namespace. The registry
+resolves the policy before the host passes the frozen values to the relevant
+adapter/native SPI. The shared renderer and resolver should be reused by all
+hosts so defaults, zero values, validation, and reset behavior stay consistent.
+
+On the host settings page, each discovered provider section contains:
+
+- an **Enable this provider** checkbox, initially unchecked;
+- a link to the provider's own settings page;
+- an inherited value and label such as **Provider default: -60**;
+- **Use provider default** or **Override for this plugin** for each control;
+- editable schema-rendered controls only when overriding and relevant to the
+  selected strategy; and
+- **Reset overrides to provider defaults**, leaving activation unchanged.
+
+The provider page clearly states that changing its defaults affects hosts
+following those defaults on their next run. Host pages display the setting's
+origin, and refresh effective values on access. Cross-field validation applies
+to the complete resolved policy, including relationships between inherited
+values and overrides. Reject invalid saves with a useful message. If a later
+provider-default change makes a host's overrides invalid, report the conflict
+and omit that provider for the run rather than silently altering overrides.
 
 This provides the desired integrated UX while retaining ownership boundaries:
 
-- provider owns the meaning and schema of the control;
+- provider owns the meaning, schema, and shared default of the control;
 - host owns whether the provider is enabled and when it is applied;
 - host owns persistence and per-job overrides;
 - provider owns acquisition credentials and source-specific settings.
@@ -216,10 +319,9 @@ Raw provider-generated HTML, JavaScript, CSS, or arbitrary form callbacks are
 not part of the contract. They would be fragile across Material skin versions,
 unsafe to validate, difficult to localize, and likely to break other skins.
 
-Providers may still expose a separate settings page for credentials, advanced
-source behavior, cache management, and diagnostics. A provider with no
-provider-owned settings page is valid; it can be configured entirely through
-host-rendered schema controls.
+Each provider must expose a separate settings page for its shared defaults,
+source behavior, and diagnostics. Host-rendered controls customize consumption
+by that host; they do not replace the provider page.
 
 ## Runtime flow
 
@@ -232,8 +334,8 @@ sequenceDiagram
   participant N as Native optimizer/mixer
 
   U->>H: Start mix or optimization
-  H->>R: Snapshot discovered descriptors and host policy
-  R-->>H: Enabled, compatible providers only
+  H->>R: Resolve provider defaults plus host and job overrides
+  R-->>H: Snapshot enabled compatible providers and effective policy
   H->>P: Prepare trusted context and effective settings
   P-->>H: Ready / unavailable / neutral
   H->>N: Start Bliss-first request plus provider policy
@@ -247,6 +349,16 @@ The exact execution path may instead be `H -> N -> P` when the native host
 launches provider processes directly. The observable contract is the same:
 provider inputs are trusted and bounded, provider output is advisory, and the
 host receives provenance.
+
+Registry queries, default resolution, and settings-page rendering must be
+cheap in-memory operations: they must not launch Rust, fetch Last.fm data, or
+query the whole music library. Preparation and scoring use asynchronous Perl
+callbacks or managed subprocesses with cancellation and bounded batches.
+They must not block Lyrion's event loop or delay playback/UI responses.
+One acquisition/result cache may be shared across hosts where its keys include
+all relevant source settings; effective host policy and job snapshots are never
+shared implicitly. Avoid starting a native provider when all of its effective
+channel influences are zero.
 
 ### Provider failure behavior
 
@@ -306,6 +418,15 @@ Provider IDs and capability IDs are permanent once published. Renaming a
 provider requires an explicit migration alias rather than silently creating a
 new preference namespace.
 
+Descriptors also version their settings schema and map Lyrion capabilities to
+native provider IDs and channel IDs explicitly. For example, the illustrative
+Lyrion `library-signals` descriptor maps to native `library-signals-guidance`
+and channels `playcount`, `last_played`, and `library_age`. Hosts must not guess
+these mappings from labels. Validate stored overrides after schema updates;
+preserve them for review when incompatible, and report why the provider cannot
+be used. Never reinterpret an existing target-share percentage as bounded
+influence without an explicit strategy change.
+
 ## Testing and acceptance criteria
 
 The first implementation is acceptable when:
@@ -313,10 +434,22 @@ The first implementation is acceptable when:
 - a fake provider can register, be discovered, disabled, enabled, and invoked;
 - a newly installed provider appears disabled by default;
 - provider-owned and host-owned settings remain separate;
+- every provider has its own registered settings page for shared defaults;
+- a host with no overrides follows changes to provider defaults on its next
+  run, while a running job retains its original snapshot;
+- explicit zero/false overrides survive saving, restart, and provider updates;
+- resetting an override restores inheritance without changing activation;
+- strategy-dependent controls and cross-field validation operate on the
+  resolved policy, including inherited values;
+- a host shows unsupported backends or strategies as unavailable rather than
+  silently substituting different semantics;
 - schema-declared controls render in at least the host's normal settings page
   without raw HTML injection;
 - duplicate IDs and incompatible versions are rejected;
 - startup ordering and late registration are handled;
+- missing registry and normal Lyrion restart requirements are handled;
+- opening a settings page performs no provider acquisition or native startup,
+  and slow provider preparation does not block the Lyrion event loop;
 - all provider failure modes produce neutral guidance and diagnostics;
 - Bliss-only behavior is byte-for-byte or decision-for-decision unchanged when
   all providers are disabled; and
@@ -327,10 +460,22 @@ The first implementation is acceptable when:
 
 1. Define and test the Lyrion registry/API package and descriptor schema.
 2. Add provider registration adapters to Last.fm and local-library signals.
-3. Add host settings discovery with disabled-by-default provider entries.
+3. Add provider settings pages, shared default resolution, and the reusable
+   host renderer with disabled-by-default activation and explicit overrides.
 4. Wire Better Call Bliss to the registry and native SPI while retaining
    Bliss-only fallback.
 5. Add APC as a separate provider without changing host planner code.
 6. Integrate the same registry/SPI policy into the Bliss Mixer fork.
 7. Remove duplicated host-specific provider logic only after parity tests pass.
 
+## Source references for this review
+
+- [Lyrion plugin lifecycle and loaded-plugin checks](https://github.com/LMS-Community/slimserver/blob/public/9.2/Slim/Utils/PluginManager.pm)
+  (`preinitPlugin`, `initPlugin`, `postinitPlugin`, `enabledPlugins`, `isEnabled`).
+- [Lyrion settings registration and preference handling](https://github.com/LMS-Community/slimserver/blob/public/9.2/Slim/Web/Settings.pm)
+  (`new`, `prefs`, `handler`).
+- [Lyrion preferences](https://github.com/LMS-Community/slimserver/blob/public/9.2/Slim/Utils/Prefs.pm).
+- [BlissMixerLab settings example](https://github.com/chrober/lms-blissmixer-lab/blob/feature/local-library-signals/BlissMixerLab/Settings.pm).
+
+These mechanisms were checked in the local clones. The proposed registry and
+inheritance API are new design work, not existing Lyrion guidance APIs.
