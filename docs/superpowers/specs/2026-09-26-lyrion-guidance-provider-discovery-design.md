@@ -458,15 +458,37 @@ The first implementation is acceptable when:
 
 ## Delivery phases
 
+### First vertical slice: Better Call Bliss plus local library signals
+
 1. Define and test the Lyrion registry/API package and descriptor schema.
-2. Add provider registration adapters to Last.fm and local-library signals.
-3. Add provider settings pages, shared default resolution, and the reusable
-   host renderer with disabled-by-default activation and explicit overrides.
-4. Wire Better Call Bliss to the registry and native SPI while retaining
-   Bliss-only fallback.
-5. Add APC as a separate provider without changing host planner code.
-6. Integrate the same registry/SPI policy into the Bliss Mixer fork.
-7. Remove duplicated host-specific provider logic only after parity tests pass.
+2. Create the independently installable local-library-signals Lyrion provider.
+   It owns its settings page and exposes its existing native
+   `library-signals-guidance` executable through a trusted descriptor.
+3. Add shared default resolution and a reusable host renderer with
+   disabled-by-default activation and explicit overrides.
+4. Wire Better Call Bliss to registry discovery and resolved provider policy,
+   while preserving its native SPI execution path and its decision-for-decision
+   Bliss-only fallback when the provider is disabled or unavailable.
+
+This validates registration, descriptor validation, settings ownership,
+inheritance, host enablement, resolved-policy snapshots, native invocation,
+and result provenance without network credentials or APC-specific state.
+
+### Second vertical slice: Bliss Mixer fork host integration
+
+5. Integrate the same registry, descriptor schema, default resolver, and
+   provider settings into the maintained `bliss-mixer` fork. It must consume
+   the native SPI provider interface while ranking its existing
+   Bliss-derived DSTM candidate pool; it must not introduce a second discovery
+   registry, preference convention, or provider-specific host contract.
+6. Add cross-host policy/parity fixtures proving that the same enabled provider
+   and effective settings yield equivalent bounded guidance semantics in Better
+   Call Bliss pathfinding and the fork's candidate reranking, while their
+   distinct Bliss selection algorithms remain independent.
+7. Migrate Last.fm to a separate provider extension, then add APC as another
+   separate provider without changing either host's discovery or policy code.
+8. Remove duplicated host-specific provider logic only after both host paths
+   pass their parity and Bliss-only fallback tests.
 
 ## Source references for this review
 
