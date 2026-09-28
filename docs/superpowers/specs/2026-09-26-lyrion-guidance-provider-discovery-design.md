@@ -329,28 +329,97 @@ by that host; they do not replace the provider page.
 
 ## Runtime flow
 
+### Native SPI payload and data ownership
+
+The Lyrion provider-discovery protocol does not transport candidate data. It
+only exposes a descriptor, provider defaults, host-exposable schema, and a
+trusted `native_spi` backend factory. For a native host, that factory receives
+the host's resolved policy plus a typed, trusted job context and returns a
+`GuidanceAddonConfig`. The host serializes it into its native request alongside
+the separate `guidance_policy` entries which say how strongly the native host
+may use each channel.
+
+For the initial `library-signals` provider, the backend factory has this
+conceptual contract:
+
+```text
+build_native_spi_config(resolved_policy, trusted_job_context)
+  -> { id, program, options, artifacts, resources, timeout_ms }
+```
+
+`program`, `artifacts`, and `resources` are resolved only from trusted plugin
+locations and job artifacts. They are never taken from a form value. The
+factory uses `resolved_policy` for the time-signal horizons, and the host uses
+the same snapshot to construct its channel weights in `guidance_policy`.
+
+| Item | Produced/read by | Lifetime and purpose |
+| --- | --- | --- |
+| Provider defaults | provider settings page writes its own Lyrion preferences; descriptor reads them | Shared defaults only; no Rust process reads Lyrion preferences. |
+| Host overrides and per-job overrides | consuming host writes/reads its own preferences and request form | Resolved once at job/mix start using the precedence rules above. |
+| Native request JSON | host writes; optimizer or future `bliss-mixer` reads | Contains `guidance_addons` and `guidance_policy`, both frozen for one run. |
+| `GuidanceAddonConfig.options` | host writes into the native request; native host sends it in JSONL `prepare` | An in-memory JSON object, **not a file**. For library signals: `as_of_unix_seconds`, `last_played_horizon_days`, and `library_age_horizon_days`. |
+| `guidance_policy` | host writes into the native request; native host reads | Channel policy such as signed play-count/last-played/library-age influence. The provider does not decide this weight. |
+| `eligible-candidate-identities-v1` | host writes a hash-bound JSON artifact; provider reads it during `prepare` | Frozen candidate ID to `lms_urlmd5` mapping for the current candidate library. |
+| Lyrion `persist.db` | provider opens it read-only | Live SQLite resource. The provider begins one read-only transaction for the job and never writes it. |
+| JSONL `describe`, `prepare`, `score`, `scores` | native host and provider exchange over stdin/stdout | Process messages, not files. `scores` contains bounded candidate signals and rationales. |
+
+The current native library-signals binary uses `prepare` for one bounded
+full-population pass: it reads the frozen eligible identity artifact, opens a
+read-only SQLite snapshot of `persist.db`, and queries the eligible IDs in
+SQLite-sized batches to establish play-count percentiles and coverage. It does
+not retain every raw row in RAM. During later `score` calls, it queries only the
+Bliss-qualified shortlist candidates requested by the native host and caches
+those repeat lookups for the duration of the job. This makes the percentage
+meaningful across the candidate library while bounding memory use.
+
 ```mermaid
 sequenceDiagram
   participant U as User
+  participant S as Provider settings
   participant H as Host plugin
   participant D as Host discovery adapter
-  participant P as Enabled provider
+  participant F as Trusted job files
   participant N as Native optimizer/mixer
+  participant P as Library-signals provider
+  participant DB as Lyrion persist.db
 
+  U->>S: Save provider defaults
+  S->>S: Write provider preferences
   U->>H: Start mix or optimization
   H->>D: Discover descriptors and resolve defaults plus host/job overrides
-  D-->>H: Snapshot enabled compatible providers and effective policy
-  H->>P: Prepare trusted context and effective settings
-  P-->>H: Ready / unavailable / neutral
-  H->>N: Start Bliss-first request plus provider policy
-  N->>P: Score bounded candidate batches
-  P-->>N: Bounded signals and evidence provenance
-  N-->>H: Candidate result and diagnostics
+  D->>S: Read schema, defaults, backend factory
+  S-->>D: Descriptor and current defaults
+  D-->>H: Frozen effective policy and backend config
+  H->>F: Write identity artifact with SHA-256
+  H->>F: Write native request JSON
+  H->>N: Start with trusted request path
+  N->>F: Read native request JSON
+  N->>P: Start executable with JSONL pipes
+  N->>P: describe
+  P-->>N: manifest
+  N->>P: prepare with options, artifact, resource, anchors
+  Note over N,P: options is a JSONL field, not a file
+  P->>F: Read identity artifact and verify SHA-256
+  P->>DB: Open read-only and begin snapshot
+  P->>DB: Read eligible identities in batches
+  DB-->>P: play count, last played, added values
+  P-->>N: prepared with coverage diagnostics
+  loop bounded Bliss-qualified candidate batches
+    N->>P: score with context and candidate IDs
+    P->>DB: Read uncached candidate values
+    DB-->>P: candidate values
+    P-->>N: scores with bounded signals and rationales
+  end
+  N-->>H: Result JSON and provider diagnostics
   H-->>U: Output plus provider status and contributions
 ```
 
-The exact execution path may instead be `H -> N -> P` when the native host
-launches provider processes directly. The observable contract is the same:
+The first Better Call Bliss integration uses the `H -> N -> P` path shown
+above: Better Call Bliss writes the request and identity artifact, then
+`bliss-playlist-optimizer` launches the provider. The future `bliss-mixer`
+integration must use the same descriptor/backend-factory contract and JSONL
+messages, but it will prepare the equivalent identity artifact for its own
+Bliss-derived DSTM candidate pool. The observable contract is the same:
 provider inputs are trusted and bounded, provider output is advisory, and the
 host receives provenance.
 
