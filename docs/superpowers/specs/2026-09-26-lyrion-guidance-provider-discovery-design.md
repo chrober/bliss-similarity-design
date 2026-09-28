@@ -2,8 +2,9 @@
 
 ## Status
 
-Proposed design. This document describes the Lyrion-side integration for
-independently installable guidance extensions. It complements the native
+Approved architecture; implementation not started. This document describes the
+Lyrion-side integration for independently installable guidance extensions. It
+complements the native
 [`bliss-playlist-guidance-spi`](https://github.com/chrober/bliss-playlist-guidance-spi)
 contract; it does not replace that Rust process protocol.
 
@@ -20,23 +21,24 @@ The design is feasible with existing Lyrion extension mechanisms:
   its `prefs` and `handler` methods support preference storage and validation.
 - `Slim::Utils::Prefs` supplies separate namespaces, validators, and change
   callbacks for provider defaults and host overrides.
-- `Slim::Utils::PluginManager` calls `preinitPlugin`, `initPlugin`, and
-  `postinitPlugin` in separate passes specifically to support inter-plugin
-  services. Initialize the registry in `preinitPlugin`, register providers in
-  `initPlugin`, and perform initial host discovery in `postinitPlugin`.
+- `Slim::Utils::PluginManager` exposes the enabled plugin metadata and starts
+  plugins in `preinitPlugin`, `initPlugin`, and `postinitPlugin` passes. Hosts
+  can perform initial provider discovery in `postinitPlugin` and refresh it
+  on settings/job access.
 
-The registry, descriptor contract, and schema renderer require new code;
+The descriptor contract, host-side validator/resolver, and schema renderer
+require new code;
 Lyrion does not automatically supply this guidance integration. No Material
 Skin changes are required for ordinary settings pages and form controls.
 Hosts need an integration adapter; an unchanged upstream BlissMixer will not
-automatically consume registered providers.
+automatically consume discovered providers.
 
 This revision makes three boundaries explicit:
 
-- The registry is one shared Lyrion extension, loaded once. Providers and hosts
-  must not bundle competing registry implementations. If it is absent or
-  incompatible, providers keep their settings pages and hosts continue without
-  optional guidance. Installation instructions must explain this dependency.
+- The provider-discovery protocol is a documented, versioned contract, not a
+  separate Lyrion runtime dependency. Each host owns a small conforming
+  discovery adapter; providers do not register with, enumerate, or depend on
+  individual hosts.
 - Provider settings supply live inherited defaults, not values copied once
   into each host. Host enablement and overrides remain independent.
 - Provider descriptors declare supported execution backends. A Perl DSTM
@@ -89,33 +91,33 @@ must be independent of repository names and executable names.
 
 ## Architecture decision
 
-Use a small shared Lyrion-side registry/API as the discovery authority. Do not
-use the numeric `install.xml` plugin type as a guidance category, and do not
-make hosts scan arbitrary plugin directories or infer capabilities from module
-names.
+Use a small, host-pull Lyrion provider-descriptor protocol. Do not use the
+numeric `install.xml` plugin type as a guidance category, and do not make hosts
+scan arbitrary plugin directories or infer capabilities from module names.
+There is deliberately no `lms-bliss-guidance` registry or runtime dependency.
 
 ```mermaid
 flowchart LR
-  LMS[Lyrion plugin manager] --> API[lms-bliss-guidance API / registry]
-  LF[lms-guidance-lastfm] -->|register descriptor| API
-  LS[lms-guidance-library-signals] -->|register descriptor| API
-  APC[lms-guidance-apc] -->|register descriptor| API
-  API --> BM[BlissMixer host]
-  API --> BML[BlissMixerLab host]
-  API --> BCB[Better Call Bliss host]
+  LMS[Lyrion plugin manager] --> LF[lms-guidance-lastfm descriptor]
+  LMS --> LS[lms-guidance-library-signals descriptor]
+  LMS --> APC[lms-guidance-apc descriptor]
+  BM[BlissMixer host] -->|discover descriptors| LMS
+  BML[BlissMixerLab host] -->|discover descriptors| LMS
+  BCB[Better Call Bliss host] -->|discover descriptors| LMS
 ```
 
-The registry is a small service boundary, not a second ranking engine. It owns
-registration, descriptor validation, host-specific policy lookup, and provider
-invocation/adaptation. It does not combine scores and does not choose tracks.
+The protocol is a service boundary, not a second ranking engine. Each host
+validates descriptors, resolves its own policy, and invokes compatible provider
+backends. It does not combine scores or choose tracks beyond the host's normal
+Bliss-first selection logic.
 
 The native Rust SPI remains the provider execution boundary where a host uses a
 native optimizer or mixer binary:
 
 ```mermaid
 flowchart LR
-  H[Host plugin] --> R[Guidance registry]
-  R --> P[Enabled provider adapter]
+  H[Host plugin] --> D[Discover enabled provider descriptor]
+  D --> P[Enabled provider adapter]
   P -->|provider data or artifact| N[Native host: optimizer or bliss-mixer]
   N --> G[Bliss-first candidate guidance]
   G --> O[Host output and diagnostics]
@@ -123,16 +125,16 @@ flowchart LR
 
 The adapter may call a provider in-process, invoke a trusted helper, or prepare
 an immutable artifact for the Rust JSONL SPI. Hosts select a declared compatible
-backend through the registry without depending on source-specific internals.
+backend through the descriptor without depending on source-specific internals.
 A provider must never receive an executable path,
 database path, or unrestricted command-line arguments from an LMS form field.
 
 ## Discovery and lifecycle
 
-### Registration
+### Descriptor publication and host pull discovery
 
-An enabled provider registers during plugin initialization through the shared
-API. Registration is idempotent and contains a descriptor like:
+An enabled provider exposes a class method named
+`guidance_provider_descriptor_v1`. It returns a descriptor like:
 
 ```perl
 {
@@ -153,7 +155,8 @@ API. Registration is idempotent and contains a descriptor like:
 }
 ```
 
-The registry validates:
+The host obtains enabled-plugin modules from `Slim::Utils::PluginManager`,
+checks for that method, invokes it without provider acquisition, and validates:
 
 - stable provider ID and API version;
 - unique capability IDs within each provider; different providers may expose
@@ -163,22 +166,22 @@ The registry validates:
 - callback/process availability; and
 - provider status and failure reporting.
 
-Duplicate IDs are rejected deterministically. An incompatible API version is
-shown as unavailable rather than partially activated. A provider that is not
-installed or not enabled simply does not register.
+Duplicate IDs are rejected deterministically by each host. An incompatible
+protocol version is shown as unavailable rather than partially activated. A
+provider that is not installed or not enabled simply cannot be discovered.
 
 ### Startup ordering and late availability
 
-Hosts must not assume that provider registration occurred before their own
-`initPlugin` callback. The registry exposes a query after plugin initialization
-and its own registration/default-change notifications. Hosts refresh on those
-notifications and settings-page/job access, and always rebuild discovery after
-Lyrion restart. Do not assume every plugin installation or enable/disable
-operation becomes active without the restart requested by Lyrion.
+Hosts must not assume that every provider was initialized before their own
+`initPlugin` callback. They perform discovery in `postinitPlugin` and refresh
+on settings-page/job access, as well as after a provider-default revision
+change that the host observes through its normal settings lifecycle. Do not
+assume every plugin installation or enable/disable operation becomes active
+without the restart requested by Lyrion.
 
-At job/mix start, the host takes a snapshot of the currently registered
-providers and their effective policy. A provider appearing later does not alter
-an already-running job.
+At job/mix start, the host takes a snapshot of currently discovered providers
+and their effective policy. A provider appearing later does not alter an
+already-running job.
 
 ### Host discovery policy
 
@@ -186,7 +189,8 @@ Hosts discover descriptors but activate only providers explicitly enabled in
 their own settings. New providers are inserted as disabled entries and shown as
 available but inactive. Explicit host overrides remain unchanged when a
 provider is upgraded or temporarily unavailable; inherited values follow its
-validated current defaults when it is available.
+validated current defaults when it is available. Provider plugins never need to
+know which hosts exist, and never push registration into host-owned endpoints.
 
 The host should show, at minimum:
 
@@ -214,7 +218,7 @@ Last.fm can expose the artist strategy and its strength/target; library signals
 can expose influences and saturation horizons. Those defaults apply across
 hosts that have not overridden the respective control.
 
-The host obtains defaults through the registry/provider API, never by reading
+The host obtains defaults through the descriptor/provider API, never by reading
 another plugin's preference namespace. Credentials and acquisition settings
 remain exclusively on the provider page and are not host-overridable guidance
 controls. Changing defaults does not activate a provider in any host.
@@ -285,10 +289,10 @@ The provider descriptor may declare host-exposable controls:
 
 The host renders these controls in a provider-specific, namespaced section of
 its own settings page and validates them using the declared schema. The host
-stores only explicit overrides in its own preference namespace. The registry
-resolves the policy before the host passes the frozen values to the relevant
-adapter/native SPI. The shared renderer and resolver should be reused by all
-hosts so defaults, zero values, validation, and reset behavior stay consistent.
+stores only explicit overrides in its own preference namespace and resolves
+the policy before passing frozen values to the relevant adapter/native SPI.
+The documented resolver rules and shared fixtures must be reused by all hosts
+so defaults, zero values, validation, and reset behavior stay consistent.
 
 On the host settings page, each discovered provider section contains:
 
@@ -329,13 +333,13 @@ by that host; they do not replace the provider page.
 sequenceDiagram
   participant U as User
   participant H as Host plugin
-  participant R as Guidance registry
+  participant D as Host discovery adapter
   participant P as Enabled provider
   participant N as Native optimizer/mixer
 
   U->>H: Start mix or optimization
-  H->>R: Resolve provider defaults plus host and job overrides
-  R-->>H: Snapshot enabled compatible providers and effective policy
+  H->>D: Discover descriptors and resolve defaults plus host/job overrides
+  D-->>H: Snapshot enabled compatible providers and effective policy
   H->>P: Prepare trusted context and effective settings
   P-->>H: Ready / unavailable / neutral
   H->>N: Start Bliss-first request plus provider policy
@@ -350,7 +354,7 @@ launches provider processes directly. The observable contract is the same:
 provider inputs are trusted and bounded, provider output is advisory, and the
 host receives provenance.
 
-Registry queries, default resolution, and settings-page rendering must be
+Host discovery, default resolution, and settings-page rendering must be
 cheap in-memory operations: they must not launch Rust, fetch Last.fm data, or
 query the whole music library. Preparation and scoring use asynchronous Perl
 callbacks or managed subprocesses with cancellation and bounded batches.
@@ -391,7 +395,7 @@ normal way to disable a channel; it avoids a second enable/disable model.
 
 ## Security and trust boundaries
 
-- Only installed, enabled Lyrion providers may register.
+- Only installed, enabled Lyrion providers may be discovered.
 - Provider IDs, capabilities, and setting keys are validated against a strict
   schema.
 - Executable paths, database paths, and network destinations come from trusted
@@ -405,10 +409,11 @@ normal way to disable a channel; it avoids a second enable/disable model.
 
 ## Compatibility and versioning
 
-The Lyrion registry API version and native SPI version are independent:
+The Lyrion provider-discovery protocol version and native SPI version are
+independent:
 
-- the registry API governs discovery, settings, lifecycle, and invocation from
-  Lyrion plugins;
+- the provider-discovery protocol governs descriptor discovery, settings,
+  lifecycle, and invocation from Lyrion plugins;
 - the native SPI governs JSONL messages between native hosts and provider
   processes.
 
@@ -431,10 +436,10 @@ influence without an explicit strategy change.
 
 The first implementation is acceptable when:
 
-- a fake provider can register, be discovered, disabled, enabled, and invoked;
+- a fake provider descriptor can be discovered, disabled, enabled, and invoked;
 - a newly installed provider appears disabled by default;
 - provider-owned and host-owned settings remain separate;
-- every provider has its own registered settings page for shared defaults;
+- every provider has its own settings page for shared defaults;
 - a host with no overrides follows changes to provider defaults on its next
   run, while a running job retains its original snapshot;
 - explicit zero/false overrides survive saving, restart, and provider updates;
@@ -446,8 +451,8 @@ The first implementation is acceptable when:
 - schema-declared controls render in at least the host's normal settings page
   without raw HTML injection;
 - duplicate IDs and incompatible versions are rejected;
-- startup ordering and late registration are handled;
-- missing registry and normal Lyrion restart requirements are handled;
+- startup ordering and late provider availability are handled;
+- missing provider and normal Lyrion restart requirements are handled;
 - opening a settings page performs no provider acquisition or native startup,
   and slow provider preparation does not block the Lyrion event loop;
 - all provider failure modes produce neutral guidance and diagnostics;
@@ -460,27 +465,29 @@ The first implementation is acceptable when:
 
 ### First vertical slice: Better Call Bliss plus local library signals
 
-1. Define and test the Lyrion registry/API package and descriptor schema.
+1. Define and test the versioned Lyrion provider-descriptor protocol, schema,
+   and shared fixtures without adding a runtime foundation plugin.
 2. Create the independently installable local-library-signals Lyrion provider.
    It owns its settings page and exposes its existing native
    `library-signals-guidance` executable through a trusted descriptor.
-3. Add shared default resolution and a reusable host renderer with
+3. Add host-side default resolution and a reusable host renderer with
    disabled-by-default activation and explicit overrides.
-4. Wire Better Call Bliss to registry discovery and resolved provider policy,
+4. Wire Better Call Bliss to host-pull discovery and resolved provider policy,
    while preserving its native SPI execution path and its decision-for-decision
    Bliss-only fallback when the provider is disabled or unavailable.
 
-This validates registration, descriptor validation, settings ownership,
+This validates discovery, descriptor validation, settings ownership,
 inheritance, host enablement, resolved-policy snapshots, native invocation,
 and result provenance without network credentials or APC-specific state.
 
 ### Second vertical slice: Bliss Mixer fork host integration
 
-5. Integrate the same registry, descriptor schema, default resolver, and
+5. Integrate the same descriptor schema, default resolver, and
    provider settings into the maintained `bliss-mixer` fork. It must consume
    the native SPI provider interface while ranking its existing
-   Bliss-derived DSTM candidate pool; it must not introduce a second discovery
-   registry, preference convention, or provider-specific host contract.
+   Bliss-derived DSTM candidate pool; it must not introduce a competing
+   discovery mechanism, preference convention, or provider-specific host
+   contract.
 6. Add cross-host policy/parity fixtures proving that the same enabled provider
    and effective settings yield equivalent bounded guidance semantics in Better
    Call Bliss pathfinding and the fork's candidate reranking, while their
@@ -499,5 +506,6 @@ and result provenance without network credentials or APC-specific state.
 - [Lyrion preferences](https://github.com/LMS-Community/slimserver/blob/public/9.2/Slim/Utils/Prefs.pm).
 - [BlissMixerLab settings example](https://github.com/chrober/lms-blissmixer-lab/blob/feature/local-library-signals/BlissMixerLab/Settings.pm).
 
-These mechanisms were checked in the local clones. The proposed registry and
-inheritance API are new design work, not existing Lyrion guidance APIs.
+These mechanisms were checked in the local clones. The proposed
+provider-discovery protocol and inheritance rules are new design work, not
+existing Lyrion guidance APIs.
