@@ -80,8 +80,13 @@ provider remains network-free in this mode.
 
 The provider plugin sends the host a trusted provider mode of `direct`; the
 host does **not** serialize the API key into request JSON, a preview artifact,
-diagnostic result, or report. A job-private process environment makes the key
-available only to `bliss-guidance-lastfm`.  
+diagnostic result, or report. The provider supplies a non-serialized
+`guidance_provider_process_environment_v1` hook. Better Call Bliss applies it
+only while launching the job-private optimizer; Bliss Mixer Lab applies it
+while launching or restarting its local `bliss-mixer` sidecar. The native host
+inherits the variable solely so its child `bliss-guidance-lastfm` process can
+read it. Changing the API key requires the Lab sidecar to restart before the
+new value can take effect.  
 
 During its single job-scoped `prepare`, the provider:  
 
@@ -106,9 +111,11 @@ after Bliss has produced its acoustic shortlist.
 The API key is sensitive configuration even though public similarity calls do
 not need an authenticated Last.fm account. It must:  
 
-- remain in the LMS preference store only;  
-- be injected only into the relevant provider process as trusted local
-  configuration;  
+- remain in the provider's LMS preference store, never in a host preference;  
+- be delivered through the provider's non-serialized process-environment hook,
+  never as provider options or another wire-contract value;  
+- be inherited by the local native host only as required to launch its provider
+  child;  
 - be redacted from all stdout/stderr, LMS logs, job request/result JSON, crash
   reports, and support bundles; and  
 - never be accepted from a playlist, web-form job parameter, or arbitrary
