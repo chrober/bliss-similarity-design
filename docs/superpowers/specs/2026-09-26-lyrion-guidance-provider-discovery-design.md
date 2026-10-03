@@ -2,7 +2,17 @@
 
 ## Status
 
-Approved architecture; implementation not started. This document describes the
+Approved architecture; **the Library Signals first vertical slice and shared
+host consolidation are shipped**. `lms-guidance-library-signals` publishes a
+descriptor and provider defaults; Better Call Bliss and Bliss Mixer Lab
+discover it, keep it disabled by default per host, resolve host overrides, and
+request its trusted native SPI configuration. Both hosts vendor the tested
+source-only `lms-bliss-guidance-host` discovery, policy, settings-model, and
+canonical settings assets. The first native `bliss-mixer` Library Signals host
+endpoint and `selection_trace_v1` are also shipped. Lab already submits its
+native-provider DSTM candidate pool to that endpoint while retaining its own
+selection policy and log formatter. The next provider
+work is Last.fm, followed later by APC. This document describes the
 Lyrion-side integration for independently installable guidance extensions. It
 complements the native
 [`bliss-playlist-guidance-spi`](https://github.com/chrober/bliss-playlist-guidance-spi)
@@ -532,7 +542,7 @@ The first implementation is acceptable when:
 
 ## Delivery phases
 
-### First vertical slice: Better Call Bliss plus local library signals
+### First vertical slice: Better Call Bliss plus local library signals - shipped
 
 1. Define and test the versioned Lyrion provider-descriptor protocol, schema,
    and shared fixtures without adding a runtime foundation plugin.
@@ -545,11 +555,16 @@ The first implementation is acceptable when:
    while preserving its native SPI execution path and its decision-for-decision
    Bliss-only fallback when the provider is disabled or unavailable.
 
+Better Call Bliss and Bliss Mixer Lab now deliver these four points through the
+shared, source-vendored host implementation. The next implementation work is
+new provider plugins, beginning with Last.fm, rather than another discovery
+mechanism.
+
 This validates discovery, descriptor validation, settings ownership,
 inheritance, host enablement, resolved-policy snapshots, native invocation,
 and result provenance without network credentials or APC-specific state.
 
-### Second vertical slice: Bliss Mixer fork host integration
+### Second vertical slice: Bliss Mixer fork host integration - first endpoint shipped
 
 5. Integrate the same descriptor schema, default resolver, and
    provider settings into the maintained `bliss-mixer` fork. It must consume
@@ -565,6 +580,12 @@ and result provenance without network credentials or APC-specific state.
    separate provider without changing either host's discovery or policy code.
 8. Remove duplicated host-specific provider logic only after both host paths
    pass their parity and Bliss-only fallback tests.
+
+The first native `bliss-mixer` endpoint was delivered in version 0.11.4 with
+Library Signals scoring and `selection_trace_v1`. Lab already uses it for its
+native-provider DSTM candidate pool; cross-host parity fixtures for that
+workflow,
+and later Last.fm/APC provider plugins remain follow-up work.
 
 ## Source references for this review
 
