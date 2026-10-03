@@ -685,7 +685,7 @@ selection.
 
 ## E11: Version 2 temporal-control replication package
 
-**Status and date:** Package verified; listener ratings pending, 2026-09-13
+**Status and date:** Complete replication round, 2026-10-03
 
 **Canonical basis:** [research sequencing after early evidence](BLISS_TRANSITION_QUALITY_EXPERIMENT_PLAN.md#research-sequencing-after-early-evidence),
 [temporal evidence experiments](docs/evaluation/analysis-roadmap.md#phase-1-temporal-evidence-experiments),
@@ -738,23 +738,47 @@ volatility. Deduplication across roles produced thirty-three anonymous clips.
 All thirty-three FLAC files decode successfully. Each clip uses the same
 40-second structure as E10: 10 seconds source outro, 10 seconds linear
 crossfade, and 20 seconds candidate continuation. ReplayGain probing and
-clipping-prevention data are stored in the private answer key. No listener
-ratings have been interpreted yet.
+clipping-prevention data are stored in the private answer key. The answer key
+remained closed until the review was complete.
 
-**Planned analysis:** Reveal the answer key only after all thirty-three rows
-are rated. Reuse the E10 analysis shape: role means, paired deltas against the
-whole-track winner for relevance, overlap, continuation, and overall quality,
-win/tie/loss counts, explicit wrong-genre notes, opening-issue notes, and
-results by sanitized source stratum. Do not tune thresholds, add roles, or
-reinterpret skipped decoder failures after seeing ratings.
+**Results:** All thirty-three anonymous clips were rated before the answer key
+was revealed. Thirty-one relevance judgments were assessable; two candidate
+openings exposed only audience or spoken material, so relevance was explicitly
+marked not assessable rather than converted into an arbitrary score. Their
+overlap, continuation, and overall judgments remain included. All thirty-three
+ratings are included for those latter dimensions.
 
-**Decision rule:** If the prefix-stability signal does not replicate, stop
-tuning Version 2 temporal distances and move to the first missing descriptor
-family. The preferred next family is vocal activity, speech-like evidence, and
-instrumental coverage because earlier failures exposed spoken or unusual vocal
-state that the current 23 features can only describe indirectly. If the signal
-does replicate, keep it as a control baseline and still test the vocal/speech
-family against it before considering integration work.
+| Role | Relevance mean | Overlap mean | Continuation mean | Overall mean |
+|---|---:|---:|---:|---:|
+| Whole-track winner | 3.83 (n=12) | 3.92 (n=12) | 4.25 (n=12) | 3.75 (n=12) |
+| Endpoint-context diagnostic | 3.64 (n=11) | 3.50 (n=12) | 4.17 (n=12) | 3.33 (n=12) |
+| Lowest prefix-volatility challenger | 3.64 (n=11) | 3.92 (n=12) | 4.17 (n=12) | 3.67 (n=12) |
+
+The following paired comparisons are against the whole-track winner. Positive
+means the named role was rated higher; the parenthesized counts are
+win/tie/loss.
+
+| Role | Relevance | Overlap | Continuation | Overall |
+|---|---:|---:|---:|---:|
+| Endpoint context | -0.27 (1/6/4; n=11) | -0.42 (3/3/6; n=12) | -0.08 (1/9/2; n=12) | -0.42 (2/4/6; n=12) |
+| Lowest prefix volatility | -0.27 (2/7/2; n=11) | 0.00 (4/6/2; n=12) | -0.08 (4/3/5; n=12) | -0.08 (2/7/3; n=12) |
+
+The prefix-volatility challenger had occasional gains, but its aggregate
+overall result was slightly lower than the whole-track control and it did not
+avoid losses. The endpoint-context diagnostic was less favorable across every
+mean dimension. The pattern was heterogeneous across the broad source strata,
+with no consistent favorable stratum effect. This is a small, single-listener,
+private-library replication; it does not support treating the E10 screening
+result as a generalizable Version 2 temporal-control signal. It does not reject
+the broader value of temporal or boundary-aware evidence.
+
+**Decision:** The prefix-stability signal did not replicate. Do not continue
+tuning Version 2 temporal distances or promote this selector. Keep the
+whole-track result as the control and retain the temporal machinery as reusable
+evaluation scaffold. The next experiment begins with the first missing
+descriptor family: vocal activity, speech-like evidence, and instrumental
+coverage. Earlier failures exposed spoken or unusual vocal state that the
+current 23 features can only describe indirectly.
 
 ## Current state and next action
 
@@ -770,17 +794,17 @@ The experiment has established that:
    the first blinded screening, although one distinctive-vocal failure was
    substantially improved by endpoint context; and
 7. under the ten-candidate Version 2 frontier, low candidate-prefix volatility
-   passed a six-source screening gate while physical overlap did not; and
+   passed a six-source screening gate but did not replicate on the predeclared
+   twelve-source follow-up; and
 8. smooth overlap and continuation can coexist with an explicitly irrelevant
    next track, so global relevance and boundary quality require separate
    judgments.
 
 It has **not** established that prefix stability generalizes, that
 boundary-localized Version 2 evidence is sufficient for transition choice, or
-that any new descriptor should become part of Bliss. The next action is E11: a
-predeclared replication of the prefix-stability result on new source cases,
-with frontier and local scores computed from one analysis identity. The
-temporal machinery should be treated as reusable scaffold. The next substantive
+that any new descriptor should become part of Bliss. E11 did not replicate the
+prefix-stability result, so the temporal machinery should remain reusable
+evaluation scaffold rather than a selection policy. The next substantive
 feature-family experiment should begin with vocal activity, speech-like
 evidence, and instrumental coverage, then proceed to rhythm/onset,
 dynamics/boundary shape, and harmonic trajectory only through separate
