@@ -20,7 +20,7 @@ starts its local mixer sidecar.
 Rust 2021, `bliss-guidance-jsonl-v2`, LastMix, Last.fm public API, `cargo`,
 GitHub Actions release packaging.
 
-**Spec:** [Last.fm guidance acquisition plan](../../../LASTFM_GUIDANCE_ACQUISITION_PLAN.md)
+**Spec:** [Last.fm guidance acquisition plan](https://github.com/chrober/bliss-similarity-design/blob/main/LASTFM_GUIDANCE_ACQUISITION_PLAN.md)
 
 > **Current status (2026-10-04):** The discoverable Lyrion provider, provider
 > settings, LastMix/artifact path, and host integrations are released. The
