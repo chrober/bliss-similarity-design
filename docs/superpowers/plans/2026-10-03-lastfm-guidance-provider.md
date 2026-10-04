@@ -22,6 +22,12 @@ GitHub Actions release packaging.
 
 **Spec:** [Last.fm guidance acquisition plan](../../../LASTFM_GUIDANCE_ACQUISITION_PLAN.md)
 
+> **Current status (2026-10-04):** The discoverable Lyrion provider, provider
+> settings, LastMix/artifact path, and host integrations are released. The
+> remaining checklist is specifically the direct API-key acquisition/cache
+> implementation and its acceptance tests; the current native provider remains
+> artifact-only and API-key mode is neutral.
+
 ## Global Constraints
 
 - Bliss remains the acoustic authority; provider signals only rerank a bounded,

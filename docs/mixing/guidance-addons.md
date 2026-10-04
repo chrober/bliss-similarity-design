@@ -18,13 +18,14 @@ named after the guidance they supply:
 | --- | --- |
 | `bliss-playlist-optimizer` | Discover trusted add-ons, send batches, combine guidance, and enforce Bliss constraints. |
 | `bliss-playlist-guidance-spi` | Define the JSONL request/response types and bounded `GuidanceSignal`. |
-| `bliss-guidance-lastfm` | Adapt raw `semantic-evidence-v1` observations into edge-scoped Last.fm guidance. |
-| `bliss-guidance-playcounts` | Adapt raw `lms-play-counts-v1` observations into global play-count guidance. |
+| `bliss-guidance-lastfm` | Adapt the host-resolved `semantic-evidence-v1` artifact into edge/global Last.fm guidance. Current acquisition is LastMix-backed; direct API-key acquisition is future work. |
+| `bliss-guidance-library-signals` | Read trusted, read-only Lyrion `persist.db` data for play count, last played, and library age. |
 
 The executable names follow the repository names. Provider IDs are
-`lastfm-guidance` and `playcount-guidance`; neither name implies that the
+`lastfm-guidance` and `library-signals-guidance`; neither name implies that the
 provider performs network access. Better Call Bliss/LastMix still obtains the
-raw Last.fm snapshot, while the play-count provider reads a frozen snapshot.
+raw Last.fm snapshot, while the library-signals provider reads a bounded,
+frozen SQLite view.
 
 ## Runtime boundary
 
@@ -38,9 +39,9 @@ the current pair of route anchors).
 flowchart LR
     R[Optimizer request] --> H[Optimizer guidance host]
     H -->|describe / prepare / score| L[bliss-guidance-lastfm]
-    H -->|describe / prepare / score| P[bliss-guidance-playcounts]
+    H -->|describe / prepare / score| P[bliss-guidance-library-signals]
     E[(Raw evidence snapshots)] --> L
-    C[(LMS play-count snapshot)] --> P
+    C[(Lyrion persist.db)] --> P
     L --> S[Bounded GuidanceSignal]
     P --> S
     S --> A[Recorded guidance index]

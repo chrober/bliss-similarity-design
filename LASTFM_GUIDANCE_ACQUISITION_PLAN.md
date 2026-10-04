@@ -1,9 +1,19 @@
 # Last.fm guidance acquisition plan
 
-**Status:** Approved architecture; implementation plan revision in progress  
+**Status:** LastMix path shipped; direct API-key acquisition remains planned  
 **Scope:** Discoverable Last.fm provider plus Better Call Bliss and Bliss Mixer
 Lab host integration  
-**Last reviewed:** 2026-10-03  
+**Last reviewed:** 2026-10-04  
+
+## Current implementation status
+
+| Area | Current state | Remaining work |
+| --- | --- | --- |
+| Discoverable Lyrion provider | `lms-guidance-lastfm` 0.2.0 is released with its own settings page, descriptor, disabled-by-default host activation, and LastMix/API Key source controls. | Keep provider/host parity tests current. |
+| LastMix acquisition | Working in Better Call Bliss 0.22.0 and Bliss Mixer Lab 0.10.0. LastMix obtains the observations; the host resolves and hash-binds the artifact; native scoring is network-free. | Continue cache/offline diagnostics and acceptance coverage. |
+| Native Last.fm provider | `bliss-guidance-lastfm` 0.1.2 is released and consumes the resolved artifact through SPI v2. | Implement provider-owned direct HTTP/cache acquisition. |
+| API Key mode | UI and secret-handling boundary are present, but selecting API Key does not yet perform end-to-end native acquisition; guidance is neutral. | Add cold/warm cache, timeout, rate-limit, invalid-key, offline, cancellation, and reproducibility tests before enabling it as working. |
+| Host integrations | Better Call Bliss discovers the provider and preserves its Bliss-first policy/UI. Lab still preserves its existing direct LastMix DSTM path. | Migrate Lab DSTM to the discoverable provider and verify native `bliss-mixer`/release-feed parity. |
 
 ## Goal
 
@@ -28,7 +38,7 @@ configuration:
 | Choice | Availability | Behaviour |
 | --- | --- | --- |
 | **LastMix** | Selectable only when the LastMix plugin is installed. | The provider's LastMix adapter obtains bounded similar-track and similar-artist observations, then creates a frozen, resolved evidence artifact for the native provider. |
-| **API Key** | Always selectable. | A visible API-key field accepts the administrator's Last.fm API key. `bliss-guidance-lastfm` obtains and caches public Last.fm similarity observations during provider preparation. |
+| **API Key** | Always visible/selectable as configuration. | The released native provider does not yet obtain or cache public Last.fm observations directly; this mode currently remains neutral and is marked as follow-up work. |
 
 The page explains how to obtain a Last.fm API key and makes clear that public
 similarity endpoints need an application key, not a Last.fm user account,
@@ -62,7 +72,7 @@ flowchart LR
     H[Compatible host\nopt-in and overrides] --> P[lms-guidance-lastfm]
     S -->|LastMix| LM[LastMix]
     LM --> A[Provider acquisition adapter]
-    S -->|API Key| D[bliss-guidance-lastfm\ndirect preparation]
+    S -.->|planned API Key| D[bliss-guidance-lastfm\ndirect preparation]
     A -->|resolved frozen artifact| D
     D -->|same bounded signals| O[Bliss-first host engine]
     O --> R[Host result and logs]
@@ -76,9 +86,13 @@ observations against that inventory, writes `resolved-lastfm-evidence-v1`, and
 hash-binds that artifact to the provider's `prepare` request. The native
 provider remains network-free in this mode.  
 
-### API Key path
+### API Key path (planned, not yet operational)
 
-The provider plugin sends the host a trusted provider mode of `direct`; the
+The following describes the intended implementation, not the behavior of the
+current 0.1.2 native provider. Until these steps are delivered and tested,
+selecting API Key produces neutral guidance.
+
+The planned provider plugin sends the host a trusted provider mode of `direct`;
 host does **not** serialize the API key into request JSON, a preview artifact,
 diagnostic result, or report. The provider supplies a non-serialized
 `guidance_provider_process_environment_v1` hook. Better Call Bliss applies it

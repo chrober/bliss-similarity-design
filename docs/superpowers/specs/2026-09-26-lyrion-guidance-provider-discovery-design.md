@@ -11,8 +11,10 @@ source-only `lms-bliss-guidance-host` discovery, policy, settings-model, and
 canonical settings assets. The first native `bliss-mixer` Library Signals host
 endpoint and `selection_trace_v1` are also shipped. Lab already submits its
 native-provider DSTM candidate pool to that endpoint while retaining its own
-selection policy and log formatter. The next provider
-work is Last.fm, followed later by APC. This document describes the
+selection policy and log formatter. Last.fm discovery and its LastMix/artifact
+mode are now shipped in Better Call Bliss; Lab still uses its established
+direct LastMix DSTM adapter. Direct API-key acquisition and Lab's provider
+migration remain follow-up work, followed later by APC. This document describes the
 Lyrion-side integration for independently installable guidance extensions. It
 complements the native
 [`bliss-playlist-guidance-spi`](https://github.com/chrober/bliss-playlist-guidance-spi)

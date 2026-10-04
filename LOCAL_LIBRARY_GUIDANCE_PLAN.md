@@ -1,9 +1,21 @@
 # Local library guidance plan
 
-**Status:** In implementation — standard Lyrion signals only  
-**Scope:** Optional local Lyrion signals for Better Call Bliss and a future
-BlissMixer guidance host  
-**Last reviewed:** 2026-09-25  
+**Status:** Shipped for standard Lyrion signals; APC remains separate future work  
+**Scope:** Optional local Lyrion signals for Better Call Bliss and the
+BlissMixerLab/native guidance hosts  
+**Last reviewed:** 2026-10-04  
+
+## Current implementation status
+
+`lms-guidance-library-signals` 0.2.1 and its native provider are integrated
+with Better Call Bliss 0.22.0 and Bliss Mixer Lab 0.10.0. The provider is
+discoverable, disabled by default per host, and reads a trusted read-only
+`persist.db` snapshot for play count, last played, and library age. The hosts
+retain their existing Bliss-first selection and logging policies.
+
+Remaining work is deliberately outside this shipped slice: a separate APC
+provider, skip/recent-affinity signals, ratings, player-specific history, and
+any host-neutral direct database/API replacement.
 
 ## Goal
 
