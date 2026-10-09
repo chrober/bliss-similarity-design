@@ -4,7 +4,7 @@
 
 **Goal:** Create the foundational user-profile skills that locate the Bliss workspace, operate the Pi safely, diagnose Lyrion, coordinate releases, and guide generic Lyrion plugin work.
 
-**Architecture:** Each skill is independently discoverable under `C:\Users\chris\.codex\skills` and keeps its `SKILL.md` concise. Conditional operational detail lives in focused references so a reachability check does not load deployment, database, and release instructions unnecessarily.
+**Architecture:** Versioned skill sources live under `skills/` in the private `codex-lyrion-bliss-skills` repository and are installed into `C:\Users\chris\.codex\skills` only after validation. Each skill remains independently discoverable and keeps its `SKILL.md` concise; conditional operational detail lives in focused references so a reachability check does not load deployment, database, and release instructions unnecessarily.
 
 **Tech Stack:** Codex skills, Markdown, YAML, PowerShell, bundled `skill-creator` initializer and validator.
 
@@ -19,6 +19,7 @@
 - Do not restart Lyrion while a player is active unless the user explicitly authorizes it after being told.
 - Preserve existing log category, level, message body, field order, spacing, punctuation, and conditional fields unless the user explicitly requests a log-format change.
 - The user-profile skills directory is not assumed to be a Git repository; do not initialize one or commit there.
+- The private `codex-lyrion-bliss-skills` repository is the source of truth. Literal `C:\Users\chris\.codex\skills\<name>` create paths below denote installed destinations; create their versioned source files at `skills/<name>` in the repository and install them only through the validated installer.
 
 ## Review Focus
 
@@ -174,3 +175,35 @@ Embed the log compatibility contract, require baseline capture and message-body 
 
 Run `quick_validate.py` for all five skills, inspect every `agents/openai.yaml`, scan for secrets/placeholders, and verify that descriptions do not overlap so broadly that all skills trigger for every Lyrion request.
 
+### Task 6: Repository Installer and Rollback
+
+**Files:**
+- Create: `skills-manifest.json`
+- Create: `scripts/verify.ps1`
+- Create: `scripts/install.ps1`
+- Create: `scripts/uninstall.ps1`
+- Modify: `README.md`
+
+**Interfaces:**
+- Consumes: the manifest-listed, validated `skills/<name>` directories and a configurable Codex user-skill destination.
+- Produces: previewable installation, scoped backups, installed skill copies, verification output, and explicit uninstall/rollback instructions without touching unrelated skills.
+
+- [ ] **Step 1: Define the managed skill manifest**
+
+List all twelve suite skills by stable folder name. The manifest is the only authority for install, verify, and uninstall scope.
+
+- [ ] **Step 2: Implement repository verification**
+
+Run the bundled `quick_validate.py` for every manifest entry, fail for missing/unlisted suite directories, unfinished scaffold text, or obvious credential literals, and return non-zero on any failure.
+
+- [ ] **Step 3: Implement safe installation**
+
+Support `-Destination`, `-BackupRoot`, and `-WhatIf`; verify before copying; back up any existing managed destination; copy only manifest-listed skills; and never remove built-in or unrelated directories.
+
+- [ ] **Step 4: Implement explicit uninstall and rollback documentation**
+
+Require explicit execution, remove only manifest-listed installed skills, and document Git checkout/tag plus reinstall as the primary rollback path and the timestamped local backup as the secondary path.
+
+- [ ] **Step 5: Test in a temporary destination before live installation**
+
+Install into a temporary directory, compare the installed tree with the manifest sources, exercise `-WhatIf`, exercise uninstall, and verify that an unrelated sentinel directory survives. Only then install into `C:\Users\chris\.codex\skills`.

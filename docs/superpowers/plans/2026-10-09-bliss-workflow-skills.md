@@ -17,6 +17,7 @@
 - Documentation belongs with the component that owns the behavior or limitation.
 - Existing log formats and UI text are compatibility surfaces.
 - Playlist writes must preserve LMS-compatible URL/path formatting and source files unless explicitly accepted.
+- The private `codex-lyrion-bliss-skills` repository is the source of truth. Literal profile create paths below denote installed destinations; create versioned sources under `skills/<name>` and install them only after repository validation.
 
 ## Review Focus
 

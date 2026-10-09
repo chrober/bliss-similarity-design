@@ -18,6 +18,7 @@
 - Preserve repository ownership boundaries and use current local source before remote documentation.
 - Do not commit generated native binaries to source repositories.
 - Verify current branches, dependencies, schemas, and workflow status before changing or publishing anything.
+- The private `codex-lyrion-bliss-skills` repository is the source of truth. Literal profile create paths below denote installed destinations; create versioned sources under `skills/<name>` and install them only after repository validation.
 
 ## Review Focus
 
@@ -144,4 +145,3 @@ Require bounded memory, multi-core use where safe, deterministic seeded behavior
 - [ ] **Step 4: Validate the development suite**
 
 Run `quick_validate.py` for all four skills, inspect UI metadata, scan for stale version claims/secrets/placeholders, and exercise routing on representative Perl/Rust/provider boundary changes.
-

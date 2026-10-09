@@ -2,7 +2,13 @@
 
 ## Purpose
 
-Create a composable set of user-profile Codex skills under `C:\Users\chris\.codex\skills` for the recurring Lyrion and Bliss work performed across the repositories under `D:\LMS` and on the Lyrion server running on the Raspberry Pi. The skills should reduce repeated discovery, preserve established project conventions, and make operational changes safer without turning one large catch-all skill into permanent context.
+Create a composable, version-controlled set of Codex skills for the recurring Lyrion and Bliss work performed across the repositories under `D:\LMS` and on the Lyrion server running on the Raspberry Pi. The skills should reduce repeated discovery, preserve established project conventions, and make operational changes safer without turning one large catch-all skill into permanent context.
+
+## Repository and installation model
+
+The private GitHub repository `chrober/codex-lyrion-bliss-skills`, cloned at `D:\LMS\codex-lyrion-bliss-skills`, is the source of truth. Versioned skill sources live under `skills/<skill-name>/`; reviewed installer tooling copies those skills into `C:\Users\chris\.codex\skills` only after validation. The live profile directory is an installation target, not the development checkout.
+
+The repository provides a manifest plus PowerShell validation and installation scripts. Installation must support a no-change preview, back up an existing managed skill before replacement, touch only manifest-listed skills, and leave built-in or unrelated user skills untouched. Rollback is performed by checking out the desired repository revision or tag and reinstalling it; the pre-install backup provides an additional local recovery path.
 
 ## Design principles
 
@@ -11,6 +17,7 @@ Create a composable set of user-profile Codex skills under `C:\Users\chris\.code
 - Prefer automatic discovery. A skill may be selected implicitly, but it never grants permission for deployment, service restart, playlist modification, deletion, publishing, or other external mutation.
 - Start Pi and server investigations read-only. Deploy or restart only when the user explicitly asks, and check active playback before restarting Lyrion.
 - Do not store SSH passwords, API keys, tokens, or other secrets in a skill. Document the credential source and retrieval convention instead.
+- Keep the GitHub repository private because even secret-free skills describe personal hosts, usernames, paths, and operational topology.
 - Treat live IP addresses, installed versions, paths, branches, and server state as facts to verify rather than permanent truths.
 - Preserve user-owned dirty worktrees and unrelated files. Multi-repository tasks must inspect branch, upstream, worktree, and push state before mutation.
 
@@ -82,7 +89,7 @@ Covers LMS-compatible M3U formatting, `#EXTURL` and `#EXTINF`, playlist scanning
 
 ## Skill structure
 
-Each skill contains `SKILL.md` and `agents/openai.yaml`. Add only resources with a concrete repeated use:
+Each versioned skill under the repository's `skills/` directory contains `SKILL.md` and `agents/openai.yaml`. Add only resources with a concrete repeated use:
 
 - `references/` for repository maps, Pi paths, commands, database locations, protocol details, UI contracts, and log baselines.
 - `scripts/` for deterministic read-only inventory, deployment preflight, artifact verification, or multi-repository status checks when repeated shell reconstruction would be error-prone.
@@ -111,3 +118,4 @@ Each skill is initialized with the bundled skill initializer, filled with verifi
 - Settings UI and established information/debug logging do not regress as implementation boundaries move.
 - Releases are reproducible, platform-correct, and do not commit generated binaries.
 - Skills remain concise enough that unrelated Lyrion or Bliss tasks do not load unnecessary context.
+- The private Git repository provides history and rollback, while installation updates only manifest-listed profile skills and preserves recoverable backups.
