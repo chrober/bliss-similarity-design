@@ -39,6 +39,10 @@ This concise contract is repeated in the relevant skill entrypoints so it is loa
 
 ## Skill set
 
+The current suite contains thirteen skills. The maintenance skill below is a
+later bounded addendum; historical implementation plans retain their original
+twelve-skill scope.
+
 ### `bliss-workspace-navigation`
 
 Maps repositories under `D:\LMS`, component ownership, upstream/fork relationships, shared dependencies, local clone paths, and the rules for deciding which repository should receive a change. Includes safe branch, worktree, and synchronization checks.
@@ -87,6 +91,28 @@ Covers ownership-aware README content, implementation plans, checkpoints, backlo
 
 Covers LMS-compatible M3U formatting, `#EXTURL` and `#EXTINF`, playlist scanning, path case, virtual-library membership, scanner diagnostics, candidate-library restrictions, and safe one-shot playlist inspection or transformation.
 
+### `lyrion-bliss-skill-maintenance`
+
+Covers new operational evidence, repository/tool/process changes, recurring
+failures and source/profile drift in this private suite, not ordinary product
+documentation or one-off product work. The private repository remains the sole
+source of truth; installed hotfixes are compared read-only, preserved and ported
+into versioned source before validated repository-installer reinstallation.
+
+Classify evidence as stable invariants, scoped/conditional facts, volatile
+runtime facts or unverified observations, recording secret-free provenance,
+scope, date and source. Volatile facts become runtime verification steps. Select
+one owning skill/reference, link consumers and update manifest, README, current
+design, affected schema/tooling and tests when suite shape changes.
+
+Skill-authoring RED/GREEN behavior gates and the complete established-log
+contract are mandatory. Explicitly requested urgency may permit a provisional
+source note/commit, never validated status or installation with skipped full
+strict verification/tests. Before installation require
+`verify.ps1 -RequireComplete`, verification/installer tests, relevant behavior tests, review
+and installer `-WhatIf`; live updates need authority. Report Git commit/push,
+backup/rollback and post-install parity separately.
+
 ## Skill structure
 
 Each versioned skill under the repository's `skills/` directory contains `SKILL.md` and `agents/openai.yaml`. Add only resources with a concrete repeated use:
@@ -106,6 +132,8 @@ The Pi skill should route among access, diagnostics, and deployment references r
 5. `lyrion-plugin-engineering`
 6. Repository-specific and provider/native skills
 7. Investigation, documentation, and playlist/library skills
+8. `lyrion-bliss-skill-maintenance` as the thirteenth skill, after baseline
+   maintenance behavior demonstrates the bounded gaps addressed by this addendum
 
 Each skill is initialized with the bundled skill initializer, filled with verified local information, and checked with `quick_validate.py`. Scripts, if introduced, are exercised against read-only or temporary targets before the skill is considered usable.
 
@@ -119,3 +147,7 @@ Each skill is initialized with the bundled skill initializer, filled with verifi
 - Releases are reproducible, platform-correct, and do not commit generated binaries.
 - Skills remain concise enough that unrelated Lyrion or Bliss tasks do not load unnecessary context.
 - The private Git repository provides history and rollback, while installation updates only manifest-listed profile skills and preserves recoverable backups.
+- All thirteen skills are manifest-listed and validated; suite maintenance uses
+  evidence classification, single ownership and RED/GREEN behavior tests without
+  treating installed runtime artifacts as development source or bypassing full
+  installation gates under urgency.
