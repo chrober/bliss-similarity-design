@@ -33,8 +33,9 @@ packaging. It deliberately leaves `bliss-playlist-optimizer` source-agnostic.
 ## User-facing behaviour
 
 `lms-guidance-lastfm` is an independently installable, discoverable Lyrion
-guidance-provider plugin. It owns one provider settings page and its source
-configuration:  
+guidance-provider plugin. Its settings page supplies the source default; each
+compatible host may save its own source override. The provider alone owns the
+API key:  
 
 | Choice | Availability | Behaviour |
 | --- | --- | --- |
