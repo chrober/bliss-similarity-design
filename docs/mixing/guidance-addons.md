@@ -18,14 +18,15 @@ named after the guidance they supply:
 | --- | --- |
 | `bliss-playlist-optimizer` | Discover trusted add-ons, send batches, combine guidance, and enforce Bliss constraints. |
 | `bliss-playlist-guidance-spi` | Define the JSONL request/response types and bounded `GuidanceSignal`. |
-| `bliss-guidance-lastfm` | Adapt the host-resolved `semantic-evidence-v1` artifact into edge/global Last.fm guidance. Current acquisition is LastMix-backed; direct API-key acquisition is future work. |
+| `bliss-guidance-lastfm` | Adapt a host-resolved LastMix artifact or perform bounded direct API-key acquisition during `prepare`, then emit edge/global Last.fm guidance through network-free score calls. |
 | `bliss-guidance-library-signals` | Read trusted, read-only Lyrion `persist.db` data for play count, last played, and library age. |
 
 The executable names follow the repository names. Provider IDs are
-`lastfm-guidance` and `library-signals-guidance`; neither name implies that the
-provider performs network access. Better Call Bliss/LastMix still obtains the
-raw Last.fm snapshot, while the library-signals provider reads a bounded,
-frozen SQLite view.
+`lastfm-guidance` and `library-signals-guidance`. In LastMix mode the Lyrion
+adapter supplies a frozen resolved Last.fm artifact. In API Key mode the native
+Last.fm provider owns bounded HTTP/cache work during `prepare`. The
+library-signals provider reads a bounded, frozen SQLite view. All provider
+`score` calls remain network-free.
 
 ## Runtime boundary
 
@@ -40,12 +41,13 @@ flowchart LR
     R[Optimizer request] --> H[Optimizer guidance host]
     H -->|describe / prepare / score| L[bliss-guidance-lastfm]
     H -->|describe / prepare / score| P[bliss-guidance-library-signals]
-    E[(Raw evidence snapshots)] --> L
+    E[(Resolved LastMix artifact)] --> L
+    F[(Last.fm API and persistent cache)] -->|prepare only| L
     C[(Lyrion persist.db)] --> P
     L --> S[Bounded GuidanceSignal]
     P --> S
-    S --> A[Recorded guidance index]
-    A -. next integration gate .-> B[Candidate reranking]
+    S --> I[Recorded guidance index]
+    I --> B[Candidate reranking]
     B --> V[Bliss eligibility and route constraints]
 ```
 
@@ -56,9 +58,8 @@ route valid when the Bliss distance model rejects it. The request-side
 `guidance_addons` list is therefore a trusted integration setting, not a shell
 command facility for arbitrary user input.
 
-The first implementation gate establishes this host contract and records
-provider diagnostics. The next integration gate plumbs global and edge signal
-indexes into each outer planner without duplicating provider-specific logic:
-the queue-tail destination route, multi-gap playlist planning, fixed-count
-bridges, and preserved-order extension all call the same guidance aggregation
-boundary.
+The host contract records provider diagnostics and applies global and edge
+signals through one provider-neutral aggregation boundary. Queue-tail
+destination routing, multi-gap playlist planning, fixed-count bridges, and
+preserved-order extension therefore reuse the same guidance lifecycle without
+duplicating provider-specific acquisition or scoring logic.

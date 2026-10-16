@@ -1,19 +1,20 @@
 # Last.fm guidance acquisition plan
 
-**Status:** LastMix path shipped; direct API-key acquisition remains planned  
+**Status:** LastMix and direct API-key paths implemented; coordinated CI,
+release packaging, and broader acceptance verification remain  
 **Scope:** Discoverable Last.fm provider plus Better Call Bliss and Bliss Mixer
 Lab host integration  
-**Last reviewed:** 2026-10-04  
+**Last reviewed:** 2026-10-16  
 
 ## Current implementation status
 
 | Area | Current state | Remaining work |
 | --- | --- | --- |
-| Discoverable Lyrion provider | `lms-guidance-lastfm` 0.2.0 is released with its own settings page, descriptor, disabled-by-default host activation, and LastMix/API Key source controls. | Keep provider/host parity tests current. |
-| LastMix acquisition | Working in Better Call Bliss 0.22.0 and Bliss Mixer Lab 0.10.0. LastMix obtains the observations; the host resolves and hash-binds the artifact; native scoring is network-free. | Continue cache/offline diagnostics and acceptance coverage. |
-| Native Last.fm provider | `bliss-guidance-lastfm` 0.1.2 is released and consumes the resolved artifact through SPI v2. | Implement provider-owned direct HTTP/cache acquisition. |
-| API Key mode | UI and secret-handling boundary are present, but selecting API Key does not yet perform end-to-end native acquisition; guidance is neutral. | Add cold/warm cache, timeout, rate-limit, invalid-key, offline, cancellation, and reproducibility tests before enabling it as working. |
-| Host integrations | Better Call Bliss discovers the provider and preserves its Bliss-first policy/UI. Lab still preserves its existing direct LastMix DSTM path. | Migrate Lab DSTM to the discoverable provider and verify native `bliss-mixer`/release-feed parity. |
+| Discoverable Lyrion provider | `lms-guidance-lastfm` owns its settings page, descriptor, disabled-by-default host activation, LastMix/API Key source controls, and provider log relay. | Keep provider/host parity tests current. |
+| LastMix acquisition | LastMix obtains bounded observations; the host resolves and hash-binds the artifact; native scoring is network-free. | Continue failure and cache acceptance coverage. |
+| Native Last.fm provider | The SPI v2 provider supports artifact and direct acquisition adapters, candidate identity translation, structured diagnostics, and network-free scoring. | Complete coordinated CI and release packaging for the merged main branches. |
+| API Key mode | Direct mode performs bounded HTTP/cache work only during `prepare`, freezes the session relations, and degrades neutrally for missing credentials, network failure, timeouts, or invalid responses. | Expand cold/warm-cache, rate-limit, offline, cancellation, and reproducibility acceptance coverage. |
+| Host integrations | Better Call Bliss and Bliss Mixer Lab discover the provider. The playlist optimizer and native `bliss-mixer` endpoint host the common lifecycle while preserving each host's Bliss-first selection policy and presentation. | Re-run coordinated host/provider acceptance checks after release packaging. |
 
 ## Goal
 
@@ -38,7 +39,7 @@ configuration:
 | Choice | Availability | Behaviour |
 | --- | --- | --- |
 | **LastMix** | Selectable only when the LastMix plugin is installed. | The provider's LastMix adapter obtains bounded similar-track and similar-artist observations, then creates a frozen, resolved evidence artifact for the native provider. |
-| **API Key** | Always visible/selectable as configuration. | The released native provider does not yet obtain or cache public Last.fm observations directly; this mode currently remains neutral and is marked as follow-up work. |
+| **API Key** | Selectable when a key is configured. | The native provider performs bounded cache-backed public Last.fm acquisition during `prepare`, freezes the resulting relations, and keeps later scoring network-free. |
 
 The page explains how to obtain a Last.fm API key and makes clear that public
 similarity endpoints need an application key, not a Last.fm user account,
@@ -72,7 +73,7 @@ flowchart LR
     H[Compatible host\nopt-in and overrides] --> P[lms-guidance-lastfm]
     S -->|LastMix| LM[LastMix]
     LM --> A[Provider acquisition adapter]
-    S -.->|planned API Key| D[bliss-guidance-lastfm\ndirect preparation]
+    S -->|API Key| D[bliss-guidance-lastfm\ndirect preparation and cache]
     A -->|resolved frozen artifact| D
     D -->|same bounded signals| O[Bliss-first host engine]
     O --> R[Host result and logs]
@@ -86,13 +87,9 @@ observations against that inventory, writes `resolved-lastfm-evidence-v1`, and
 hash-binds that artifact to the provider's `prepare` request. The native
 provider remains network-free in this mode.  
 
-### API Key path (planned, not yet operational)
+### API Key path
 
-The following describes the intended implementation, not the behavior of the
-current 0.1.2 native provider. Until these steps are delivered and tested,
-selecting API Key produces neutral guidance.
-
-The planned provider plugin sends the host a trusted provider mode of `direct`;
+The provider plugin sends the host a trusted provider mode of `direct`; the
 host does **not** serialize the API key into request JSON, a preview artifact,
 diagnostic result, or report. The provider supplies a non-serialized
 `guidance_provider_process_environment_v1` hook. Better Call Bliss applies it
@@ -194,6 +191,11 @@ second DSTM transport migration.
 
 ## Implementation sequence
 
+Steps 1 through 9 are implemented on the coordinated component `main`
+branches. Step 10 remains the release and acceptance gate; the checklist below
+must not be read as evidence that every failure/performance scenario has
+already been exercised.  
+
 1. Create `lms-guidance-lastfm` from the provider kit: descriptor, provider
    settings page, LastMix availability detection, API-key help, default
    settings, provider status, trusted native configuration, and packaging.  
@@ -257,7 +259,8 @@ second DSTM transport migration.
 
 ## Documentation follow-up
 
-When implementation begins, update the status-quo documents in the repositories
-that ship the behavior: Better Call Bliss's guidance data-flow document,
-`bliss-guidance-lastfm` README, and the SPI contract. Do not describe direct
-acquisition as shipped before the acceptance checks above pass.  
+Status-quo documentation now describes both acquisition adapters, the
+provider-owned cache and diagnostics, candidate identity flow, and the
+network-free scoring boundary. Release notes should describe direct acquisition
+as available only after the coordinated workflow and packaging gates succeed;
+unexecuted failure or performance checks remain explicit follow-up work.  

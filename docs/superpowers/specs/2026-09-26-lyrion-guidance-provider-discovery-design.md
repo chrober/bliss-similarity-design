@@ -1,5 +1,10 @@
 # Lyrion guidance-provider discovery and host integration
 
+> **2026-10-13 refinement:** Library Signals may use the enabled Alternative
+> Play Count plugin as an explicit alternative source for its existing
+> play-count and last-played channels. References below to a separate APC
+> provider mean APC-only skip, DPSV, or detailed-history guidance.
+
 ## Status
 
 Approved architecture; **the Library Signals first vertical slice and shared
@@ -8,13 +13,13 @@ descriptor and provider defaults; Better Call Bliss and Bliss Mixer Lab
 discover it, keep it disabled by default per host, resolve host overrides, and
 request its trusted native SPI configuration. Both hosts vendor the tested
 source-only `lms-bliss-guidance-host` discovery, policy, settings-model, and
-canonical settings assets. The first native `bliss-mixer` Library Signals host
-endpoint and `selection_trace_v1` are also shipped. Lab already submits its
-native-provider DSTM candidate pool to that endpoint while retaining its own
-selection policy and log formatter. Last.fm discovery and its LastMix/artifact
-mode are now shipped in Better Call Bliss; Lab still uses its established
-direct LastMix DSTM adapter. Direct API-key acquisition and Lab's provider
-migration remain follow-up work, followed later by APC. This document describes the
+canonical settings assets. The native `bliss-mixer` guidance endpoint and
+`selection_trace_v1` are shipped; Lab submits its bounded DSTM candidate pool
+to that endpoint while retaining its own selection policy and log formatter.
+Last.fm discovery, LastMix/artifact acquisition, and direct API-key acquisition
+are implemented for the native provider lifecycle in both hosts. Coordinated
+CI/release verification and broader direct-mode acceptance coverage remain;
+APC-only guidance is separate future work. This document describes the
 Lyrion-side integration for independently installable guidance extensions. It
 complements the native
 [`bliss-playlist-guidance-spi`](https://github.com/chrober/bliss-playlist-guidance-spi)
@@ -60,7 +65,7 @@ This revision makes three boundaries explicit:
 
 ## Intent
 
-Last.fm, local-library signals, play counts, APC, and future sources should be
+Last.fm, local-library signals, APC-only guidance, and future sources should be
 installable as separate Lyrion extensions. BlissMixer, BlissMixerLab, Better
 Call Bliss, and later hosts should discover those extensions without hard-coded
 knowledge of every provider.
@@ -112,7 +117,7 @@ There is deliberately no `lms-bliss-guidance` registry or runtime dependency.
 flowchart LR
   LMS[Lyrion plugin manager] --> LF[lms-guidance-lastfm descriptor]
   LMS --> LS[lms-guidance-library-signals descriptor]
-  LMS --> APC[lms-guidance-apc descriptor]
+  LMS --> APC[Future APC-only guidance descriptor]
   BM[BlissMixer host] -->|discover descriptors| LMS
   BML[BlissMixerLab host] -->|discover descriptors| LMS
   BCB[Better Call Bliss host] -->|discover descriptors| LMS
@@ -221,7 +226,7 @@ The host should show, at minimum:
 Providers own settings needed to acquire or interpret their data. Examples:
 
 - Last.fm API key, acquisition mode, cache, and privacy/network behavior;
-- APC database or endpoint selection;
+- APC-only skip, DPSV, or detailed-history source selection;
 - source-specific identity matching and cache retention.
 
 Every provider has its own settings page, containing source configuration and
@@ -468,7 +473,7 @@ Bliss-only mix or route to fail.
 | --- | --- | --- | --- |
 | Last.fm guidance | `artist_similarity`, `track_similarity` | edge and global | LastMix or direct API acquisition, credentials/cache |
 | Library signals | `play_count`, `last_played`, `library_age` | global candidate | Lyrion database/API access and identity mapping |
-| APC guidance | alternative play count or listening-history channels | global candidate | Alternative Play Count data source |
+| APC-only guidance | skip, DPSV, or detailed-history channels | global candidate | Alternative Play Count data source |
 
 The same provider may offer multiple channels. Hosts enable the provider as a
 whole but may set individual channel influence to zero. A zero influence is the
@@ -578,16 +583,15 @@ and result provenance without network credentials or APC-specific state.
    and effective settings yield equivalent bounded guidance semantics in Better
    Call Bliss pathfinding and the fork's candidate reranking, while their
    distinct Bliss selection algorithms remain independent.
-7. Migrate Last.fm to a separate provider extension, then add APC as another
-   separate provider without changing either host's discovery or policy code.
+7. Migrate Last.fm to a separate provider extension, then add APC-only guidance
+   as another provider without changing either host's discovery or policy code.
 8. Remove duplicated host-specific provider logic only after both host paths
    pass their parity and Bliss-only fallback tests.
 
-The first native `bliss-mixer` endpoint was delivered in version 0.11.4 with
-Library Signals scoring and `selection_trace_v1`. Lab already uses it for its
-native-provider DSTM candidate pool; cross-host parity fixtures for that
-workflow,
-and later Last.fm/APC provider plugins remain follow-up work.
+The native `bliss-mixer` endpoint delivers Library Signals and Last.fm scoring
+plus `selection_trace_v1`. Lab uses it for its native-provider DSTM candidate
+pool. Cross-host parity fixtures must remain current; APC-only provider work is
+still a follow-up.
 
 ## Source references for this review
 

@@ -10,14 +10,15 @@ The published site is intended to live at
 
 The deployed Bliss guidance slice is Bliss-first and provider-neutral:
 
-- Better Call Bliss 0.22.0 and Bliss Mixer Lab 0.10.0 use discoverable Library
-  Signals where enabled; the Lab keeps its established direct LastMix DSTM
-  path for now.
-- LastMix-backed Last.fm guidance is working through the resolved-artifact
-  path. The separate Last.fm provider is released, but its API Key mode does
-  not yet perform direct native HTTP/cache acquisition and remains neutral.
-- APC, direct Last.fm acquisition, and the remaining playlist/path-quality
-  research are still future work.
+- Better Call Bliss and Bliss Mixer Lab use discoverable, disabled-by-default
+  guidance providers where enabled. The native playlist optimizer and mixer
+  endpoint host the same provider-neutral SPI lifecycle.
+- Last.fm guidance supports a LastMix-backed resolved-artifact path and direct
+  provider-owned API-key acquisition with persistent caching. Acquisition is
+  confined to `prepare`; bounded candidate scoring stays network-free.
+- Library Signals can optionally use an enabled Alternative Play Count plugin
+  as the source for play count and last played. APC-only skip/DPSV guidance,
+  and the remaining playlist/path-quality research are still future work.
 
 See [Last.fm guidance acquisition plan](LASTFM_GUIDANCE_ACQUISITION_PLAN.md)
 and [local library guidance plan](LOCAL_LIBRARY_GUIDANCE_PLAN.md) for the

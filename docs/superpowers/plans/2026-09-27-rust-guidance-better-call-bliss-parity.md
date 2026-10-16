@@ -7,7 +7,9 @@
 > Library Signals host endpoint and `selection_trace_v1` followed in version
 > 0.11.4. This document remains the implementation record; later provider
 > acquisition and provider-specific Lab DSTM parity are tracked separately;
-> Lab already uses the endpoint for enabled native providers.
+> Lab already uses the endpoint for enabled native providers. Last.fm provider
+> discovery and direct acquisition were subsequently implemented; exclusions
+> below describe only this plan's original delivery boundary.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 

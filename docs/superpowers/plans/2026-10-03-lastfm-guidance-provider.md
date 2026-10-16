@@ -22,11 +22,14 @@ GitHub Actions release packaging.
 
 **Spec:** [Last.fm guidance acquisition plan](https://github.com/chrober/bliss-similarity-design/blob/main/LASTFM_GUIDANCE_ACQUISITION_PLAN.md)
 
-> **Current status (2026-10-04):** The discoverable Lyrion provider, provider
-> settings, LastMix/artifact path, and host integrations are released. The
-> remaining checklist is specifically the direct API-key acquisition/cache
-> implementation and its acceptance tests; the current native provider remains
-> artifact-only and API-key mode is neutral.
+> **Current status (2026-10-16):** The discoverable Lyrion provider, provider
+> settings, LastMix/artifact path, direct API-key acquisition adapter,
+> persistent cache, structured diagnostics, candidate identity flow, and host
+> integrations are implemented on their coordinated `main` branches. The
+> remaining gate is coordinated CI/release packaging plus broader cold/warm
+> cache, offline, cancellation, rate-limit, and Raspberry Pi acceptance work.
+> The unchecked task list below is retained as the historical execution plan,
+> not as the current implementation-status source.
 
 ## Global Constraints
 
