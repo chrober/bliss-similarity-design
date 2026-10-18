@@ -1,9 +1,10 @@
 # MBID-aware repeat identity design
 
-**Status:** Implemented locally; release and live Pi verification pending  
+**Status:** Implemented and released in both native hosts and Lyrion plugins;
+broader performance and fallback verification remains  
 **Scope:** Artist identity for hard repeat windows in native Bliss mixing and
 playlist optimization  
-**Last reviewed:** 2026-10-16  
+**Last reviewed:** 2026-10-18  
 
 ## Executive summary
 
@@ -32,15 +33,15 @@ repeat-identity implementation in `bliss-mixer-core`.
 
 ## Implementation status
 
-| Area | Current local status |
+| Area | Current status |
 | --- | --- |
 | Shared Rust identity contract | Implemented and covered by core tests, including MBID, contributor-ID, normalized-name, collaboration, legacy-credit, malformed-MBID, and Various Artists cases. |
 | `bliss-mixer` | Accepts the snapshot and policy, reuses a process-local immutable snapshot cache, and applies the identity rule to recent tracks and candidates selected earlier in the same mix. |
 | Bliss Mixer Lab | Builds a scan- and media-root-bound SQLite snapshot, exposes the three policies, and sends both fields with each DSTM request. Existing selection-log rendering is unchanged. |
 | `bliss-playlist-optimizer` | Loads the hash-bound artifact once and applies the projected identity keys in route, bridge, anchored-path, spacing, extension, and destination-route checks. A missing, mismatched, or invalid artifact reports a structured fallback state and continues with exact Bliss credits. |
 | Better Call Bliss | Extends its existing candidate-inventory pass, embeds structured identities for source tracks, supplies the snapshot artifact, and exposes the same global and per-job policy. Its preserved-order and minimum-spacing prechecks use the same policy instead of comparing only display credits. |
-| Main-line compatibility | Current `bliss-playlist-optimizer` and Better Call Bliss `main` changes have been integrated into their isolated MBID feature branches and the combined native/Perl contract suites pass. |
-| Remaining gates | DBI-backed Perl integration tests in a full LMS/CI environment, large-library performance evidence, coordinated dependency pins/builds, and live Queen regression verification on the Pi. |
+| Main-line and release status | The shared core, `bliss-mixer`, Bliss Mixer Lab, `bliss-playlist-optimizer`, and Better Call Bliss changes are on their canonical branches. They are published in `bliss-mixer` v0.11.5, Bliss Mixer Lab 0.10.4 and later, optimizer v0.2.3 and later, and Better Call Bliss 0.22.4 and later. |
+| Remaining gates | Extend DBI-backed integration coverage, measure large-library snapshot and lookup performance, and retain the real Queen collaboration case as a live regression check. |
 
 ## Existing records reviewed
 

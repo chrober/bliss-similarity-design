@@ -1,10 +1,10 @@
 # Last.fm guidance acquisition plan
 
-**Status:** LastMix and direct API-key paths implemented; coordinated CI,
-release packaging, and broader acceptance verification remain  
+**Status:** LastMix and direct API-key paths implemented and released; broader
+failure, cache, and performance acceptance verification remains  
 **Scope:** Discoverable Last.fm provider plus Better Call Bliss and Bliss Mixer
 Lab host integration  
-**Last reviewed:** 2026-10-16  
+**Last reviewed:** 2026-10-18  
 
 ## Current implementation status
 
@@ -12,9 +12,9 @@ Lab host integration
 | --- | --- | --- |
 | Discoverable Lyrion provider | `lms-guidance-lastfm` owns its settings page, descriptor, disabled-by-default host activation, LastMix/API Key source controls, and provider log relay. | Keep provider/host parity tests current. |
 | LastMix acquisition | LastMix obtains bounded observations; the host resolves and hash-binds the artifact; native scoring is network-free. | Continue failure and cache acceptance coverage. |
-| Native Last.fm provider | The SPI v2 provider supports artifact and direct acquisition adapters, candidate identity translation, structured diagnostics, and network-free scoring. | Complete coordinated CI and release packaging for the merged main branches. |
+| Native Last.fm provider | Released as `bliss-guidance-lastfm` v0.1.3 with artifact and direct acquisition adapters, candidate identity translation, structured diagnostics, and network-free scoring. | Continue cross-platform and failure-path acceptance coverage. |
 | API Key mode | Direct mode performs bounded HTTP/cache work only during `prepare`, freezes the session relations, and degrades neutrally for missing credentials, network failure, timeouts, or invalid responses. | Expand cold/warm-cache, rate-limit, offline, cancellation, and reproducibility acceptance coverage. |
-| Host integrations | Better Call Bliss and Bliss Mixer Lab discover the provider. The playlist optimizer and native `bliss-mixer` endpoint host the common lifecycle while preserving each host's Bliss-first selection policy and presentation. | Re-run coordinated host/provider acceptance checks after release packaging. |
+| Host integrations | Better Call Bliss and Bliss Mixer Lab discover the released `lms-guidance-lastfm` 0.2.3 provider. The playlist optimizer and native `bliss-mixer` endpoint host the common lifecycle while preserving each host's Bliss-first selection policy and presentation. | Continue representative host/provider regression and outage checks. |
 
 ## Goal
 
@@ -181,7 +181,7 @@ key and do not branch on LastMix versus direct acquisition.
 
 ### Current native Bliss Mixer Lab path
 
-`bliss-mixer` 0.11.4 exposes a native guidance-host endpoint and returns
+`bliss-mixer` v0.11.5 exposes a native guidance-host endpoint and returns
 `selection_trace_v1` for a bounded candidate request. When an enabled native
 provider is present, Bliss Mixer Lab already sends its DSTM candidate pool to
 `/api/guidance/score`, receives the provider signals and trace, and feeds the
@@ -192,10 +192,10 @@ second DSTM transport migration.
 
 ## Implementation sequence
 
-Steps 1 through 9 are implemented on the coordinated component `main`
-branches. Step 10 remains the release and acceptance gate; the checklist below
-must not be read as evidence that every failure/performance scenario has
-already been exercised.  
+Steps 1 through 9 are implemented and released from the coordinated canonical
+branches. Step 10 remains an ongoing acceptance gate; the checklist below must
+not be read as evidence that every failure/performance scenario has already
+been exercised.  
 
 1. Create `lms-guidance-lastfm` from the provider kit: descriptor, provider
    settings page, LastMix availability detection, API-key help, default
@@ -260,8 +260,7 @@ already been exercised.
 
 ## Documentation follow-up
 
-Status-quo documentation now describes both acquisition adapters, the
+Status-quo documentation describes both released acquisition adapters, the
 provider-owned cache and diagnostics, candidate identity flow, and the
-network-free scoring boundary. Release notes should describe direct acquisition
-as available only after the coordinated workflow and packaging gates succeed;
-unexecuted failure or performance checks remain explicit follow-up work.  
+network-free scoring boundary. Unexecuted failure or performance checks remain
+explicit follow-up work rather than being presented as missing functionality.  
