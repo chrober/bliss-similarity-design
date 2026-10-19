@@ -121,7 +121,7 @@ inventory follows this table.
 | Choose addition purpose before amount details | ✅ Available | The Extras editor exposes a listener-facing **Additional tracks** purpose first: no additions, improve difficult transitions, or Extend playlist. Only **Extend playlist** opens the amount selector for exact additions, target count, or double count; it submits a native fixed-source extension request after calculating the requested final size. Internal strict gap-bridge modes remain specialized/advanced paths. |
 | Add bridge tracks automatically where transitions are difficult | ✅ Available | Bliss-only automatic insertion is connected; it may correctly decide that zero additions are needed. |
 | Extend playlist | ✅ Available | Enter exact additions, a final target count, or double-count per job. The plugin calculates the final size and uses fixed-source membership selection, so the requested amount is not capped by internal source gaps. A short input can therefore serve as a mood reference without needing a separate Grow strategy. |
-| Fill every gap with N bridge tracks | ⬜ Planned | A strict per-gap preset will insert the same configured number of bridges between every adjacent pair of original tracks. `N = 1` replaces the old one-bridge-per-transition preset. The shared A-to-B kernel now exists; the missing work is the global playlist planner that requests alternatives for every gap and selects an all-or-nothing combination under shared membership and repeat constraints. |
+| Fill every gap with N bridge tracks | ✅ Available after restart | The capability-gated preset inserts exactly `N` bridges into every internal source gap, with no opening or closing additions. One global native beam plan coordinates unique membership, repeat windows, contextual acoustic scoring, optional guidance, and all-or-nothing failure across the complete playlist. The ARM64 development build is deployed; LMS must be restarted before the loaded plugin exposes it. |
 | Reach a chosen target track count or double the playlist by count | ✅ Available | These are amount choices under **Extend playlist**. They derive the required additions and use fixed-source membership selection. Duration-based targets remain future work. |
 | Turn a short source list into a full similar playlist | ✅ Available | Choose **Extend playlist** and **Reach a final track count**. The same fixed-source extension keeps the complete original set as its relevance reference, then either optimizes all tracks together or preserves the originals as ordered anchors. This is a usage of Extend playlist, not a separate strategy. |
 | Preserve the existing song order and fill its gaps | ✅ Available | Choose preserved source order with difficult-transition improvements or Extend playlist. Every original remains in exact relative order; Extend playlist places selected additions around the ordered anchors instead of being capped by source-gap count. |
@@ -178,7 +178,7 @@ would otherwise make the summary stale.
 | Scoring | Deterministic parallel scoring and route search | ✅ Implemented | Indexed Rayon work, derived seeds, stable tie-breaking, and bounded CPU defaults are implemented. |
 | Scoring | Reproducible per-job variation | ✅ Implemented | A strategy-neutral 0-100 control and explicit or generated seed vary route search for movable routes and membership sampling for fixed-source extension. Zero preserves strict best-match behavior; identical seeds reproduce selection. |
 | Native routing | Reorder-only fixed-set optimization | ✅ Implemented | Exact membership, repeat windows, aggregate/worst-leg objectives, restarts, and optional energy-arc selection are available. |
-| Native routing | Shared anchored A-to-B path engine | 🟡 Partial | A pure bounded kernel now accepts anchors, immutable history, unavailable membership, candidate evidence, repeat windows, search breadth, Variation, and a caller-owned adjacent-distance function. It can retain multiple complete alternatives per intermediate count. Destination and waypoint-and-rejoin adapters use it without schema or artifact changes; preserved playlist gaps and fixed-source placement have not yet migrated to a global outer planner. |
+| Native routing | Shared anchored A-to-B path engine | 🟡 Partial | A pure bounded kernel accepts anchors, immutable history, unavailable membership, candidate evidence, repeat windows, search breadth, Variation, and a caller-owned contextual adjacent scorer. It retains multiple complete alternatives per intermediate count. Destination, waypoint-and-rejoin, and strict fixed-gap planning use it; general preserved-gap improvement and fixed-source placement have not yet converged on the same global outer planner. |
 | Native routing | Contextual bridge candidate analysis | ✅ Implemented | Stable Bliss candidates, two-sided rescoring, acoustic gates, rejection reasons, and database-bound identities are available. |
 | Native routing | Provider-neutral semantic evidence ranking | ✅ Implemented | Recording-before-artist and endpoint-before-collection tiers, provenance, failure state, and Bliss fallback are supported in optimizer input. |
 | Native routing | Automatic bridge insertion | ✅ Implemented | Conservative threshold/budget selection over the evolving route is implemented. |
@@ -205,7 +205,7 @@ would otherwise make the summary stale.
 | Playlist workflow | Repeat-window spacer repair for difficult-transition improvements | ⬜ Planned | True constraint repair needs a native selection/artifact expansion that can insert multiple spacer tracks solely to separate repeated artists or albums before acoustic transition improvement. Current automatic mode still requires a valid source route first. The current preserved-order fixed-source extension must not be presented as a reliable workaround: its greedy insertion pass can leave a multi-track deficit unresolved even with a large target. |
 | Playlist workflow | Preserved-order multi-track repeat-deficit placement | ⬜ Planned | Replace greedy one-addition-at-a-time insertion with structural planning. Detect every immutable-source artist/album deficit before membership placement, reserve the minimum required number of positions in the affected source gap, then use a beam search or dynamic program to select and place compatible additions jointly. Regression case: `Rory Gallagher … Ten Years After – It's Getting Harder … Jared James Nichols … The Vintage Caravan … Ten Years After – I'd Love to Change the World` with artist look-back 5 requires three additions between the two Ten Years After anchors; target sizes 52 and 65 both failed on 2026-09-23 because no individual insertion immediately reduced the violation count. |
 | Playlist workflow | Extend playlist | ✅ Implemented | Per-job exact additions, target count, and double-count are mapped to native fixed-source extension membership selection, all-or-nothing normalization, result diagnostics, verified copy persistence, and live ARM64-compatible requests. |
-| Playlist workflow | Fill every gap with N bridge tracks | ⬜ Not implemented | The shared inner A-to-B kernel is available, but the strict multi-gap outer planner and UX are not connected. For `S` originals and `B` bridges per gap, it must add exactly `B * (S - 1)` tracks, coordinate candidate membership and repeat state globally, and fail visibly if any original gap cannot be filled. |
+| Playlist workflow | Fill every gap with N bridge tracks | ✅ Implemented | The advanced Extras mode accepts `1..8` bridges per gap and derives exactly `B * (S - 1)` additions. A global beam planner coordinates all gaps under unique membership, repeat windows, Rolling/Frozen Adaptive context, guidance, and deterministic Variation. Its dedicated result artifact proves exact per-gap placement, unchanged source membership/order policy, no endpoint additions, complete-route repeat validity, and all-or-nothing feasibility; the Perl host independently verifies those proofs before output. |
 | Playlist workflow | Reach target track count | ✅ Implemented | The plugin validates the final track count, calculates `N = T - S`, and uses native fixed-source extension membership selection. Duration targeting remains future work. |
 | Playlist workflow | Double playlist by track count | ✅ Implemented | The preset calculates `T = 2S` and `N = S`, then uses native fixed-source extension membership selection. Duration-based doubling remains future work. |
 | Playlist workflow | Use Extend playlist on a short source to reach an exact target | ✅ Implemented | Exact target, immutable complete-source relevance, strict proofs, per-job Variation, optional Last.fm guidance, result diagnostics, form restoration, and accept-time output actions all use the same fixed-source extension implementation as every other Extend playlist amount choice. |
@@ -1002,13 +1002,19 @@ the blocked gaps; the UI may then offer to switch to Extend automatically rather
 than silently producing a partial result.
 
 This preset is related to **Bliss me there...** because every internal segment
-is still an anchored route from a left track `A` to a right track `B`. It is not
-the same current implementation path, however. **Bliss me there...** spends its
-whole bridge budget on one live queue-tail-to-destination route, while this
-playlist preset must build and validate many anchored routes and then combine
-them into one final playlist. The long-term implementation should extract the
-inner "build a valid A-to-B path" engine and let the playlist planner decide
-how to apply it across all gaps.
+is an anchored route from a left track `A` to a right track `B`. Both now use
+the shared bounded A-to-B path engine. Their outer planners remain deliberately
+different: **Bliss me there...** spends one budget on one live destination
+route, while fixed-gap planning asks for alternatives for every source gap and
+chooses one globally compatible combination. A locally best first gap may be
+discarded when it would consume a track or repeat capacity required later.
+
+The native result uses a dedicated proof-carrying `fixed_gap_count` artifact.
+Before LMS can present or persist it, the Perl host independently verifies the
+source/gap counts, exact bridge count in every gap, absence of endpoint tracks,
+unique membership, preserved original subsequence, and final repeat-window
+proof. Impossible projected source repeats fail before expensive path search;
+no partial playlist is returned.
 
 #### Target track count and Double track count
 

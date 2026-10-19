@@ -7,6 +7,17 @@
 **Tech Stack:** Rust 2021, Rayon, Serde/JSON Schema, Perl/Lyrion plugin templates and tests.  
 **Spec:** `../specs/2026-10-19-global-multi-gap-playlist-planner-design.md`
 
+**Implementation status (2026-10-19):** The vertical slice is implemented on
+`feature/global-multi-gap-planner` in both product repositories. Optimizer
+commits through `0ddc68a` provide contextual anchored scoring, the global beam
+planner, request/result contracts, projected-repeat preflight, a dedicated
+proof-carrying artifact, and deterministic regression coverage. Better Call
+Bliss commits through `b22e889` provide capability gating, job normalization,
+conditional Extras controls, request/report integration, and independent host
+validation of exact per-gap layout. Native and plugin CI plus the ARM64 build
+are green. The build is deployed to the Pi's official `InstalledPlugins` path
+without restarting LMS; live UI/output smoke testing remains pending activation.
+
 ## Global Constraints
 
 - The mode is named `fixed_gap_count`; the request field is `tracks_per_gap` with range `1..8`.
