@@ -1,8 +1,8 @@
 # Acoustic path finding for Better Call Bliss
 
-**Status:** Outer-planner-neutral anchored A-to-B kernel extracted for destination routes; playlist-planner convergence and the shared trajectory model remain partial  
+**Status:** Outer-planner-neutral anchored A-to-B kernel serves destination routes and strict fixed-count global gap planning; budgeted gap repair, preserved-extension placement, and the shared trajectory model remain partial  
 **Scope:** Destination routes, gap repair, preserved-anchor insertion, fixed-set sequencing, and extension placement  
-**Last reviewed:** 2026-09-01  
+**Last reviewed:** 2026-10-20  
 
 ## Decision
 
@@ -91,9 +91,9 @@ Collection relevance, route continuation, adjacent boundaries, and trajectory re
 
 The optimizer now has one pure anchored-path kernel for the bounded inner search from `A` to `B`. Its input separates the anchors, route prefix, immutable listening history, unavailable outer-plan membership, candidate evidence, repeat windows, search breadth, Variation, and adjacent-distance function. It returns complete scored alternatives without knowing whether a playlist or queue will eventually be changed. Existing one-way and destination-block-and-rejoin paths use this kernel through thin outer adapters. Single-track requests remain wire-compatible, while an optional ordered destination block represents a complete album.
 
-Playlist gap filling still uses the preserved-order bridge machinery. It may examine many gaps in one playlist, such as `A -> B`, `B -> C`, and `C -> D`, then decide where additions are justified or how already selected additions can be placed around ordered anchors. That outer problem is different because the budget, repeat windows, and earlier insertions can interact across several gaps. It must migrate to the shared kernel through a global planner rather than call the kernel independently and commit each local winner.
+Playlist gap filling has now begun that convergence. Strict **Fill every gap with N bridge tracks** uses the shared kernel to retain several exact-count alternatives for each gap, then a global beam planner combines those alternatives under shared membership, repeat, contextual-scoring, and Variation state. General difficult-transition improvement still commits eligible gaps left to right, and preserved fixed-source extension still places already selected additions greedily around anchors. Those outer problems remain different because their budget or membership allocation must decide *which* gaps receive tracks rather than requiring the same fixed count everywhere.
 
-The extracted inner engine answers: "given a left anchor A, a right anchor B, context, repeat policy, candidate inventory, and bridge budget, which complete A-to-B paths are valid and worthwhile?" It can retain multiple alternatives per intermediate count so a future multi-gap planner is not trapped by one locally optimal route. The outer planner remains feature-specific:
+The extracted inner engine answers: "given a left anchor A, a right anchor B, context, repeat policy, candidate inventory, and bridge budget, which complete A-to-B paths are valid and worthwhile?" It retains multiple alternatives per intermediate count so the fixed-gap multi-gap planner is not trapped by one locally optimal route. The outer planner remains feature-specific:
 
 - **Bliss me there... one-way actions:** one boundary, fixed queue-end or current-song start, fixed track or immutable album destination, and append or replace-upcoming output.
 - **Bliss me there... and back again!:** two coupled boundaries, fixed current-song start, mandatory selected track or immutable ordered album block, locked first-upcoming rejoin, and non-destructive insertion with one shared bridge budget.
@@ -101,7 +101,7 @@ The extracted inner engine answers: "given a left anchor A, a right anchor B, co
 - **Fill every gap with N bridge tracks:** many gaps with a strict per-gap count; fail visibly if any required gap route cannot be built.
 - **Preserve order while extending:** choose membership against the complete original source set, then place selected additions around immutable anchors.
 
-This convergence would reduce duplicated bridge logic without pretending the listener-facing workflows are the same feature.
+The fixed-count slice proves that this convergence can reduce duplicated bridge logic without pretending the listener-facing workflows are the same feature. Budgeted gap improvement and whole-source extension placement still need their own outer-planner policies.
 
 ## Last.fm and future boundary evidence
 
@@ -127,12 +127,12 @@ Fast should continue to target roughly five seconds on the current Raspberry Pi 
 1. **Truthful diagnostics - partial:** Static and learned direct-edge evidence, selected role, matrix identities, and effective single-seed behavior are published. Exact Adaptive context reporting and separate direct-trigger sensitivity versus generated-route quality remain open.
 2. **Conservative direct-edge experiment - implemented:** disagreement selects the higher-risk view and triggers repair when that view misses the target. Generic unit and end-to-end destination tests cover the policy; a sanitized corpus case should still be added without hard-coding one bridge as the expected answer.
 3. **Depth-aware destination frontier:** add frontier, endpoint, corridor, and reverse-frontier retrieval; measure recall and latency at 64k and synthetic 200k sizes.
-4. **Shared anchored-path and preserved-gap engine - partial:** the pure A-to-B kernel and destination compatibility adapter are implemented. Next make playlist gap planning request multiple alternatives, coordinate membership/repeat state globally, allocate budgets across gaps, and jointly place preserved-order extension additions.
+4. **Shared anchored-path and preserved-gap engine - partial:** the pure A-to-B kernel, destination compatibility adapter, and strict fixed-count global multi-gap planner are implemented. Next allocate optional bridge budgets across difficult gaps and jointly place preserved-order extension additions without changing their distinct relevance semantics.
 5. **Shared fixed-set report:** expose adjacent, contextual, and arc evidence before changing reorder selection behavior.
 6. **Boundary-aware late fusion:** add versioned intro/outro evidence and require held-out directional improvement before changing defaults.
 
 ## Immediate recommendation
 
-Do not begin with new audio analysis. The pure anchored-path boundary is now available without changing destination behavior. Next migrate preserved playlist gaps behind a global outer planner and use the kernel's multiple alternatives to keep later gaps feasible under shared membership and repeat constraints. This is the prerequisite for strict **Fill every gap with N bridge tracks**.
+Do not begin with new audio analysis. The anchored-path boundary and strict fixed-count global planner now work without changing destination behavior. Next reuse that proven outer-planning shape for budgeted difficult-gap improvement or structural preserved-order extension placement, while keeping their different allocation and relevance semantics explicit.
 
 In parallel, replace the one-shot destination shortlist with a depth-aware, corridor-guided frontier and evaluate its route choices through listening tests. Reordering should adopt the shared report before its objective changes so old and new behavior can be compared honestly.

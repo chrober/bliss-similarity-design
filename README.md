@@ -16,6 +16,9 @@ python -m venv .venv
 
 ## One-shot playlist optimization
 
+- [Better Call Bliss productization and implementation plan](BLISS_PLAYLIST_OPTIMIZER_IMPLEMENTATION_PLAN.md)
+- [Latest implementation checkpoint: released global fixed-gap planning](IMPLEMENTATION_CHECKPOINT_36.md)
+- [Acoustic path-finding design](ACOUSTIC_PATH_FINDING_DESIGN.md)
 - [Example Playlist 2026 plan](PLAYLIST_OPTIMIZATION_PLAN.md)
 - [Executed run, results, reproduction, and rollback](PLAYLIST_OPTIMIZATION_EXECUTION.md)
 - [Example Playlist 2025 evaluation and Extended execution](PLAYLIST_OPTIMIZATION_2025_EXECUTION.md)
