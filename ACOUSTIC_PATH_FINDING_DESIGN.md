@@ -99,6 +99,7 @@ The extracted inner engine answers: "given a left anchor A, a right anchor B, co
 - **Bliss me there... and back again!:** two coupled boundaries, fixed current-song start, mandatory selected track or immutable ordered album block, locked first-upcoming rejoin, and non-destructive insertion with one shared bridge budget.
 - **Preserve order and improve difficult transitions:** many existing playlist gaps, global addition budget, insert only where a bridge improves the transition.
 - **Fill every gap with N bridge tracks:** many gaps with a strict per-gap count; fail visibly if any required gap route cannot be built.
+- **Repair source repeat windows:** freeze the preserved or source-only optimized order, then allocate the minimum total additions across its gaps with separate cumulative-count beams and one global budget.
 - **Preserve order while extending:** choose membership against the complete original source set, then place selected additions around immutable anchors.
 
 The fixed-count slice proves that this convergence can reduce duplicated bridge logic without pretending the listener-facing workflows are the same feature. Budgeted gap improvement and whole-source extension placement still need their own outer-planner policies.
@@ -127,12 +128,17 @@ Fast should continue to target roughly five seconds on the current Raspberry Pi 
 1. **Truthful diagnostics - partial:** Static and learned direct-edge evidence, selected role, matrix identities, and effective single-seed behavior are published. Exact Adaptive context reporting and separate direct-trigger sensitivity versus generated-route quality remain open.
 2. **Conservative direct-edge experiment - implemented:** disagreement selects the higher-risk view and triggers repair when that view misses the target. Generic unit and end-to-end destination tests cover the policy; a sanitized corpus case should still be added without hard-coding one bridge as the expected answer.
 3. **Depth-aware destination frontier:** add frontier, endpoint, corridor, and reverse-frontier retrieval; measure recall and latency at 64k and synthetic 200k sizes.
-4. **Shared anchored-path and preserved-gap engine - partial:** the pure A-to-B kernel, destination compatibility adapter, and strict fixed-count global multi-gap planner are implemented. Next allocate optional bridge budgets across difficult gaps and jointly place preserved-order extension additions without changing their distinct relevance semantics.
+4. **Shared anchored-path and preserved-gap engine - partial:** the pure A-to-B kernel, destination compatibility adapter, strict fixed-count global multi-gap planner, and minimum-total repeat-window repair are implemented. Next allocate optional bridge budgets across difficult transitions and jointly place already selected preserved-order extension membership without changing their distinct relevance semantics.
 5. **Shared fixed-set report:** expose adjacent, contextual, and arc evidence before changing reorder selection behavior.
 6. **Boundary-aware late fusion:** add versioned intro/outro evidence and require held-out directional improvement before changing defaults.
 
 ## Immediate recommendation
 
-Do not begin with new audio analysis. The anchored-path boundary and strict fixed-count global planner now work without changing destination behavior. Next reuse that proven outer-planning shape for budgeted difficult-gap improvement or structural preserved-order extension placement, while keeping their different allocation and relevance semantics explicit.
+Do not begin with new audio analysis. The anchored-path boundary, strict
+fixed-count global planner, and minimum-total repeat repair now work without
+changing destination behavior. Next reuse that proven outer-planning shape for
+budgeted difficult-gap improvement or structural placement of already selected
+preserved-order extension membership, while keeping their different allocation
+and relevance semantics explicit.
 
 In parallel, replace the one-shot destination shortlist with a depth-aware, corridor-guided frontier and evaluate its route choices through listening tests. Reordering should adopt the shared report before its objective changes so old and new behavior can be compared honestly.

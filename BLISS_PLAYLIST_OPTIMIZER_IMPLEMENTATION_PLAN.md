@@ -6,19 +6,20 @@ extension repository. The working product includes read-only previews,
 playlist and queue inputs, verified playlist or queue outputs, the three
 **Bliss me there...** actions, MBID-aware artist repeat identity, genre and
 virtual-library candidate scoping, and discoverable Last.fm and Library Signals
-guidance providers. The shared anchored A-to-B kernel and the strict fixed-count
-global multi-gap planner are available. General budgeted multi-gap transition
-improvement, structural preserved-order extension placement, duration targets,
-durable history, complete localization, and persistence-phase cancellation
-remain roadmap work.  
-**Date:** 2026-10-20  
+guidance providers. The shared anchored A-to-B kernel, strict fixed-count
+global multi-gap planning, and minimum-total repeat-window spacer repair are
+implemented. General budgeted multi-gap transition improvement, structural
+preserved-order extension placement for already selected membership, duration
+targets, durable history, complete localization, and persistence-phase
+cancellation remain roadmap work.  
+**Date:** 2026-10-21  
 **Primary objective:** Productize the experimentally exercised playlist sequencing and
 bridge-insertion workflow, add order-preserving gap filling and destination
 routes for the live queue, let short source lists reach an exact target through
 the same fixed-source extension, and deliver it as a separately maintained
 Lyrion plugin without requiring Python on the server or modifying
 `lms-blissmixer`.  
-**Latest implementation checkpoint:** [Released global fixed-gap planning](IMPLEMENTATION_CHECKPOINT_36.md).  
+**Latest implementation checkpoint:** [Minimum-total repeat-window spacer repair](IMPLEMENTATION_CHECKPOINT_37.md).  
 **Historical implementation baseline through `0.17.4`:** `lms-better-call-bliss`
 revision `5d8f85b` completed the original background **Bliss me there...**
 workflow; revision `ec3ce81` grouped durable settings, disabled inapplicable
@@ -51,6 +52,12 @@ discoverable providers, released both LastMix and direct API-key Last.fm
 acquisition, added Library Signals with optional APC-backed play count and last
 played, introduced MBID-aware artist repeat identity in both native hosts, and
 added destination-route repeat preflight plus fail-fast diagnostics.  
+**Feature-branch update (2026-10-21):** the same global planner now also supports
+the existing **Add spacing tracks as needed** workflow. It searches variable
+counts per frozen source gap, retains independent beams per cumulative addition
+count, minimizes the complete route's total additions, and treats the current
+maximum-additions value as a ceiling. This work is implemented and locally
+tested but not yet released or deployed.  
 **Working-tree Gate 2 (2026-08-19):** destination routes now use a dedicated  
 fixed-matrix layered adjacent path search with complete-route Variation, a  
 shared transformed-feature distance index, and configurable Fast, Balanced, or  
@@ -128,6 +135,7 @@ inventory follows this table.
 | Add bridge tracks automatically where transitions are difficult | ✅ Available | Bliss-only automatic insertion is connected; it may correctly decide that zero additions are needed. |
 | Extend playlist | ✅ Available | Enter exact additions, a final target count, or double-count per job. The plugin calculates the final size and uses fixed-source membership selection, so the requested amount is not capped by internal source gaps. A short input can therefore serve as a mood reference without needing a separate Grow strategy. |
 | Fill every gap with N bridge tracks | ✅ Released | Better Call Bliss `0.22.8` and optimizer v0.2.5 expose the capability-gated preset. It inserts exactly `N` bridges into every internal source gap, with no opening or closing additions. One global native beam plan coordinates unique membership, repeat windows, contextual acoustic scoring, optional guidance, and all-or-nothing failure across the complete playlist. |
+| Add spacing tracks as needed | 🟡 Implemented on feature branches | Freezes the preserved or source-only optimized order and asks the same global native planner for the smallest feasible number of additions. Counts may differ per internal gap; endpoints remain empty; the job maximum is a global ceiling. Dedicated request/result contracts and independent host proofs are implemented and locally tested; release and live deployment remain pending. |
 | Reach a chosen target track count or double the playlist by count | ✅ Available | These are amount choices under **Extend playlist**. They derive the required additions and use fixed-source membership selection. Duration-based targets remain future work. |
 | Turn a short source list into a full similar playlist | ✅ Available | Choose **Extend playlist** and **Reach a final track count**. The same fixed-source extension keeps the complete original set as its relevance reference, then either optimizes all tracks together or preserves the originals as ordered anchors. This is a usage of Extend playlist, not a separate strategy. |
 | Preserve the existing song order and fill its gaps | ✅ Available | Choose preserved source order with difficult-transition improvements, Extend playlist, or Fill every gap with N bridge tracks. Every original remains in exact relative order. Extend playlist places whole-source-relevant additions around the anchors; fixed-gap mode builds one exact route inside every original gap. |
@@ -208,8 +216,8 @@ would otherwise make the summary stale.
 | Playlist workflow | Reorder existing tracks: Preview | ✅ Implemented | Live, asynchronous, read-only Preview with per-job constraints and actionable infeasibility is working. |
 | Playlist workflow | Reorder existing tracks: create optimized copy | ✅ Implemented | Reviewed output can be written as a verified new LMS playlist without changing the source. |
 | Playlist workflow | Add automatically: Preview and create copy | ✅ Implemented | Bliss-only automatic insertion is connected end to end and may correctly add zero tracks. |
-| Playlist workflow | Repeat-window spacer repair for difficult-transition improvements | ⬜ Planned | True constraint repair needs a native selection/artifact expansion that can insert multiple spacer tracks solely to separate repeated artists or albums before acoustic transition improvement. Current automatic mode still requires a valid source route first. The current preserved-order fixed-source extension must not be presented as a reliable workaround: its greedy insertion pass can leave a multi-track deficit unresolved even with a large target. |
-| Playlist workflow | Preserved-order multi-track repeat-deficit placement | ⬜ Planned | Replace greedy one-addition-at-a-time insertion with structural planning. Detect every immutable-source artist/album deficit before membership placement, reserve the minimum required number of positions in the affected source gap, then use a beam search or dynamic program to select and place compatible additions jointly. Regression case: `Rory Gallagher … Ten Years After – It's Getting Harder … Jared James Nichols … The Vintage Caravan … Ten Years After – I'd Love to Change the World` with artist look-back 5 requires three additions between the two Ten Years After anchors; target sizes 52 and 65 both failed on 2026-09-23 because no individual insertion immediately reduced the violation count. |
+| Playlist workflow | Repeat-window spacer repair | 🟡 Implemented on feature branches | The existing Add spacing tracks as needed choice now uses a dedicated native request. It freezes preserved or optimized source order, jointly searches variable-count paths across all internal gaps, retains beams per cumulative count, and selects the valid route with the fewest additions inside the global budget. Dedicated proof validation replaces the unreliable fixed-source-extension workaround; release and live validation remain pending. |
+| Playlist workflow | Preserved-order multi-track repeat-deficit placement | ✅ Implemented for spacing repair | The global planner can place several additions in one affected source gap without requiring any single insertion to remove the whole deficit. Whole-source **Extend playlist** still uses its distinct fixed-membership placement path and is not silently reinterpreted as repeat repair. |
 | Playlist workflow | Extend playlist | ✅ Implemented | Per-job exact additions, target count, and double-count are mapped to native fixed-source extension membership selection, all-or-nothing normalization, result diagnostics, verified copy persistence, and live ARM64-compatible requests. |
 | Playlist workflow | Fill every gap with N bridge tracks | ✅ Implemented | The advanced Extras mode accepts `1..8` bridges per gap and derives exactly `B * (S - 1)` additions. A global beam planner coordinates all gaps under unique membership, repeat windows, Rolling/Frozen Adaptive context, guidance, and deterministic Variation. Its dedicated result artifact proves exact per-gap placement, unchanged source membership/order policy, no endpoint additions, complete-route repeat validity, and all-or-nothing feasibility; the Perl host independently verifies those proofs before output. |
 | Playlist workflow | Reach target track count | ✅ Implemented | The plugin validates the final track count, calculates `N = T - S`, and uses native fixed-source extension membership selection. Duration targeting remains future work. |
@@ -983,7 +991,13 @@ The optimizer keeps every source track exactly once and ranks current LMS-local 
 
 This mode should fail only for real target or library constraints, such as target size above the supported limit, insufficient repeat-safe local candidates, or missing Bliss analysis. It must not fail merely because the source playlist has fewer internal gaps than the requested addition count. Strict per-gap bridge insertion is the separate advanced **Fill every gap with N bridge tracks** capability.
 
-**Known future fix — preserved-order repeat deficits:** the current fixed-source implementation chooses all additions by whole-source relevance and inserts them greedily one at a time. That is insufficient when an immutable source pair needs several additions in the *same* gap before the repeat-window violation disappears. The planner must first calculate each artist/album separation deficit, reserve the required per-gap capacity, and then jointly select and place paths for those gaps under the global membership and repeat constraints. Until then, an infeasibility result in this case is an optimizer limitation, not evidence that a larger requested target or the local library cannot satisfy the requested repeat windows.
+**Separate repeat-repair workflow:** fixed-source extension still chooses
+whole-source-relevant membership for an exact requested size. It is not used to
+repair immutable source repeats. **Add spacing tracks as needed** now freezes
+the source order and jointly plans variable-count gap paths, including several
+tracks in one gap when required. This keeps extension membership semantics and
+repeat-window repair semantics explicit instead of relying on greedy placement
+as an accidental workaround.
 
 #### Fill every gap with N bridge tracks
 
