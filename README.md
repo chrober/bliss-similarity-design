@@ -24,6 +24,19 @@ See [Last.fm guidance acquisition plan](LASTFM_GUIDANCE_ACQUISITION_PLAN.md)
 and [local library guidance plan](LOCAL_LIBRARY_GUIDANCE_PLAN.md) for the
 authoritative status and acceptance work.
 
+## Playlist optimization implementation record
+
+- [Better Call Bliss productization and implementation plan](BLISS_PLAYLIST_OPTIMIZER_IMPLEMENTATION_PLAN.md)
+- [Latest implementation checkpoint: released repeat-window spacer repair](IMPLEMENTATION_CHECKPOINT_38.md)
+- [Acoustic path-finding design](ACOUSTIC_PATH_FINDING_DESIGN.md)
+- [Example Playlist 2026 plan](PLAYLIST_OPTIMIZATION_PLAN.md)
+- [Executed run, results, reproduction, and rollback](PLAYLIST_OPTIMIZATION_EXECUTION.md)
+- [Example Playlist 2025 evaluation and Extended execution](PLAYLIST_OPTIMIZATION_2025_EXECUTION.md)
+
+The implementation history records the one-shot workflow and its later native
+productization. Current shipped behavior remains documented by the owning
+Better Call Bliss and `bliss-playlist-optimizer` repositories.
+
 ## Local preview
 
 ```powershell
