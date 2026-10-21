@@ -1,8 +1,8 @@
 # Acoustic path finding for Better Call Bliss
 
-**Status:** Outer-planner-neutral anchored A-to-B kernel serves destination routes and strict fixed-count global gap planning; budgeted gap repair, preserved-extension placement, and the shared trajectory model remain partial  
+**Status:** The outer-planner-neutral anchored A-to-B kernel serves destination routes, strict fixed-count global gap planning, and minimum-total repeat-window repair; optional budgeted difficult-transition planning, preserved-extension placement, and the shared trajectory model remain partial  
 **Scope:** Destination routes, gap repair, preserved-anchor insertion, fixed-set sequencing, and extension placement  
-**Last reviewed:** 2026-10-20  
+**Last reviewed:** 2026-10-21  
 
 ## Decision
 
@@ -128,7 +128,7 @@ Fast should continue to target roughly five seconds on the current Raspberry Pi 
 1. **Truthful diagnostics - partial:** Static and learned direct-edge evidence, selected role, matrix identities, and effective single-seed behavior are published. Exact Adaptive context reporting and separate direct-trigger sensitivity versus generated-route quality remain open.
 2. **Conservative direct-edge experiment - implemented:** disagreement selects the higher-risk view and triggers repair when that view misses the target. Generic unit and end-to-end destination tests cover the policy; a sanitized corpus case should still be added without hard-coding one bridge as the expected answer.
 3. **Depth-aware destination frontier:** add frontier, endpoint, corridor, and reverse-frontier retrieval; measure recall and latency at 64k and synthetic 200k sizes.
-4. **Shared anchored-path and preserved-gap engine - partial:** the pure A-to-B kernel, destination compatibility adapter, strict fixed-count global multi-gap planner, and minimum-total repeat-window repair are implemented. Next allocate optional bridge budgets across difficult transitions and jointly place already selected preserved-order extension membership without changing their distinct relevance semantics.
+4. **Shared anchored-path and preserved-gap engine - partial:** the pure A-to-B kernel, destination compatibility adapter, strict fixed-count global multi-gap planner, and minimum-total repeat-window repair are implemented. Repeat repair validates every final adjacent leg and the complete repeat proof; it deliberately does not apply the isolated one-bridge detour threshold to one member of a multi-leg repair. Route-search restarts affect only an optional preliminary source-only optimization, while the gap planner owns its bounded beam. Next allocate optional bridge budgets across difficult transitions and jointly place already selected preserved-order extension membership without changing their distinct relevance semantics.
 5. **Shared fixed-set report:** expose adjacent, contextual, and arc evidence before changing reorder selection behavior.
 6. **Boundary-aware late fusion:** add versioned intro/outro evidence and require held-out directional improvement before changing defaults.
 

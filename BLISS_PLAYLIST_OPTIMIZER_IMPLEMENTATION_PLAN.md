@@ -1,7 +1,7 @@
 # Better Call Bliss productization and implementation plan
 
-**Status:** In progress - Better Call Bliss `0.22.8` and
-`bliss-playlist-optimizer` v0.2.5 are published through the private Lyrion
+**Status:** In progress - Better Call Bliss `0.22.9` and
+`bliss-playlist-optimizer` v0.2.6 are published through the private Lyrion
 extension repository. The working product includes read-only previews,
 playlist and queue inputs, verified playlist or queue outputs, the three
 **Bliss me there...** actions, MBID-aware artist repeat identity, genre and
@@ -19,7 +19,7 @@ routes for the live queue, let short source lists reach an exact target through
 the same fixed-source extension, and deliver it as a separately maintained
 Lyrion plugin without requiring Python on the server or modifying
 `lms-blissmixer`.  
-**Latest implementation checkpoint:** [Minimum-total repeat-window spacer repair](IMPLEMENTATION_CHECKPOINT_37.md).  
+**Latest implementation checkpoint:** [Released repeat-window spacer repair](IMPLEMENTATION_CHECKPOINT_38.md).  
 **Historical implementation baseline through `0.17.4`:** `lms-better-call-bliss`
 revision `5d8f85b` completed the original background **Bliss me there...**
 workflow; revision `ec3ce81` grouped durable settings, disabled inapplicable
@@ -43,21 +43,22 @@ added optional BlissMixerLab personalization, platform-specific plugin packages,
 restored the deliberately independent Better Call Bliss Last.fm guidance
 controls, and improved quick-action startup plus scan-in-progress feedback.
 Better Call Bliss `0.17.4` packages optimizer `v0.1.11`.  
-**Current release update (2026-10-20):** Better Call Bliss `0.22.8` packages
-optimizer v0.2.5. The current release adds **Fill every gap with N bridge
-tracks**, backed by a global fixed-gap beam planner, repeat-conflict and
-candidate-capacity preflight, per-gap progress, and proof-carrying all-or-nothing
-results. Earlier releases generalized optional guidance into
+**Current release update (2026-10-21):** Better Call Bliss `0.22.9` packages
+optimizer v0.2.6. The current release connects **Add spacing tracks as needed**
+to the global multi-gap planner. It freezes the preserved or source-only
+optimized route, searches variable counts per internal gap, retains independent
+beams per cumulative addition count, and returns the repeat-safe route with the
+fewest total additions inside the job's global ceiling. Final acceptance proves
+every adjacent leg and the complete repeat-safe route without misapplying the
+isolated single-bridge detour rule. Better Call Bliss also defaults player-queue
+output to the selected player, queue replacement, and immediate playback.
+Optimizer v0.2.5 and Better Call Bliss 0.22.8 previously added **Fill every gap
+with N bridge tracks**, backed by the same global planner with a strict fixed
+count policy. Earlier releases generalized optional guidance into
 discoverable providers, released both LastMix and direct API-key Last.fm
 acquisition, added Library Signals with optional APC-backed play count and last
 played, introduced MBID-aware artist repeat identity in both native hosts, and
 added destination-route repeat preflight plus fail-fast diagnostics.  
-**Feature-branch update (2026-10-21):** the same global planner now also supports
-the existing **Add spacing tracks as needed** workflow. It searches variable
-counts per frozen source gap, retains independent beams per cumulative addition
-count, minimizes the complete route's total additions, and treats the current
-maximum-additions value as a ceiling. This work is implemented and locally
-tested but not yet released or deployed.  
 **Working-tree Gate 2 (2026-08-19):** destination routes now use a dedicated  
 fixed-matrix layered adjacent path search with complete-route Variation, a  
 shared transformed-feature distance index, and configurable Fast, Balanced, or  
@@ -135,7 +136,7 @@ inventory follows this table.
 | Add bridge tracks automatically where transitions are difficult | ✅ Available | Bliss-only automatic insertion is connected; it may correctly decide that zero additions are needed. |
 | Extend playlist | ✅ Available | Enter exact additions, a final target count, or double-count per job. The plugin calculates the final size and uses fixed-source membership selection, so the requested amount is not capped by internal source gaps. A short input can therefore serve as a mood reference without needing a separate Grow strategy. |
 | Fill every gap with N bridge tracks | ✅ Released | Better Call Bliss `0.22.8` and optimizer v0.2.5 expose the capability-gated preset. It inserts exactly `N` bridges into every internal source gap, with no opening or closing additions. One global native beam plan coordinates unique membership, repeat windows, contextual acoustic scoring, optional guidance, and all-or-nothing failure across the complete playlist. |
-| Add spacing tracks as needed | 🟡 Implemented on feature branches | Freezes the preserved or source-only optimized order and asks the same global native planner for the smallest feasible number of additions. Counts may differ per internal gap; endpoints remain empty; the job maximum is a global ceiling. Dedicated request/result contracts and independent host proofs are implemented and locally tested; release and live deployment remain pending. |
+| Add spacing tracks as needed | ✅ Released | Better Call Bliss `0.22.9` and optimizer v0.2.6 freeze the preserved or source-only optimized order and ask the global native planner for the smallest feasible number of additions. Counts may differ per internal gap; endpoints remain empty; the job maximum is a global ceiling. Dedicated request/result contracts, final multi-leg acceptance, and independent host proofs prevent partial or locally rejected-but-globally-valid results. |
 | Reach a chosen target track count or double the playlist by count | ✅ Available | These are amount choices under **Extend playlist**. They derive the required additions and use fixed-source membership selection. Duration-based targets remain future work. |
 | Turn a short source list into a full similar playlist | ✅ Available | Choose **Extend playlist** and **Reach a final track count**. The same fixed-source extension keeps the complete original set as its relevance reference, then either optimizes all tracks together or preserves the originals as ordered anchors. This is a usage of Extend playlist, not a separate strategy. |
 | Preserve the existing song order and fill its gaps | ✅ Available | Choose preserved source order with difficult-transition improvements, Extend playlist, or Fill every gap with N bridge tracks. Every original remains in exact relative order. Extend playlist places whole-source-relevant additions around the anchors; fixed-gap mode builds one exact route inside every original gap. |
@@ -157,7 +158,7 @@ inventory follows this table.
 | See running, success, failure, and accept-action outcomes in the UI | ✅ Available | The page polls current jobs and presents accessible, actionable status banners for previews, copy creation, source overwrite, and player-queue output without requiring log inspection. |
 | Cancel jobs, resume after restart, and browse/export past results | 🟡 Limited | Current in-memory jobs can be polled by ID, listed in the Extras page, and cancelled while the native optimizer process is running. Restart recovery, durable history, persistence-phase cancellation, search, and report export are missing. |
 | Configure durable defaults and inspect system readiness | 🟡 Partial | The settings page and core readiness checks exist; complete provider, active-job, and persistence-health status is unfinished. |
-| Install and update from a Lyrion extension repository | 🟡 Private beta | The plugin release workflow builds ZIP/checksum artifacts, bundles optimizer binaries, publishes GitHub releases, and updates `chrober/lms-plugins`; Better Call Bliss `0.22.8` packages optimizer v0.2.5. Clean install, upgrade, uninstall, outage, and compatibility-matrix testing remain incomplete. |
+| Install and update from a Lyrion extension repository | 🟡 Private beta | The plugin release workflow builds ZIP/checksum artifacts, bundles optimizer binaries, publishes GitHub releases, and updates `chrober/lms-plugins`; Better Call Bliss `0.22.9` packages optimizer v0.2.6. Clean install, upgrade, uninstall, outage, and compatibility-matrix testing remain incomplete. |
 
 ## Detailed roadmap status
 
@@ -216,7 +217,7 @@ would otherwise make the summary stale.
 | Playlist workflow | Reorder existing tracks: Preview | ✅ Implemented | Live, asynchronous, read-only Preview with per-job constraints and actionable infeasibility is working. |
 | Playlist workflow | Reorder existing tracks: create optimized copy | ✅ Implemented | Reviewed output can be written as a verified new LMS playlist without changing the source. |
 | Playlist workflow | Add automatically: Preview and create copy | ✅ Implemented | Bliss-only automatic insertion is connected end to end and may correctly add zero tracks. |
-| Playlist workflow | Repeat-window spacer repair | 🟡 Implemented on feature branches | The existing Add spacing tracks as needed choice now uses a dedicated native request. It freezes preserved or optimized source order, jointly searches variable-count paths across all internal gaps, retains beams per cumulative count, and selects the valid route with the fewest additions inside the global budget. Dedicated proof validation replaces the unreliable fixed-source-extension workaround; release and live validation remain pending. |
+| Playlist workflow | Repeat-window spacer repair | ✅ Implemented and released | **Add spacing tracks as needed** uses a dedicated native request. It freezes preserved or optimized source order, jointly searches variable-count paths across all internal gaps, retains beams per cumulative count, and selects the valid route with the fewest additions inside the global budget. Dedicated proof validation replaces the unreliable fixed-source-extension workaround. Final exact decisions validate every adjacent leg and the complete repeat-safe route; the single-bridge detour threshold remains confined to local bridge workflows. |
 | Playlist workflow | Preserved-order multi-track repeat-deficit placement | ✅ Implemented for spacing repair | The global planner can place several additions in one affected source gap without requiring any single insertion to remove the whole deficit. Whole-source **Extend playlist** still uses its distinct fixed-membership placement path and is not silently reinterpreted as repeat repair. |
 | Playlist workflow | Extend playlist | ✅ Implemented | Per-job exact additions, target count, and double-count are mapped to native fixed-source extension membership selection, all-or-nothing normalization, result diagnostics, verified copy persistence, and live ARM64-compatible requests. |
 | Playlist workflow | Fill every gap with N bridge tracks | ✅ Implemented | The advanced Extras mode accepts `1..8` bridges per gap and derives exactly `B * (S - 1)` additions. A global beam planner coordinates all gaps under unique membership, repeat windows, Rolling/Frozen Adaptive context, guidance, and deterministic Variation. Its dedicated result artifact proves exact per-gap placement, unchanged source membership/order policy, no endpoint additions, complete-route repeat validity, and all-or-nothing feasibility; the Perl host independently verifies those proofs before output. |
@@ -259,9 +260,9 @@ would otherwise make the summary stale.
 | Reliability | Privacy/redaction audit and failure-matrix testing | 🟡 Partial | Public fixtures/docs are sanitized and runtime logging is restrained; formal redaction tests and the complete outage/recovery matrix remain. |
 | Packaging | ARM64 development deployment | ✅ Implemented | The plugin and bundled optimizer are repeatedly exercised on the live ARM64 LMS server. |
 | Packaging | Supported multi-platform native/plugin packages | ✅ Implemented | The plugin release workflow consumes optimizer release artifacts for aarch64, armhf, x86_64 Linux, macOS, and Windows and packages them without committing binaries. Broader smoke coverage can still improve. |
-| Packaging | Versioned plugin ZIPs and checksums | ✅ Implemented | GitHub Actions creates versioned plugin ZIPs plus SHA-1/SHA-256 files from the pinned optimizer release. Better Call Bliss `0.22.8` packages optimizer v0.2.5, including native binaries for every supported platform. Manual hot-deploy remains useful for live development. |
+| Packaging | Versioned plugin ZIPs and checksums | ✅ Implemented | GitHub Actions creates versioned plugin ZIPs plus SHA-1/SHA-256 files from the pinned optimizer release. Better Call Bliss `0.22.9` packages optimizer v0.2.6, including native binaries for every supported platform. Manual hot-deploy remains useful for live development. |
 | Release | Extension-repository listing | ✅ Implemented | The plugin release workflow updates `chrober/lms-plugins` with immutable GitHub release-asset URLs for Unix, macOS, and Windows packages. |
-| Release | Private beta install/upgrade/failure testing | 🟡 Partial | A private-beta feed and live installs exist, with current package `0.22.8`. Clean install, upgrade visibility/cache refresh, uninstall, outage, scanner, cancellation, and recovery cases still need systematic testing. |
+| Release | Private beta install/upgrade/failure testing | 🟡 Partial | A private-beta feed and live installs exist, with current package `0.22.9`. Clean install, upgrade visibility/cache refresh, uninstall, outage, scanner, cancellation, and recovery cases still need systematic testing. |
 | Release | Public release and compatibility documentation | ⬜ Not implemented | No discoverable public release, compatibility matrix, or extension-manager installation exists yet. |
 
 ## Canonical design references

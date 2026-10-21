@@ -1,7 +1,7 @@
 # Repeat-window spacer repair implementation plan
 
 **Date:** 2026-10-20  
-**Status:** Implemented on feature branches; release and live deployment pending  
+**Status:** Implemented and released in Better Call Bliss `0.22.9` with `bliss-playlist-optimizer` v0.2.6  
 **Primary owners:** `bliss-playlist-optimizer`, `lms-better-call-bliss`  
 
 ## Goal
@@ -53,12 +53,11 @@ per-gap counts and the final minimum total.
 
 The implementation follows the design without adding another user-facing mode:
 
-- `bliss-playlist-optimizer` branch
-  `feature/repeat-window-spacer-repair` adds capability
+- `bliss-playlist-optimizer` capability
   `repeat_window_repair_v1`, a dedicated request/result contract, source-only
   lower-bound preflight, and a shared inner global planner used by both exact
   fixed-gap and minimum-total repair policies.
-- `lms-better-call-bliss` branch `feature/repeat-window-spacer-repair` maps the
+- `lms-better-call-bliss` maps the
   existing **Add spacing tracks as needed** choice to that native mode, keeps
   the existing maximum-additions control as its global ceiling, and validates
   the returned variable per-gap proof before Preview acceptance.
@@ -69,12 +68,21 @@ The implementation follows the design without adding another user-facing mode:
   chooses the source-only order; the global repair owns final repeat-window
   enforcement. Trusted requests reject fields belonging to other modes, and
   the plugin binds each selected candidate identity to its physical source gap.
-- Local Windows validation retains two pre-existing fixture-hash failures caused
-  by CRLF differences; route and scoring payloads remain identical. Linux CI is
-  still required before release.
+- Final repair decisions use multi-leg path acceptance: every adjacent leg must
+  satisfy the configured maximum-leg percentile and the complete route must
+  satisfy repeat windows. The isolated single-bridge detour rule is not
+  reapplied to one member of a globally valid spacing path.
+- Optimizer revision `743cdfd` contains the final resolver correction and is
+  published as v0.2.6 from `main` revision `adad000`. Better Call Bliss revision
+  `fc861b8` contains the queue-output default improvement and is published as
+  `0.22.9` from `main` revision `92bb85b`.
+- Native formatting, Clippy, all-feature unit/integration/contract tests, plugin
+  tests, release workflows, multi-platform packages, checksums, and extension
+  feed metadata passed for the coordinated release.
 
-No GitHub build, release, Pi deployment, or Lyrion restart is part of this
-implementation checkpoint.
+The ARM64 optimizer was also hot-deployed during development. The published
+packages are the authoritative install path; a post-release replay of the
+original difficult playlist remains a useful live regression check.
 
 ## File map
 
