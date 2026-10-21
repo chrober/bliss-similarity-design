@@ -36,17 +36,20 @@ build, release, Pi deployment, and live Lyrion validation remain pending.
   subsequence, unique membership, endpoint exclusion, addition budget, and
   complete artist, album, and track repeat-window compliance. Better Call Bliss
   validates those proofs and each selected candidate's physical gap before
-  enabling output actions. Trusted native requests enforce the same dedicated
-  field contract as schema-validated requests.  
+  enabling output actions. It also checks the reported source anchors and
+  zero-based final-route position for every selected bridge. Trusted native
+  requests enforce the same dedicated field contract as schema-validated
+  requests.  
 - Existing controls and labels remain unchanged; the result now explains the
-  selected minimum total and its actual gap placements.  
+  selected minimum total and its actual gap placements. The established
+  `Spacing target: start at ...` information-log body remains unchanged.  
 
 ## Implementation revisions
 
 | Component | Branch | Revisions |
 | --- | --- | --- |
 | `bliss-playlist-optimizer` | `feature/repeat-window-spacer-repair` | `d4dc59b`, `ea9c6a9`, `006f3db`, `ff76e72`, `ffd09a8` |
-| `lms-better-call-bliss` | `feature/repeat-window-spacer-repair` | `e5f4c6d`, `999c926`, `392b5bb` |
+| `lms-better-call-bliss` | `feature/repeat-window-spacer-repair` | `e5f4c6d`, `999c926`, `392b5bb`, `593bbcd` |
 
 ## Verification evidence
 
@@ -57,7 +60,7 @@ build, release, Pi deployment, and live Lyrion validation remain pending.
 - `cargo fmt --check` and
   `cargo clippy --locked --all-targets --all-features -- -D warnings` passed.  
 - Better Call Bliss focused tests passed: `job_options.t` 75/75,
-  `request_json_types.t` 91/91, `repeat_window_repair.t` 6/6,
+  `request_json_types.t` 92/92, `repeat_window_repair.t` 8/8,
   `metadata_hygiene.t` 162/162, and `log_diagnostics.t` 41/41.  
 - Two existing Windows full-suite tests still differ only in fixture hashes
   because checkout line endings change request artifacts; numerical and route
