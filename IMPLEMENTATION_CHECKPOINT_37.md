@@ -25,12 +25,19 @@ build, release, Pi deployment, and live Lyrion validation remain pending.
 - Search retains a bounded beam for every cumulative addition count, preventing
   a locally cheaper early route from eliminating a larger partial route needed
   by a later repeated source anchor.  
-- Source-only spacing lower bounds reject clearly insufficient budgets and
-  candidate inventories before the global search. Failure remains atomic.  
+- Preserve-order preflight calculates the exact positional spacing minimum;
+  Optimize uses only the order-independent membership lower bound until its
+  source-only route is frozen. Both reject clearly insufficient budgets before
+  candidate search without mistaking a local conflict for a safe playlist.  
+- Optimized source-only routing does not require the incomplete route to obey
+  final repeat windows; the global repair owns that enforcement. Failure
+  remains atomic.  
 - The result carries per-gap selections and independent proofs for source
   subsequence, unique membership, endpoint exclusion, addition budget, and
   complete artist, album, and track repeat-window compliance. Better Call Bliss
-  validates those proofs before enabling output actions.  
+  validates those proofs and each selected candidate's physical gap before
+  enabling output actions. Trusted native requests enforce the same dedicated
+  field contract as schema-validated requests.  
 - Existing controls and labels remain unchanged; the result now explains the
   selected minimum total and its actual gap placements.  
 
@@ -38,8 +45,8 @@ build, release, Pi deployment, and live Lyrion validation remain pending.
 
 | Component | Branch | Revisions |
 | --- | --- | --- |
-| `bliss-playlist-optimizer` | `feature/repeat-window-spacer-repair` | `d4dc59b`, `ea9c6a9`, `006f3db` |
-| `lms-better-call-bliss` | `feature/repeat-window-spacer-repair` | `e5f4c6d` |
+| `bliss-playlist-optimizer` | `feature/repeat-window-spacer-repair` | `d4dc59b`, `ea9c6a9`, `006f3db`, `ff76e72`, `ffd09a8` |
+| `lms-better-call-bliss` | `feature/repeat-window-spacer-repair` | `e5f4c6d`, `999c926`, `392b5bb` |
 
 ## Verification evidence
 
@@ -49,9 +56,9 @@ build, release, Pi deployment, and live Lyrion validation remain pending.
   with one and four Rayon workers.  
 - `cargo fmt --check` and
   `cargo clippy --locked --all-targets --all-features -- -D warnings` passed.  
-- Better Call Bliss focused tests passed: `job_options.t` 74/74,
-  `request_json_types.t` 89/89, `repeat_window_repair.t` 5/5,
-  `metadata_hygiene.t` 162/162, and `log_diagnostics.t` 39/39.  
+- Better Call Bliss focused tests passed: `job_options.t` 75/75,
+  `request_json_types.t` 91/91, `repeat_window_repair.t` 6/6,
+  `metadata_hygiene.t` 162/162, and `log_diagnostics.t` 41/41.  
 - Two existing Windows full-suite tests still differ only in fixture hashes
   because checkout line endings change request artifacts; numerical and route
   content is identical. Linux CI remains the release gate.  

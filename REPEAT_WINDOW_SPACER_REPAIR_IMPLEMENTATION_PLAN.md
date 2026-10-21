@@ -12,8 +12,10 @@ selected artist, album, and track repeat windows. Source tracks remain an
 ordered subsequence, additions occur only inside source gaps, and candidate
 selection remains Bliss-first with optional bounded guidance.
 
-The current plugin-wide minimum-size calculation remains a cheap lower-bound
-preflight. It must no longer dictate the exact result size or feed the generic
+The plugin keeps only safe, cheap preflights. Preserve order uses the exact
+positional minimum implied by its fixed source anchors; Optimize uses only an
+order-independent membership lower bound until the native source-only route is
+known. Neither preflight may dictate the result size or feed the generic
 fixed-source extension placer. The native global planner decides the feasible
 per-gap counts and the final minimum total.
 
@@ -38,8 +40,10 @@ per-gap counts and the final minimum total.
   that is required to satisfy a later source repeat.
 - The existing acoustic leg acceptance, candidate-library, genre, virtual
   library, uniqueness, repeat-identity, and guidance rules remain authoritative.
-- If the source is already repeat-safe, the plugin retains its current explicit
-  no-op response instead of producing an unchanged preview.
+- If the source is already repeat-safe, the workflow retains an explicit no-op
+  response instead of producing an unchanged preview. Preserve can establish
+  this in the plugin; Optimize establishes it natively after freezing its
+  source-only route.
 - Failure is all-or-nothing and returns no partial route.
 - Existing user-facing labels and controls remain unchanged. Result details may
   add gap/count proof, but established Better Call Bliss log bodies must not be
@@ -61,6 +65,10 @@ The implementation follows the design without adding another user-facing mode:
 - Pure planner, JSON contract, end-to-end native, request typing, option
   normalization, result validation, diagnostics, and metadata tests cover the
   new path. One- and four-worker Rayon executions produce the same route.
+- Optimized source routing deliberately ignores final repeat windows while it
+  chooses the source-only order; the global repair owns final repeat-window
+  enforcement. Trusted requests reject fields belonging to other modes, and
+  the plugin binds each selected candidate identity to its physical source gap.
 - Local Windows validation retains two pre-existing fixture-hash failures caused
   by CRLF differences; route and scoring payloads remain identical. Linux CI is
   still required before release.
