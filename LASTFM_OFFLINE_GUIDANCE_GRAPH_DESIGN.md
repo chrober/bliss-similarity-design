@@ -1,15 +1,16 @@
 # Last.fm offline guidance graph design
 
 **Status:** Approved design; implementation planning remains  
-**Scope:** Persistent Last.fm artist-similarity graph, read-through acquisition,
-offline operation, and library-wide artist synchronization  
+**Scope:** API-key-only persistent Last.fm artist-similarity graph, read-through
+acquisition, offline operation, and library-wide artist synchronization  
 **Last reviewed:** 2026-10-22  
 
 ## Purpose
 
-The Last.fm guidance provider currently keeps a bounded JSON TTL cache for the
-source anchors needed by one guidance job. This design replaces that cache with
-a provider-owned SQLite store that can support three related uses:
+The Last.fm guidance provider's direct **API Key** path currently keeps a
+bounded JSON TTL cache for the source anchors needed by one guidance job. This
+design replaces that cache with a provider-owned SQLite store that can support
+three related uses:
 
 - reuse every successful online lookup in later jobs;
 - prefetch similar-artist data for all artists in the current Lyrion library;
@@ -20,6 +21,11 @@ The store must preserve MusicBrainz identifiers, must retain non-library result
 artists by default, and must keep Last.fm observations separate from Lyrion's
 own metadata. Hosts remain Bliss-first: the graph contributes secondary
 guidance only for candidates that the host has already admitted.
+
+This is deliberately an **API-key-only design**. Selecting **LastMix** retains
+the existing job-specific resolved-artifact flow. LastMix does not open, read,
+populate, refresh, migrate, maintain, or report the SQLite graph described
+here.
 
 ## Success criteria
 
@@ -54,6 +60,8 @@ guidance only for candidates that the host has already admitted.
   command line, log, diagnostic, or SQLite database.
 - Do not bulk-prefetch similar tracks. Normal job-time track lookups may use the
   same read-through store.
+- Do not integrate LastMix with the offline graph. Any future LastMix-backed
+  persistence would require its own design and is not implied by this one.
 
 ## Considered approaches
 
@@ -67,8 +75,8 @@ guidance only for candidates that the host has already admitted.
 
 | Component | Responsibility |
 | --- | --- |
-| `lms-guidance-lastfm` | Provider settings, API-key ownership, Lyrion artist-root snapshot, background-job lifecycle, status and user-facing maintenance actions |
-| `bliss-guidance-lastfm` | SQLite schema and migration, Last.fm HTTP client, read-through acquisition, graph lookup, synchronization command, size/rate controls and structured diagnostics |
+| `lms-guidance-lastfm` | Provider settings, API-key ownership, Lyrion artist-root snapshot, API-key-only background-job lifecycle, status and user-facing maintenance actions |
+| `bliss-guidance-lastfm` | API-key-only SQLite schema and migration, direct Last.fm HTTP client, read-through acquisition, graph lookup, synchronization command, size/rate controls and structured diagnostics |
 | `bliss-playlist-guidance-spi` | Existing provider lifecycle and score contract; no protocol revision is expected |
 | Guidance hosts | Provider discovery, opt-in, bounded candidate batches, Bliss-first policies and established result/log rendering |
 | `bliss-similarity-design` | Cross-component design, implementation plan and historical status |
@@ -84,8 +92,8 @@ flowchart LR
     LMS["Lyrion artist metadata"] --> Roots["Versioned local artist-root snapshot"]
     UI["Last.fm provider settings and maintenance UI"] --> Job["Provider background job"]
     Roots --> Job
-    Job --> Native["bliss-guidance-lastfm"]
-    Host["Compatible guidance host"] --> Native
+    Job --> Native["bliss-guidance-lastfm API Key path"]
+    Host["Compatible guidance host with API Key selected"] --> Native
     Native <--> Store[("lastfm-guidance.sqlite")]
     Native -->|"bounded prepare requests"| API["Last.fm API"]
     Native -->|"frozen signals and diagnostics"| Host
@@ -258,15 +266,15 @@ The provider owns one global retrieval policy:
 The retrieval policy is provider-owned rather than host-overridable. Existing
 host overrides for scoring influence and Last.fm source remain independent.
 
-The first release supports the persistent graph through the **API Key** source.
-The **LastMix** source keeps its current job-specific resolved-artifact path.
-LastMix may later populate the graph only after it can provide complete raw
-relations with source identity, target names/MBIDs, score, rank and acquisition
-time; candidate-resolved edges are insufficient.
+The persistent graph is available exclusively through the **API Key** source.
+The **LastMix** source keeps its current job-specific resolved-artifact path and
+never accesses the SQLite graph. A future LastMix graph integration would need
+a separate design; this document neither requires nor anticipates one.
 
 Provider UI behavior:
 
-- graph and synchronization controls are enabled only for **API Key**;
+- graph and synchronization controls are shown and enabled only for **API
+  Key**; they are absent when **LastMix** is selected;
 - **Store all returned artists** is the default scope;
 - **Store only artists in the current Lyrion library** is the optional scope;
 - **Similar artists stored per source** offers `25`, `50`, and `100`, with `25`
@@ -438,7 +446,8 @@ as generally licensed for indefinite offline retention.
 
 ## Migration
 
-On first API-key use after upgrade, the native provider:
+On first API-key use after upgrade, and never from the LastMix path, the native
+provider:
 
 1. creates and validates the SQLite schema;
 2. takes the existing JSON cache lock;
@@ -456,16 +465,17 @@ store. Repeated migration is idempotent.
 
 The provider settings page shows:
 
-- Last.fm source and API-key controls already owned by the provider;
-- retrieval policy;
-- persistence scope;
-- similar artists stored per source (`25`, `50`, or `100`);
-- current database size and 80 MB operating budget;
-- local root coverage: indexed, fresh, stale, missing and failed;
-- stored external target count, directed edge count and reciprocal-pair count;
-- last synchronization start/completion and current status;
-- **Update offline data**, **Pause/Resume**, **Cancel**, **Compact/rebuild**, and
-  **Delete offline data** actions.
+- Last.fm source and API-key controls already owned by the provider; and
+- when **API Key** is selected, retrieval policy, persistence scope, similar
+  artists stored per source (`25`, `50`, or `100`), database health and all
+  graph-maintenance status and actions described below.
+
+The API-key-only graph section shows the current database size and 80 MB
+operating budget; local root coverage; stored external-target, directed-edge
+and reciprocal-pair counts; last synchronization status; and **Update offline
+data**, **Pause/Resume**, **Cancel**, **Compact/rebuild**, and **Delete offline
+data** actions. None of these graph controls or statistics is shown for
+LastMix.
 
 Deleting offline data requires explicit confirmation and removes the SQLite
 database, WAL, migration cache and provider-created backups. It does not remove
@@ -563,7 +573,9 @@ rather than one information line per artist.
 
 - Existing valid JSON entries import once and preserve usable results.
 - Corrupt or unsupported JSON does not destroy either file.
-- Artifact-backed LastMix behavior remains byte-for-byte compatible.
+- The migration is reachable only when **API Key** is selected.
+- Artifact-backed LastMix behavior remains byte-for-byte compatible and causes
+  no SQLite open, read, write, migration, maintenance, or graph diagnostics.
 - Existing Better Call Bliss preview text and Bliss Mixer Lab selection logs
   remain unchanged except for additional provider cache-state diagnostics where
   their established contracts allow them.
