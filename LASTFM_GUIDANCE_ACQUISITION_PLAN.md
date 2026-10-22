@@ -264,3 +264,8 @@ Status-quo documentation describes both released acquisition adapters, the
 provider-owned cache and diagnostics, candidate identity flow, and the
 network-free scoring boundary. Unexecuted failure or performance checks remain
 explicit follow-up work rather than being presented as missing functionality.  
+
+The approved design for replacing the direct adapter's JSON TTL cache with a
+persistent MBID-aware SQLite graph, read-through persistence, library-wide
+artist synchronization, and explicit offline policies is documented in
+[Last.fm offline guidance graph design](LASTFM_OFFLINE_GUIDANCE_GRAPH_DESIGN.md).
