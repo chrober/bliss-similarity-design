@@ -25,6 +25,8 @@ guidance only for candidates that the host has already admitted.
 
 - A successful API-key lookup is transactionally available to the next offline
   job without repeating the request.
+- Server-side changes are detected through HTTP validators where available and
+  through a canonical ordered-result hash after a successful revalidation.
 - Artist and recording MBIDs are stored and used before normalized-name
   fallbacks.
 - Similarity observations remain directional; `A -> B` never invents `B -> A`.
@@ -168,11 +170,15 @@ artist_queries
   query_id
   source_artist_id
   fetched_at
+  validated_at
+  changed_at
   expires_at
   etag
   last_modified
+  payload_hash
   acquisition_source
-  result_limit
+  requested_limit
+  actual_result_count
   result_status
 
 artist_similarity_edges
@@ -201,11 +207,15 @@ track_queries
   query_id
   source_track_id
   fetched_at
+  validated_at
+  changed_at
   expires_at
   etag
   last_modified
+  payload_hash
   acquisition_source
-  result_limit
+  requested_limit
+  actual_result_count
   result_status
 
 track_similarity_edges
@@ -223,6 +233,17 @@ source; readers never observe half an API response.
 Successful empty results are stored as negative observations. Transport or API
 failures are not negative observations and do not replace a previous usable
 result.
+
+The payload hash covers the method, source identity and ordered result tuples.
+An artist tuple contains target MBID or fallback identity, rank and normalized
+similarity score. The requested limit is stored separately so increasing it
+does not look like a server-side similarity change when Last.fm returns the
+same list. A changed rank or score remains observable even when the returned
+artist membership is identical.
+
+`fetched_at` records the latest complete `200` response, `validated_at` records
+the latest successful `200` or `304` validation, and `changed_at` records the
+latest response whose canonical payload hash differed from the stored graph.
 
 ## Retrieval policies
 
@@ -248,6 +269,9 @@ Provider UI behavior:
 - graph and synchronization controls are enabled only for **API Key**;
 - **Store all returned artists** is the default scope;
 - **Store only artists in the current Lyrion library** is the optional scope;
+- **Similar artists stored per source** offers `25`, `50`, and `100`, with `25`
+  preserving the current default until live API and storage measurements
+  justify a larger default;
 - changing the scope affects new and refreshed observations; an explicit
   compact/rebuild action applies it to already stored data;
 - normal online misses always use read-through persistence when graph storage
@@ -302,7 +326,7 @@ The native command:
 1. validates the versioned root snapshot;
 2. resolves or creates all local root identities;
 3. marks current library membership in one snapshot transaction;
-4. skips usable roots already in the graph;
+4. skips usable roots already in the graph at the configured result limit;
 5. processes missing or refresh-eligible roots under a bounded request budget;
 6. persists each complete response transactionally;
 7. emits versioned JSONL progress and sanitized diagnostics; and
@@ -321,14 +345,63 @@ Lyrion scan when no other scan or synchronization job is active.
 
 The HTTP client retains `Cache-Control`, `Expires`, `ETag` and `Last-Modified`
 when Last.fm supplies them. Revalidation uses conditional requests where the
-endpoint supports them. When no usable cache header is present, the provider's
-documented fallback freshness interval applies.
+endpoint supports them:
+
+- `304 Not Modified` updates `validated_at` and `expires_at` without replacing
+  any edges;
+- a `200` response is normalized and compared with `payload_hash`;
+- an unchanged `200` updates `fetched_at`, validation, expiry, requested limit,
+  and actual count without rewriting edges or changing `changed_at`;
+- a changed `200` atomically replaces the outgoing edges and updates
+  `fetched_at`, `validated_at`, `changed_at`, and `payload_hash`.
+
+Last.fm exposes no documented similarity revision, change token, webhook, or
+push notification. Without an online revalidation, the provider can report only
+the age and last successful validation of an observation; it cannot know that
+Last.fm changed the list.
+
+When no usable cache header is present, the provider applies these documented
+fallback intervals:
+
+- 30 days for a successful non-empty artist-similarity response;
+- 7 days for a successful empty response; and
+- 24 hours for a successful job-time track-similarity response, preserving the
+  current effective host fallback until measured behavior justifies a change.
+
+A stable per-source early-refresh offset between zero and ten percent spreads
+background refreshes without extending the advertised maximum freshness. A
+newly discovered Lyrion artist or a source without a stored observation is
+eligible immediately. The manual update action revalidates expired observations
+but still respects rate-limit, request-budget and cancellation policies.
 
 The store retains the last complete observation after freshness expiry so an
 explicit offline policy can identify it as stale rather than silently treating
 it as fresh. Host traces and provider status distinguish `fresh`, `cached`,
 `stale_offline`, `missing`, `partial`, `rate_limited` and
 `persistence_failed`.
+
+### Result limits
+
+Last.fm's documented `artist.getSimilar` method accepts an optional `limit` but
+does not document a maximum or pagination contract. The current native client
+chooses `25`; this is an implementation default rather than a documented API
+ceiling. The provider may request `50` or `100`, but must record both the
+requested limit and actual returned count instead of assuming the request was
+fully honored.
+
+A stored observation is sufficient only when its requested limit is at least
+the current configured limit. A fresh 25-result observation is therefore
+`incomplete` for a later 50-result request and is eligible for expansion. A
+fresh 100-result observation can serve a 25-result consumer by taking its
+ordered prefix. Reducing the configured limit does not force a network request
+or discard the additional stored edges; the compact/rebuild action may remove
+them when the user wants to reclaim space.
+
+Increasing the limit multiplies graph size and may add mostly non-local target
+artists. Before changing the default from 25, Raspberry Pi acceptance must
+measure actual server response counts, additional local-target coverage,
+database growth, synchronization duration, and the 80 MB budget at limits 25,
+50, and 100.
 
 ## Storage and Last.fm terms
 
@@ -386,6 +459,7 @@ The provider settings page shows:
 - Last.fm source and API-key controls already owned by the provider;
 - retrieval policy;
 - persistence scope;
+- similar artists stored per source (`25`, `50`, or `100`);
 - current database size and 80 MB operating budget;
 - local root coverage: indexed, fresh, stale, missing and failed;
 - stored external target count, directed edge count and reciprocal-pair count;
@@ -405,9 +479,11 @@ unchanged:
 - warning: invalid key, rate limit, damaged store, size limit, failed write or
   failed migration;
 - information: synchronization start/finish/pause, root coverage, requests,
-  fresh/cache/stale counts, persisted edges and database size;
+  fresh/cache/stale counts, requested/returned result limits, validation
+  outcome, changed observations, persisted edges and database size;
 - debug: sanitized source identity, MBID/name resolution path, request outcome,
-  returned count, transaction result and reciprocal-edge observation.
+  HTTP validator path, old/new payload hash prefix, returned count, transaction
+  result and reciprocal-edge observation.
 
 The API key and unbounded raw responses never appear in logs. Normal jobs emit
 aggregate diagnostics and the existing bounded per-request events. Background
@@ -463,10 +539,15 @@ rather than one information line per artist.
 
 - An online miss is available during a second network-blocked run.
 - Positive, empty and stale observations remain distinguishable.
+- `304 Not Modified` extends validity without rewriting graph edges.
+- An unchanged `200` preserves `changed_at`; a changed rank, score or target
+  updates it and atomically replaces the source edges.
 - Offline-only performs zero HTTP requests.
 - A failed SQLite write is visible and is not reported as a cache fill.
 - Default scope stores non-library result targets.
 - Local-only scope excludes them without changing host eligibility.
+- A stored limit of 25 is incomplete for 50, while a stored limit of 100 serves
+  25 from its ordered prefix without another request.
 
 ### Synchronization and resilience
 
@@ -493,6 +574,8 @@ rather than one information line per artist.
   provenance before deployment.
 - Measure cold migration, warm lookup, first read-through and full background
   synchronization resource use.
+- Probe requested limits 25, 50 and 100 and record actual returned counts,
+  local-target coverage, database growth and synchronization time.
 - Confirm LMS UI and queue advancement remain responsive during synchronization.
 - Repeat a guidance job with outbound network blocked and verify identical
   frozen Last.fm observations from SQLite.
@@ -515,6 +598,8 @@ rather than one information line per artist.
 - The packaged binaries declare the required store and synchronization
   capabilities and match their release provenance.
 - Pi acceptance demonstrates network-free reuse and acceptable resource use.
+- Live API acceptance documents how Last.fm actually handles requested limits
+  25, 50 and 100 without treating that observation as a guaranteed API maximum.
 - The combined retained Last.fm footprint remains below 80 MB.
 - Publicly enabling indefinite stale **Offline only** use requires written
   Last.fm clarification; absence of that clarification must remain explicit in
