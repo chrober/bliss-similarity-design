@@ -1,7 +1,7 @@
 # Last.fm offline guidance graph implementation plan
 
 **Date:** 2026-10-22  
-**Status:** Ready for implementation review  
+**Status:** Local implementation complete through host-path cleanup; release and Pi acceptance pending
 **Primary owners:** `bliss-guidance-lastfm`, `lms-guidance-lastfm`  
 
 > **For agentic workers:** REQUIRED SUB-SKILL: use
@@ -23,6 +23,18 @@ Perl/Lyrion plugin APIs, Test::More, GitHub Actions cross-platform builds.
 
 **Specification:**
 [`LASTFM_OFFLINE_GUIDANCE_GRAPH_DESIGN.md`](LASTFM_OFFLINE_GUIDANCE_GRAPH_DESIGN.md)
+
+## Implementation snapshot (2026-10-23)
+
+| Area | State | Remaining gate |
+| --- | --- | --- |
+| Native SQLite graph, MBID-first identity, migration, freshness, read-through, limits and policies | Implemented, committed and locally tested on `feature/offline-lastfm-graph` | Cross-platform release build and Pi acceptance |
+| Native maintenance CLI and JSONL progress | Implemented and locally tested | Long-running real-library, cancellation, rate-limit and storage-budget verification on the Pi |
+| Provider-owned paths, settings, library-root snapshot and background job | Implemented, committed and locally tested on `feature/offline-lastfm-graph` | Material/Lyrion live UI and restart-recovery verification |
+| Manual settings-page update | Implemented with JSON-RPC start/status/pause/resume/cancel polling; normal Save remains explicit | Real API-key synchronization test on the Pi |
+| LastMix isolation | Covered by source gating and existing artifact-path tests | Filesystem-open proof on packaged Pi build |
+| Generic host cleanup | Old Last.fm JSON-cache paths removed in local main-branch commits for Better Call Bliss and Bliss Mixer Lab | Complete host suites and released package verification |
+| Documentation and release | In progress | Version bumps, GitHub binaries, package/feed inspection and deployment require a later explicit release/deploy request |
 
 ## Global constraints
 

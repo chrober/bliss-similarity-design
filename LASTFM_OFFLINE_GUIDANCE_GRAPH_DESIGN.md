@@ -1,6 +1,6 @@
 # Last.fm offline guidance graph design
 
-**Status:** Approved design; implementation planning remains  
+**Status:** Approved design; local implementation complete, release and Pi acceptance pending
 **Scope:** API-key-only persistent Last.fm artist-similarity graph, read-through
 acquisition, offline operation, and library-wide artist synchronization  
 **Last reviewed:** 2026-10-22  
