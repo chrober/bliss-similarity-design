@@ -40,9 +40,9 @@ here.
   and does not recursively crawl every returned artist.
 - Non-library result artists are retained by default; an explicit setting may
   restrict persistence to current local targets.
-- A dedicated database plus its journal and legacy cache stay below an
-  operational 80 MB budget and therefore leave headroom below Last.fm's current
-  100 MB reasonable-usage cap.
+- Retained Last.fm response data stays below an internal 80 MiB safety budget
+  and therefore leaves headroom below Last.fm's current 100 MB
+  reasonable-usage cap. Physical SQLite storage is measured separately.
 - Normal provider scoring remains network-free after `prepare` has frozen the
   observations for the job.
 - Missing data, an unavailable network, rate limiting, a damaged store, or a
@@ -146,13 +146,14 @@ is unambiguous. Distinct MBIDs sharing one display name remain distinct. A
 name-only lookup that maps to multiple MBID nodes remains a separate fallback
 identity instead of guessing.
 
-Track read-through entries use the same principles with Recording MBID first
-and normalized artist/title second. Track bulk synchronization is out of scope.
+Track similarity remains job-time guidance. It may use a separate short-lived
+JSON cache keyed by Recording MBID first and normalized artist/title second,
+but it is never persisted in the SQLite offline graph. Track bulk
+synchronization is out of scope.
 
 ## SQLite schema
 
-The first schema contains logically separate artist and track areas so the
-artist synchronization feature does not force a generic, opaque entity model:
+The SQLite schema is intentionally an artist-similarity graph:
 
 ```text
 metadata
@@ -203,34 +204,6 @@ library_snapshots
 library_artist_membership
   snapshot_id
   artist_id
-
-tracks
-  track_id
-  recording_mbid
-  artist_id
-  canonical_title
-  normalized_title
-
-track_queries
-  query_id
-  source_track_id
-  fetched_at
-  validated_at
-  changed_at
-  expires_at
-  etag
-  last_modified
-  payload_hash
-  acquisition_source
-  requested_limit
-  actual_result_count
-  result_status
-
-track_similarity_edges
-  query_id
-  target_track_id
-  rank
-  match_score
 ```
 
 Partial unique indexes protect non-empty MBIDs. Lookup indexes cover normalized
@@ -291,20 +264,26 @@ Provider UI behavior:
 sequenceDiagram
     participant H as Guidance host
     participant P as Last.fm provider
-    participant DB as SQLite graph
+    participant DB as Artist-only SQLite graph
+    participant TC as Short-lived track JSON cache
     participant LF as Last.fm API
 
     H->>P: Prepare with frozen anchors and policy
-    P->>DB: Resolve source by MBID, then name fallback
-    alt Usable stored observation
-        DB-->>P: Directed result edges
-    else Missing or refresh required and network allowed
-        P->>LF: Bounded getSimilar request
-        LF-->>P: Names, MBIDs, ranks and scores
-        P->>DB: Atomically persist observation and edges
-        DB-->>P: Commit result
-    else Offline-only miss
-        P-->>P: Record neutral missing observation
+    P->>DB: Resolve artist source by MBID, then name fallback
+    P->>TC: Check short-lived track result
+    alt Usable stored artist observation
+        DB-->>P: Directed artist edges
+    else Artist miss or refresh and network allowed
+        P->>LF: Bounded artist.getSimilar request
+        LF-->>P: Artist names, MBIDs, ranks and scores
+        P->>DB: Atomically persist artist observation and edges
+    end
+    alt Track cache miss and network allowed
+        P->>LF: Bounded track.getSimilar request
+        LF-->>P: Track result for this job
+        P->>TC: Refresh short-lived JSON entry
+    else Offline-only track miss
+        P-->>P: Track guidance remains neutral
     end
     P->>P: Freeze relations for provider session
     P-->>H: Prepared diagnostics
@@ -408,7 +387,8 @@ them when the user wants to reclaim space.
 Increasing the limit multiplies graph size and may add mostly non-local target
 artists. Before changing the default from 25, Raspberry Pi acceptance must
 measure actual server response counts, additional local-target coverage,
-database growth, synchronization duration, and the 80 MB budget at limits 25,
+physical database growth, retained-data growth, synchronization duration, and
+the 80 MiB budget at limits 25,
 50, and 100.
 
 ## Storage and Last.fm terms
@@ -421,22 +401,43 @@ limits:
 
 <https://www.last.fm/api/tos>
 
-The implementation therefore uses a dedicated store and counts, at minimum:
+The implementation therefore accounts a deterministic canonical form of the
+Last.fm fields retained for every stored artist observation:
 
-- the SQLite main database;
-- its write-ahead log;
-- the legacy JSON cache until migration removes it; and
-- any provider-created export or backup containing the same observations.
+- returned artist names and MBIDs;
+- returned ranks and similarity scores; and
+- retained HTTP validators such as `ETag` and `Last-Modified`.
 
-The operational hard stop is 80 MB across those files. The provider checks the
-budget before a synchronization batch and after checkpointing. It reports the
-current size and refuses additional bulk acquisition before the contractual
-cap can be reached. It never attempts to evade the cap through compression,
-normalization, hashing or storage-format changes.
+The accounting is derived from the normalized rows that remain stored, not
+from a raw response body. An identity appearing in several stored query
+results is conservatively counted once per query result. Replacing or trimming
+an observation replaces or recalculates its count instead of accumulating
+historical bytes. Existing schema-v1 databases migrate in place to schema v2
+and backfill this per-observation value from their retained rows.
+
+The accounting excludes Lyrion root identities, library membership, local
+timestamps, normalized lookup keys, derived hashes, SQLite pages and indexes,
+free space, WAL, and SHM. These items remain operational storage, but are not
+the retained Last.fm response portion. A still-present legacy JSON cache is
+counted until migration removes it because it directly contains Last.fm
+responses.
+
+The SQLite schema supports artist identities, queries, and similarity edges
+only. The manual full-library update expands these observations from Lyrion
+artist roots through `artist.getSimilar`. Job-time API-key preparation may call
+`track.getSimilar`, but those results stay in memory or the separate short-lived
+JSON cache and never enter SQLite.
+
+The operational hard stop is 80 MiB of accounted Last.fm data. The provider
+checks it before each network request and again after committing the current
+response. It reports both retained Last.fm data bytes and the physical SQLite
+footprint, and refuses additional bulk acquisition before the contractual cap
+can be reached. It never attempts to evade the cap through compression,
+normalization, hashing, or storage-format changes.
 
 Lyrion-owned artist identities and membership are independent local metadata.
-Keeping the root snapshot outside the Last.fm database makes the Last.fm-derived
-footprint easier to measure and delete.
+Keeping the root snapshot outside the Last.fm database makes ownership clear;
+physical database size remains visible for disk-capacity diagnostics.
 
 The public release of **Offline only** using observations beyond HTTP freshness
 is gated on written clarification from Last.fm about durable air-gapped use and
@@ -470,8 +471,8 @@ The provider settings page shows:
   artists stored per source (`25`, `50`, or `100`), database health and all
   graph-maintenance status and actions described below.
 
-The API-key-only graph section shows the current database size and 80 MB
-operating budget; local root coverage; stored external-target, directed-edge
+The API-key-only graph section shows physical SQLite storage and retained
+Last.fm data against the 80 MiB operating budget; local root coverage; stored external-target, directed-edge
 and reciprocal-pair counts; last synchronization status; and **Update offline
 data**, **Pause/Resume**, **Cancel**, **Compact/rebuild**, and **Delete offline
 data** actions. None of these graph controls or statistics is shown for
@@ -490,7 +491,8 @@ unchanged:
   failed migration;
 - information: synchronization start/finish/pause, root coverage, requests,
   fresh/cache/stale counts, requested/returned result limits, validation
-  outcome, changed observations, persisted edges and database size;
+  outcome, changed observations, persisted edges, physical SQLite size, and
+  retained Last.fm data size;
 - debug: sanitized source identity, MBID/name resolution path, request outcome,
   HTTP validator path, old/new payload hash prefix, returned count, transaction
   result and reciprocal-edge observation.
@@ -566,7 +568,8 @@ rather than one information line per artist.
 - Cancellation, restart and rate limiting resume without refetching committed
   roots.
 - Concurrent normal prepares and one synchronizer preserve database integrity.
-- The 80 MB budget stops acquisition before the 100 MB contractual cap.
+- The 80 MiB retained-data budget stops acquisition before the 100 MB
+  contractual cap.
 - API keys and raw credentials are absent from all files, logs and fixtures.
 
 ### Migration and host compatibility
@@ -612,7 +615,7 @@ rather than one information line per artist.
 - Pi acceptance demonstrates network-free reuse and acceptable resource use.
 - Live API acceptance documents how Last.fm actually handles requested limits
   25, 50 and 100 without treating that observation as a guaranteed API maximum.
-- The combined retained Last.fm footprint remains below 80 MB.
+- The accounted retained Last.fm response data remains below 80 MiB.
 - Publicly enabling indefinite stale **Offline only** use requires written
   Last.fm clarification; absence of that clarification must remain explicit in
   provider documentation and UI.
