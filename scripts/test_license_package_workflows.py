@@ -48,6 +48,14 @@ class WorkflowPackageTests(unittest.TestCase):
                 subprocess.run(['git', 'commit', '-qm', 'fixture'], cwd=root, check=True)
                 commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=root, text=True).strip()
                 if kind in ('optimizer', 'lab'):
+                    notice_path = (root / 'optimizer-assets' / 'bliss-playlist-optimizer-third-party-nugine-LICENSE'
+                                   if kind == 'optimizer' else
+                                   root / 'native' / 'mixer' / 'bliss-mixer-third-party-alloc-stdlib-LICENSE')
+                    notice_path.parent.mkdir(parents=True)
+                    notice_path.write_bytes(b'upstream supplemental license\n')
+                    if kind == 'lab':
+                        for name in ('convert_case', 'winapi-legacy', 'fxhash'):
+                            (notice_path.parent / f'bliss-mixer-third-party-{name}-LICENSE').write_bytes(name.encode())
                     for platform in ('aarch64-linux', 'armhf-linux', 'x86_64-linux', 'mac', 'windows'):
                         dest = root / plugin / 'Bin' / platform
                         dest.mkdir(parents=True)
@@ -57,6 +65,13 @@ class WorkflowPackageTests(unittest.TestCase):
                     dest.mkdir()
                     for platform in ('aarch64-linux', 'armhf-linux', 'x86_64-linux', 'mac', 'windows.exe'):
                         (dest / (binary + '-' + platform)).write_bytes(b'dummy')
+                bundles = {'optimizer': [(root / 'optimizer-assets', 'bliss-playlist-optimizer')],
+                           'lab': [(root / 'native/mixer', 'bliss-mixer'), (root / 'native/learner', 'bliss-learner')],
+                           'library': [(root / 'native-assets', 'bliss-guidance-library-signals')],
+                           'lastfm': [(root / 'native-assets', 'bliss-guidance-lastfm')]}[kind]
+                for directory, component in bundles:
+                    directory.mkdir(parents=True, exist_ok=True)
+                    (directory / f'{component}-third-party-licenses.zip').write_bytes(b'license bundle')
                 env = dict(os.environ, GITHUB_SHA=commit, GITHUB_OUTPUT='/dev/null', RELEASE_VERSION='9.9.9', RELEASE_TAG='v-test-plugin', OPTIMIZER_RELEASE='v-test-override',
                            MIXER_RELEASE='v-test-override', LEARNER_RELEASE='v-learner-override',
                            NATIVE_RELEASE='v-test-override', LINUX_ASSET='linux.zip',
@@ -75,6 +90,14 @@ class WorkflowPackageTests(unittest.TestCase):
                         self.assertEqual(archive.read(f'{plugin}/LICENSE'), (root / 'LICENSE').read_bytes())
                         self.assertEqual(archive.read(f'{plugin}/THIRD_PARTY_NOTICES.md'),
                                          (root / 'THIRD_PARTY_NOTICES.md').read_bytes())
+                        if kind in ('optimizer', 'lab'):
+                            self.assertEqual(archive.read(f'{plugin}/third-party-licenses/{notice_path.name}'),
+                                             notice_path.read_bytes())
+                            if kind == 'lab':
+                                for name in ('convert_case', 'winapi-legacy', 'fxhash'):
+                                    self.assertEqual(archive.read(f'{plugin}/third-party-licenses/bliss-mixer-third-party-{name}-LICENSE'), name.encode())
+                        for _, component in bundles:
+                            self.assertEqual(archive.read(f'{plugin}/third-party-licenses/{component}-third-party-licenses.zip'), b'license bundle')
                         provenance = archive.read(f'{plugin}/SOURCE.md').decode()
                         self.assertEqual(provenance, archive.read(f'{plugin}/Bin/SOURCE.md').decode())
                         self.assertIn(commit, provenance)
