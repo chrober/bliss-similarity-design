@@ -1,4 +1,4 @@
-# Lyrion guidance-provider discovery and host integration
+# Lyrion guidance-provider discovery and host integration design
 
 > **2026-10-13 refinement:** Library Signals may use the enabled Alternative
 > Play Count plugin as an explicit alternative source for its existing

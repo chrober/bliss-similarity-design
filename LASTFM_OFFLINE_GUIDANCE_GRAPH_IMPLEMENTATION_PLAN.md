@@ -4,9 +4,6 @@
 **Status:** Core graph, provider controls and maintenance implemented and released; see current status below
 **Primary owners:** `bliss-guidance-lastfm`, `lms-guidance-lastfm`  
 
-> **For agentic workers:** REQUIRED SUB-SKILL: use
-> `superpowers:executing-plans` to implement this plan task by task.
-
 **Goal:** Replace the direct API-key path's whole-file JSON cache with a
 provider-owned SQLite similarity graph, add API-key-only read-through and
 library-artist synchronization, and preserve LastMix behavior exactly.
