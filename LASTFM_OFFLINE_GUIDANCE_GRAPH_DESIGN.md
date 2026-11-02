@@ -1,15 +1,36 @@
 # Last.fm offline guidance graph design
 
-**Status:** Approved design; local implementation complete, release and Pi acceptance pending
+**Status:** Implemented and released; see the current implementation summary below
 **Scope:** API-key-only persistent Last.fm artist-similarity graph, read-through
 acquisition, offline operation, and library-wide artist synchronization  
-**Last reviewed:** 2026-10-22  
+**Last reviewed:** 2026-11-02
+
+## Current implementation and design history
+
+The API Key artist graph is released in the Last.fm Lyrion provider and native
+provider. It was exercised on the user's Pi, including the manual library
+update and live status. Track lookups use a separate short-lived JSON cache,
+never the SQLite artist graph. LastMix uses its own artifact path, not the graph.
+
+Fresh artist observations are reused; online-with-cache obtains missing or stale
+observations online and can fall back to stale data on failure. Offline-preferred
+can use stored stale data. Online results are returned for the current job before
+separate persistence completes; persistence errors are reported, not presented as
+a successful cache fill. Provider-owned low-priority membership reconciliation
+is separate from both the host request and a full Last.fm library update.
+
+The stored-data budget is configurable (default 100 decimal MB); values above
+the default require user confirmation and the settings link to Last.fm terms.
+The accounting includes retained track-cache values as well as artist relations,
+and is distinct from SQLite file size. The detailed original design below is a
+historical proposal where it conflicts with this current summary; consult the
+[provider documentation](https://github.com/chrober/lms-guidance-lastfm) for
+current controls and limitations.
 
 ## Purpose
 
-The Last.fm guidance provider's direct **API Key** path currently keeps a
-bounded JSON TTL cache for the source anchors needed by one guidance job. This
-design replaces that cache with a provider-owned SQLite store that can support
+The original design replaced the direct **API Key** path's artist-result JSON
+cache with a provider-owned SQLite store that can support
 three related uses:
 
 - reuse every successful online lookup in later jobs;
@@ -29,8 +50,9 @@ here.
 
 ## Success criteria
 
-- A successful API-key lookup is transactionally available to the next offline
-  job without repeating the request.
+- A successful API-key lookup can serve the current job immediately; its
+  background persistence must finish successfully before a later offline job
+  can rely on it.
 - Server-side changes are detected through HTTP validators where available and
   through a canonical ordered-result hash after a successful revalidation.
 - Artist and recording MBIDs are stored and used before normalized-name
@@ -40,9 +62,8 @@ here.
   and does not recursively crawl every returned artist.
 - Non-library result artists are retained by default; an explicit setting may
   restrict persistence to current local targets.
-- Retained Last.fm response data stays below an internal 80 MiB safety budget
-  and therefore leaves headroom below Last.fm's current 100 MB
-  reasonable-usage cap. Physical SQLite storage is measured separately.
+- Retained Last.fm response data is accounted separately from physical SQLite
+  storage against a configurable budget, defaulting to 100 decimal MB.
 - Normal provider scoring remains network-free after `prepare` has frozen the
   observations for the job.
 - Missing data, an unavailable network, rate limiting, a damaged store, or a
@@ -58,8 +79,8 @@ here.
   `bliss-playlist-optimizer`, or `bliss-mixer`.
 - Do not reuse AudioScrobbler credentials or place an API key in an artifact,
   command line, log, diagnostic, or SQLite database.
-- Do not bulk-prefetch similar tracks. Normal job-time track lookups may use the
-  same read-through store.
+- Do not bulk-prefetch similar tracks. Job-time track lookups use the separate
+  short-lived cache, not the artist graph.
 - Do not integrate LastMix with the offline graph. Any future LastMix-backed
   persistence would require its own design and is not implied by this one.
 
@@ -233,7 +254,7 @@ The provider owns one global retrieval policy:
 | Policy | Stored fresh data | Stored stale data | Missing data | Network |
 | --- | --- | --- | --- | --- |
 | **Online with cache** | Use | Revalidate before use | Fetch and persist | Allowed |
-| **Offline preferred** | Use | Use immediately and queue refresh | Fetch and persist | Allowed only for refresh/miss |
+| **Offline preferred** | Use | Use stored observation and attempt refresh | Fetch and persist | Allowed for refresh or miss |
 | **Offline only** | Use | Use as an explicitly stale snapshot | Return neutral guidance | Never |
 
 The retrieval policy is provider-owned rather than host-overridable. Existing
@@ -250,9 +271,8 @@ Provider UI behavior:
   Key**; they are absent when **LastMix** is selected;
 - **Store all returned artists** is the default scope;
 - **Store only artists in the current Lyrion library** is the optional scope;
-- **Similar artists stored per source** offers `25`, `50`, and `100`, with `25`
-  preserving the current default until live API and storage measurements
-  justify a larger default;
+- **Similar artists stored per source** defaults to `25`; an empty input means
+  unlimited rather than a predefined list of limits;
 - changing the scope affects new and refreshed observations; an explicit
   compact/rebuild action applies it to already stored data;
 - normal online misses always use read-through persistence when graph storage
@@ -276,7 +296,7 @@ sequenceDiagram
     else Artist miss or refresh and network allowed
         P->>LF: Bounded artist.getSimilar request
         LF-->>P: Artist names, MBIDs, ranks and scores
-        P->>DB: Atomically persist artist observation and edges
+        P-->>P: Retain observation for this job and queue persistence
     end
     alt Track cache miss and network allowed
         P->>LF: Bounded track.getSimilar request
@@ -287,14 +307,14 @@ sequenceDiagram
     end
     P->>P: Freeze relations for provider session
     P-->>H: Prepared diagnostics
+    P->>DB: Persist queued artist observation independently
     H->>P: Score bounded admitted candidates
     P-->>H: Signals from frozen relations only
 ```
 
-The API response is committed before it is considered durably available. If
-the commit fails, the current job may use the already parsed in-memory result,
-but diagnostics must report `persistence_failed`; it must not claim an offline
-cache fill.
+The current job uses the parsed response without waiting for persistence. Only a
+successful later commit makes it durably available; a failure is reported and
+must not be presented as an offline cache fill.
 
 `score` never opens a network connection. It matches candidate Artist MBIDs or
 Recording MBIDs first and falls back to the normalized metadata already carried
@@ -387,9 +407,8 @@ them when the user wants to reclaim space.
 Increasing the limit multiplies graph size and may add mostly non-local target
 artists. Before changing the default from 25, Raspberry Pi acceptance must
 measure actual server response counts, additional local-target coverage,
-physical database growth, retained-data growth, synchronization duration, and
-the 80 MiB budget at limits 25,
-50, and 100.
+physical database growth, retained-data growth and synchronization duration at
+representative limits, including 25, 50 and 100.
 
 ## Storage and Last.fm terms
 
@@ -428,12 +447,11 @@ artist roots through `artist.getSimilar`. Job-time API-key preparation may call
 `track.getSimilar`, but those results stay in memory or the separate short-lived
 JSON cache and never enter SQLite.
 
-The operational hard stop is 80 MiB of accounted Last.fm data. The provider
-checks it before each network request and again after committing the current
-response. It reports both retained Last.fm data bytes and the physical SQLite
-footprint, and refuses additional bulk acquisition before the contractual cap
-can be reached. It never attempts to evade the cap through compression,
-normalization, hashing, or storage-format changes.
+The operational budget defaults to 100 decimal MB of accounted Last.fm data
+and can be changed by the user after confirmation. It includes relevant values
+in the short-lived track JSON cache, not JSON formatting or expired entries.
+The provider reports retained data separately from physical SQLite storage and
+reports rejected writes; users remain responsible for reviewing the linked terms.
 
 Lyrion-owned artist identities and membership are independent local metadata.
 Keeping the root snapshot outside the Last.fm database makes ownership clear;
@@ -452,11 +470,10 @@ provider:
 
 1. creates and validates the SQLite schema;
 2. takes the existing JSON cache lock;
-3. imports decodable positive and negative track/artist entries with their
-   recorded fetch timestamps and fallback expiry;
+3. imports decodable artist entries with their recorded timestamps and expiry;
 4. commits and verifies the imported counts;
 5. atomically marks migration complete; and
-6. removes the legacy JSON only after successful verification.
+6. preserves track entries in the JSON cache, removing it only if empty.
 
 A corrupt or unknown JSON cache is ignored with a warning and preserved for
 manual inspection; it does not prevent creation of an empty valid SQLite
@@ -468,11 +485,11 @@ The provider settings page shows:
 
 - Last.fm source and API-key controls already owned by the provider; and
 - when **API Key** is selected, retrieval policy, persistence scope, similar
-  artists stored per source (`25`, `50`, or `100`), database health and all
+  artists stored per source (number or empty for unlimited), database health and all
   graph-maintenance status and actions described below.
 
 The API-key-only graph section shows physical SQLite storage and retained
-Last.fm data against the 80 MiB operating budget; local root coverage; stored external-target, directed-edge
+Last.fm data against the configured operating budget; local root coverage; stored external-target, directed-edge
 and reciprocal-pair counts; last synchronization status; and **Update offline
 data**, **Pause/Resume**, **Cancel**, **Compact/rebuild**, and **Delete offline
 data** actions. None of these graph controls or statistics is shown for
@@ -568,8 +585,8 @@ rather than one information line per artist.
 - Cancellation, restart and rate limiting resume without refetching committed
   roots.
 - Concurrent normal prepares and one synchronizer preserve database integrity.
-- The 80 MiB retained-data budget stops acquisition before the 100 MB
-  contractual cap.
+- The configured retained-data budget is enforced and rejected writes are
+  reported; the default is 100 decimal MB.
 - API keys and raw credentials are absent from all files, logs and fixtures.
 
 ### Migration and host compatibility
@@ -598,7 +615,7 @@ rather than one information line per artist.
 ## Delivery sequence
 
 1. Native SQLite schema, repository API and graph/identity tests.
-2. Existing JSON migration and track/artist read-through replacement.
+2. Existing artist JSON migration and artist graph read-through.
 3. HTTP freshness metadata, conditional revalidation and retrieval policies.
 4. Provider controls and status for storage policy and database health.
 5. Lyrion artist-root snapshot plus resumable native synchronization command.
@@ -615,7 +632,7 @@ rather than one information line per artist.
 - Pi acceptance demonstrates network-free reuse and acceptable resource use.
 - Live API acceptance documents how Last.fm actually handles requested limits
   25, 50 and 100 without treating that observation as a guaranteed API maximum.
-- The accounted retained Last.fm response data remains below 80 MiB.
+- The accounted retained Last.fm response data respects the configured budget.
 - Publicly enabling indefinite stale **Offline only** use requires written
   Last.fm clarification; absence of that clarification must remain explicit in
   provider documentation and UI.

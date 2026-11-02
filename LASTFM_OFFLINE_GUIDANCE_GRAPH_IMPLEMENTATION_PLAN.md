@@ -1,7 +1,7 @@
 # Last.fm offline guidance graph implementation plan
 
 **Date:** 2026-10-22  
-**Status:** Local implementation complete through host-path cleanup; release and Pi acceptance pending
+**Status:** Core graph, provider controls and maintenance implemented and released; see current status below
 **Primary owners:** `bliss-guidance-lastfm`, `lms-guidance-lastfm`  
 
 > **For agentic workers:** REQUIRED SUB-SKILL: use
@@ -24,7 +24,23 @@ Perl/Lyrion plugin APIs, Test::More, GitHub Actions cross-platform builds.
 **Specification:**
 [`LASTFM_OFFLINE_GUIDANCE_GRAPH_DESIGN.md`](LASTFM_OFFLINE_GUIDANCE_GRAPH_DESIGN.md)
 
-## Implementation snapshot (2026-10-23)
+## Current implementation status (2026-11-02)
+
+The native and Lyrion provider main branches contain the released API-key-only
+artist graph and maintenance workflow. Provider `0.3.6` and native `0.2.5`
+record later persistence-notification work; check the actual package pin and
+published artifacts before using these as deployment evidence. Real Pi library
+updates and host lookups have been exercised, but individual rate-limit,
+recovery and cross-platform scenarios below are not all established as tested.
+Track observations remain in a separate short-lived JSON cache. Online results
+serve the current job before asynchronous persistence completes; database
+membership refresh is low-priority and does not initiate a bulk Last.fm scan.
+The configurable retained-data budget defaults to 100 decimal MB.
+
+The table and detailed task checklist below preserve the 2026-10-23 planning
+snapshot; they are historical, not the current release gate.
+
+## Historical implementation snapshot (2026-10-23)
 
 | Area | State | Remaining gate |
 | --- | --- | --- |
@@ -46,7 +62,8 @@ Perl/Lyrion plugin APIs, Test::More, GitHub Actions cross-platform builds.
   logs.
 - `prepare` may read stored observations and perform bounded direct HTTP work;
   `score` remains network-free and uses a frozen in-memory snapshot.
-- Every successful online miss is committed before later jobs rely on it.
+- A later offline job can rely on an online miss only after its independent
+  persistence succeeds; the current job need not wait for the commit.
 - Artist edges are directional. A response for `A` must never synthesize
   `B -> A`.
 - MBIDs are authoritative; normalized names are only controlled fallbacks.

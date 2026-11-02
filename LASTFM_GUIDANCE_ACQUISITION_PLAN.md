@@ -4,7 +4,7 @@
 failure, cache, and performance acceptance verification remains  
 **Scope:** Discoverable Last.fm provider plus Better Call Bliss and Bliss Mixer
 Lab host integration  
-**Last reviewed:** 2026-10-18  
+**Last reviewed:** 2026-11-02
 
 ## Current implementation status
 
@@ -12,9 +12,9 @@ Lab host integration
 | --- | --- | --- |
 | Discoverable Lyrion provider | `lms-guidance-lastfm` owns its settings page, descriptor, disabled-by-default host activation, LastMix/API Key source controls, and provider log relay. | Keep provider/host parity tests current. |
 | LastMix acquisition | LastMix obtains bounded observations; the host resolves and hash-binds the artifact; native scoring is network-free. | Continue failure and cache acceptance coverage. |
-| Native Last.fm provider | Released as `bliss-guidance-lastfm` v0.1.3 with artifact and direct acquisition adapters, candidate identity translation, structured diagnostics, and network-free scoring. | Continue cross-platform and failure-path acceptance coverage. |
-| API Key mode | Direct mode performs bounded HTTP/cache work only during `prepare`, freezes the session relations, and degrades neutrally for missing credentials, network failure, timeouts, or invalid responses. | Expand cold/warm-cache, rate-limit, offline, cancellation, and reproducibility acceptance coverage. |
-| Host integrations | Better Call Bliss and Bliss Mixer Lab discover the released `lms-guidance-lastfm` 0.2.3 provider. The playlist optimizer and native `bliss-mixer` endpoint host the common lifecycle while preserving each host's Bliss-first selection policy and presentation. | Continue representative host/provider regression and outage checks. |
+| Native Last.fm provider | Artifact and direct adapters, candidate identity translation, structured diagnostics and network-free scoring are released. | Continue cross-platform and failure-path acceptance coverage. |
+| API Key mode | During `prepare`, direct mode uses a provider-owned SQLite artist graph and separate short-lived track cache, performs bounded HTTP work as needed, and freezes relations. New online observations can serve the job before asynchronous persistence completes. | Continue cold/warm-cache, rate-limit, offline, cancellation, and reproducibility acceptance coverage. See the [offline graph design](LASTFM_OFFLINE_GUIDANCE_GRAPH_DESIGN.md). |
+| Host integrations | Better Call Bliss and Bliss Mixer Lab discover the provider. The playlist optimizer and native `bliss-mixer` endpoint host the common lifecycle while preserving each host's Bliss-first selection policy and presentation. | Continue representative host/provider regression and outage checks. |
 
 ## Goal
 
