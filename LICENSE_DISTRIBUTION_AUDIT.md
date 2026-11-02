@@ -53,7 +53,7 @@ These are build-input and reproducibility leads, not findings that a particular 
 
 Non-publishing GitHub release-workflow builds were dispatched for [Last.fm](https://github.com/chrober/bliss-guidance-lastfm/actions/runs/41447661199), [Library Signals](https://github.com/chrober/bliss-guidance-library-signals/actions/runs/41447666008), [optimizer](https://github.com/chrober/bliss-playlist-optimizer/actions/runs/41447670349), [mixer](https://github.com/chrober/bliss-mixer/actions/runs/41447675070) and [learner](https://github.com/chrober/bliss-learner/actions/runs/41447611826). All five source jobs completed. Their downloaded source and notice assets matched their SHA-256 sidecars, their manifest commits matched the tested commits, and all five source READMEs contained the corrected working-directory and offline-build instructions. The stricter inventory check passed on all five notice bundles, including the mixer's labelled Actix and Fuchsia supplements. This is a notice-coverage check, not a completed substantive review of all 469 dependencies.
 
-At the time of this check, the Last.fm, Library Signals and learner platform jobs all succeeded. Mixer and optimizer Linux/Windows jobs also succeeded, but both macOS jobs were still queued. These are workflow artifacts, not new releases; check the final run conclusions before using them as release evidence.
+All five runs subsequently completed successfully across their configured Linux, macOS and Windows jobs. The release jobs were intentionally skipped: these are workflow artifacts, not new releases. In particular, the learner test confirms the changed Docker builds on GitHub.
 
 ## Findings and mitigations
 
