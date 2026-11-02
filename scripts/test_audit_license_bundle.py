@@ -12,11 +12,11 @@ spec.loader.exec_module(audit)
 
 
 class AuditTests(unittest.TestCase):
-    def bundle(self, path, package, files):
+    def bundle(self, path, package, files, *, short=False):
         with zipfile.ZipFile(path, 'w') as z:
             z.writestr('SOURCE_MANIFEST.json', json.dumps({'packages': [package]}))
             for name in files:
-                z.writestr(name, 'text')
+                z.writestr(name, '../LICENSE-MIT' if short and name.startswith('vendor/') else 'license terms ' * 8)
 
     def test_notice_required_and_supplement_accepted(self):
         with tempfile.TemporaryDirectory() as d:
@@ -38,6 +38,30 @@ class AuditTests(unittest.TestCase):
                 audit.audit(path)
             self.bundle(path, package, ['vendor/example/LICENSE'])
             audit.audit(path)
+
+    def test_path_only_license_is_not_a_complete_notice(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / 'licenses.zip'
+            package = {'name': 'actix-macros', 'version': '0.1.3', 'source': 'registry',
+                       'notice_files': ['vendor/actix-macros/LICENSE-MIT']}
+            self.bundle(path, package, ['vendor/actix-macros/LICENSE-MIT'], short=True)
+            with self.assertRaises(ValueError):
+                audit.audit(path)
+            with zipfile.ZipFile(path, 'a') as z:
+                z.writestr('third-party-licenses/actix-macros-0.1.3-LICENSE-MIT', '../LICENSE-MIT')
+            with self.assertRaises(ValueError):
+                audit.audit(path)
+            self.bundle(path, package, ['vendor/actix-macros/LICENSE-MIT',
+                                        'third-party-licenses/actix-macros-0.1.3-LICENSE-MIT'], short=True)
+            audit.audit(path)
+
+    def test_r_efi_authors_placeholder_is_not_a_license(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / 'licenses.zip'
+            package = {'name': 'r-efi', 'version': '5.3.0', 'source': 'registry', 'notice_files': []}
+            self.bundle(path, package, ['vendor/r-efi-5.3.0/AUTHORS'], short=True)
+            with self.assertRaises(ValueError):
+                audit.audit(path)
 
 
 if __name__ == '__main__':

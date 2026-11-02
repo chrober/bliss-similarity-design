@@ -26,6 +26,7 @@ SUPPLEMENTS = {
     ('stdweb-internal-macros', '0.2.9'): 'stdweb-internal-LICENSE',
     ('stdweb-internal-runtime', '0.1.5'): 'stdweb-internal-LICENSE',
     ('valuable', '0.1.1'): 'valuable-0.1.1-LICENSE',
+    ('actix-macros', '0.1.3'): 'actix-macros-0.1.3-LICENSE-MIT',
 }
 
 
@@ -40,13 +41,16 @@ def audit(path):
             notice_paths = package['notice_files']
             if notice_paths:
                 missing.extend(f"{package['name']}: {p}" for p in notice_paths if p not in members)
-                continue
+                if any(p in members and len(bundle.read(p)) >= 50 for p in notice_paths):
+                    continue
             key = package['name'], package['version']
             supplement = SUPPLEMENTS.get(key)
             # Older generated inventories did not index this embedded license.
-            if key == ('r-efi', '5.3.0') and 'vendor/r-efi-5.3.0/AUTHORS' in members:
+            if (key == ('r-efi', '5.3.0') and 'vendor/r-efi-5.3.0/AUTHORS' in members
+                    and len(bundle.read('vendor/r-efi-5.3.0/AUTHORS')) >= 50):
                 continue
-            if not supplement or 'third-party-licenses/' + supplement not in members:
+            supplemental_path = 'third-party-licenses/' + supplement if supplement else None
+            if not supplemental_path or supplemental_path not in members or len(bundle.read(supplemental_path)) < 50:
                 missing.append(f'{key[0]} {key[1]}: no inventoried or reviewed supplemental notice')
         if missing:
             raise ValueError('\n'.join(missing))
