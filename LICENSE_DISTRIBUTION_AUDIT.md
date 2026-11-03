@@ -10,6 +10,7 @@ Follow-up releases: Better Call Bliss 0.22.11 (optimizer v0.2.7), Bliss Mixer La
 
 | Topic | Status and evidence |
 | --- | --- |
+| Learner port permission | Answered: on 2026-11-02, Polochon-street [confirmed](https://github.com/Polochon-street/bliss-metric-learning/issues/5#issuecomment-6588394931) that the Rust port may be published, modified and distributed under GPLv3. `bliss-learner` retains its existing GPL-3.0-only license. This records the author's statement, not a determination about other parties' rights. |
 | New release provenance and packages | Verified for the releases listed below: tags, source-manifest commits, asset checksums, platform packages, included license bundles and public feed. This is not proof of every license obligation or a bit-reproducible build. |
 | Dependency notices | The five release inventories contain 469 unique name/version pairs across 743 inventory entries. The earlier presence check did not distinguish license text from a file containing only a relative path; the `actix-macros` finding below demonstrates this limitation. A stricter audit test is implemented, but the inventory still needs substantive license-by-license review. |
 | Supplemental notices | `convert_case` 0.4.0 and the legacy WinAPI crates have the evidence described below. The exact upstream revision for `fuchsia-zircon-sys` 0.3.3 remains unconfirmed; do not present the historical supplemental license as an exact-revision match. |
